@@ -42,8 +42,8 @@ const SidebarLink = ({
       className={cn(
         "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
         active 
-          ? "bg-therapy-500 text-white" 
-          : "hover:bg-therapy-100 text-gray-700 hover:text-therapy-700",
+          ? "bg-escalando-400 text-black font-medium" 
+          : "hover:bg-escalando-100 text-gray-700 hover:text-escalando-700",
         compact && "justify-center px-2"
       )}
     >
@@ -138,10 +138,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="flex items-center justify-between p-4 border-b">
           {(sidebarOpen || isMobile) && (
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-therapy-500 flex items-center justify-center">
-                <span className="text-white font-bold">TS</span>
+              <div className="h-8 w-8 rounded-lg bg-escalando-400 flex items-center justify-center">
+                <span className="text-black font-bold">E</span>
               </div>
-              <h1 className="text-lg font-display font-semibold">TerapiaSoft</h1>
+              <h1 className="text-lg font-display font-semibold">Escalando</h1>
             </div>
           )}
           <Button
@@ -205,10 +205,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-md bg-therapy-500 flex items-center justify-center">
-              <span className="text-white font-bold text-xs">TS</span>
+            <div className="h-7 w-7 rounded-md bg-escalando-400 flex items-center justify-center">
+              <span className="text-black font-bold text-xs">E</span>
             </div>
-            <h1 className="text-lg font-display font-semibold">TerapiaSoft</h1>
+            <h1 className="text-lg font-display font-semibold">Escalando</h1>
           </div>
         </div>
       )}

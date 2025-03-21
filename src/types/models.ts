@@ -3,40 +3,34 @@ export interface Professional {
   id: string;
   name: string;
   specialty: string;
+  avatar: string;
   email: string;
   phone: string;
-  avatar?: string;
-  bio?: string;
 }
 
 export interface Patient {
   id: string;
   name: string;
-  dateOfBirth: string;
-  parentName: string;
-  contactNumber: string;
-  email?: string;
-  diagnosis?: string;
-  notes?: string;
   professionalId: string;
+  email: string;
+  phone: string;
+  age: number;
+  gender: string;
+  status: string;
+  diagnosis: string;
+  notes: string;
+  location: string;
+  treatmentPlan: string | null;
 }
 
 export interface Session {
   id: string;
-  date: string;
   patientId: string;
   professionalId: string;
-  notes: string;
+  date: string;
+  time: string;
+  type: string;
+  duration: number;
   progress: string;
-  exercises?: Exercise[];
-  recommendations?: string;
-}
-
-export interface Exercise {
-  id: string;
-  name: string;
-  description: string;
-  duration?: string;
-  frequency?: string;
-  instructions?: string;
+  notes?: string;
 }
