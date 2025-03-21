@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { professionals, patients, getSessionsByPatient } from "@/data/mockData";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 // For demonstration purposes
 const currentProfessional = professionals[0];
@@ -40,6 +42,7 @@ const myPatients = patients.filter(
 const Patients = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredPatients, setFilteredPatients] = useState(myPatients);
+  const isMobile = useIsMobile();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -88,24 +91,30 @@ const Patients = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="space-y-6"
+        className="space-y-4 sm:space-y-6"
       >
-        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+        <div className={cn(
+          "flex flex-col space-y-4",
+          !isMobile && "md:flex-row md:items-center md:justify-between md:space-y-0"
+        )}>
           <div>
-            <h1 className="text-2xl font-semibold">Pacientes</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-xl sm:text-2xl font-semibold">Pacientes</h1>
+            <p className="text-muted-foreground text-sm">
               Gestiona la información de tus pacientes
             </p>
           </div>
-          <Link to="/patients/new">
-            <Button>
+          <Link to="/patients/new" className={isMobile ? "w-full" : ""}>
+            <Button className={isMobile ? "w-full" : ""}>
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Paciente
             </Button>
           </Link>
         </div>
         
-        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-4">
+        <div className={cn(
+          "flex flex-col space-y-3", 
+          !isMobile && "md:flex-row md:items-center md:space-y-0 md:space-x-4"
+        )}>
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -117,12 +126,15 @@ const Patients = () => {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full md:w-auto">
+              <Button variant="outline" className={cn(
+                "flex items-center",
+                isMobile ? "w-full" : ""
+              )}>
                 <Filter className="mr-2 h-4 w-4" />
                 Filtrar
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent align={isMobile ? "end" : "start"}>
               <DropdownMenuItem>Todos los pacientes</DropdownMenuItem>
               <DropdownMenuItem>Pacientes activos</DropdownMenuItem>
               <DropdownMenuItem>Ordenar por nombre</DropdownMenuItem>
@@ -131,7 +143,7 @@ const Patients = () => {
           </DropdownMenu>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredPatients.map((patient, index) => {
             const patientSessions = getSessionsByPatient(patient.id);
             const lastSession = patientSessions.length > 0
@@ -143,19 +155,19 @@ const Patients = () => {
                 key={patient.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * index }}
+                transition={{ delay: 0.05 * index }}
               >
                 <Card className="h-full transition-all duration-200 hover:shadow-md">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between">
-                      <CardTitle>{patient.name}</CardTitle>
+                      <CardTitle className="text-lg">{patient.name}</CardTitle>
                       <Link to={`/patients/${patient.id}/edit`}>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
                     </div>
-                    <CardDescription className="flex items-center">
+                    <CardDescription className="flex items-center flex-wrap">
                       {calculateAge(patient.dateOfBirth)}
                       {patient.diagnosis && (
                         <>
@@ -171,13 +183,13 @@ const Patients = () => {
                         <div className="text-sm font-medium text-muted-foreground mb-1">
                           Responsable:
                         </div>
-                        <div>{patient.parentName}</div>
+                        <div className="truncate">{patient.parentName}</div>
                       </div>
                       <div>
                         <div className="text-sm font-medium text-muted-foreground mb-1">
                           Contacto:
                         </div>
-                        <div>{patient.contactNumber}</div>
+                        <div className="truncate">{patient.contactNumber}</div>
                       </div>
                       {lastSession && (
                         <div className="pt-2">
@@ -213,7 +225,7 @@ const Patients = () => {
         </div>
         
         {filteredPatients.length === 0 && (
-          <div className="text-center py-12">
+          <div className="text-center py-8 sm:py-12">
             <p className="text-lg text-muted-foreground">
               No se encontraron pacientes con tu búsqueda.
             </p>
