@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Home,
@@ -56,6 +56,7 @@ const SidebarLink = ({
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
   const isMobile = useIsMobile();
   
