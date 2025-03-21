@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Home,
@@ -55,10 +56,10 @@ const SidebarLink = ({
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
   const currentPath = location.pathname;
   const isMobile = useIsMobile();
   
+  // Close sidebar on mobile when navigating to a new page
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false);
@@ -67,10 +68,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   }, [location.pathname, isMobile]);
   
+  // Initialize sidebar based on device
   useEffect(() => {
     setSidebarOpen(!isMobile);
   }, [isMobile]);
   
+  // Mock logged in professional for demo
   const currentProfessional = professionals[0];
 
   const toggleSidebar = () => {
@@ -85,6 +88,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: "/reports", label: "Informes", icon: FileText },
   ];
 
+  // Show sidebar as overlay on mobile
   const mobileVariants = {
     open: { 
       x: 0,
@@ -98,11 +102,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   };
 
+  // Desktop sidebar width variants
   const desktopVariants = {
     open: { width: "280px", transition: { duration: 0.3 } },
     closed: { width: "80px", transition: { duration: 0.3 } }
   };
 
+  // Content padding adjustment
   const contentDesktopVariants = {
     open: { marginLeft: "280px", transition: { duration: 0.3 } },
     closed: { marginLeft: "80px", transition: { duration: 0.3 } }
@@ -110,6 +116,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      {/* Mobile overlay when sidebar is open */}
       {isMobile && sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/20 z-40"
@@ -117,6 +124,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         />
       )}
 
+      {/* Sidebar */}
       <motion.aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex flex-col bg-white shadow-sm",
@@ -184,6 +192,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </motion.aside>
 
+      {/* Mobile header */}
       {isMobile && (
         <div className="fixed top-0 left-0 right-0 z-30 bg-white border-b p-4 flex items-center">
           <Button
@@ -203,6 +212,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       )}
 
+      {/* Main content */}
       <motion.main
         className={cn(
           "flex-1 transition-all duration-300 pb-12",
@@ -224,6 +234,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               isMobile && "px-3 py-3"
             )}
           >
+            {/* Mobile back button on patient detail pages */}
             {isMobile && location.pathname.includes("/patients/") && (
               <Button 
                 variant="ghost" 
