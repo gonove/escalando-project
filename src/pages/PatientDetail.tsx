@@ -1,89 +1,45 @@
 
 import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft, CalendarDays, Edit, Phone, User, MapPin, FileText, Plus, ChevronDown, ChevronUp } from "lucide-react";
 import Layout from "@/components/layout/Layout";
-import { Button } from "@/components/ui/button";
+import { patients, sessions } from "@/data/mockData";
+import { Patient, Session } from "@/types/models";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Calendar, Clock, MapPin, Phone, Mail, File, Plus, ChevronLeft } from "lucide-react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { patients, getSessionsByPatient } from "@/data/mockData";
 
 const PatientDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const patient = patients.find((p) => p.id === id) as Patient | undefined;
+  const patientSessions = sessions
+    .filter((s) => s.patientId === id)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  
+  const [activeTab, setActiveTab] = useState("overview");
   const isMobile = useIsMobile();
-  
-  // Find the patient by ID
-  const patient = patients.find(p => p.id === id);
-  
-  // Get all sessions for this patient
-  const patientSessions = id ? getSessionsByPatient(id) : [];
-  
-  // Sort sessions by date (newest first)
-  const sortedSessions = [...patientSessions].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-  
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-  
-  // Calculate patient age
-  const calculateAge = (dateOfBirth: string) => {
-    const today = new Date();
-    const birthDate = new Date(dateOfBirth);
-    
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDifference = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    
-    if (age < 1) {
-      // For babies less than 1 year old, show age in months
-      const ageInMonths = today.getMonth() - birthDate.getMonth() + 
-        (today.getFullYear() - birthDate.getFullYear()) * 12;
-      return `${ageInMonths} meses`;
-    }
-    
-    return `${age} años`;
-  };
-  
-  // Handle session expansion toggle
-  const toggleSession = (sessionId: string) => {
-    if (expandedSession === sessionId) {
-      setExpandedSession(null);
-    } else {
-      setExpandedSession(sessionId);
-    }
-  };
   
   if (!patient) {
     return (
       <Layout>
-        <div className="text-center py-12">
-          <h2 className="text-xl font-semibold mb-2">Paciente no encontrado</h2>
-          <p className="text-muted-foreground mb-6">No pudimos encontrar el paciente solicitado.</p>
-          <Link to="/patients">
-            <Button>Volver a Pacientes</Button>
-          </Link>
+        <div className="flex flex-col items-center justify-center py-12">
+          <h1 className="text-2xl font-semibold mb-4">Paciente no encontrado</h1>
+          <p className="text-muted-foreground mb-6">
+            El paciente que buscas no existe o ha sido eliminado.
+          </p>
+          <Button asChild>
+            <Link to="/patients">Volver a Pacientes</Link>
+          </Button>
         </div>
       </Layout>
     );
   }
-  
+
   return (
     <Layout>
       <motion.div
@@ -92,250 +48,319 @@ const PatientDetail = () => {
         transition={{ duration: 0.5 }}
         className="space-y-6"
       >
-        {/* Back button on desktop (mobile is handled in Layout) */}
         {!isMobile && (
-          <div className="flex items-center">
-            <Link to="/patients">
-              <Button variant="ghost" className="-ml-2">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Volver a Pacientes
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                asChild
+                className="h-8 w-8"
+              >
+                <Link to="/patients">
+                  <ChevronLeft className="h-4 w-4" />
+                </Link>
               </Button>
-            </Link>
-          </div>
-        )}
-        
-        {/* Patient header section */}
-        <div className={cn(
-          "flex flex-col space-y-4", 
-          !isMobile && "sm:flex-row sm:items-start sm:justify-between sm:space-y-0"
-        )}>
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-16 w-16 border">
-              <AvatarFallback className="text-lg bg-therapy-50 text-therapy-700">
-                {patient.name.split(' ').map(n => n[0]).join('')}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h1 className="text-2xl font-semibold">{patient.name}</h1>
-              <div className="flex flex-wrap items-center gap-2 mt-1 text-muted-foreground">
-                <span>{calculateAge(patient.dateOfBirth)}</span>
-                {patient.diagnosis && (
-                  <>
-                    <span className="text-xs">•</span>
-                    <Badge variant="outline" className="font-normal">
-                      {patient.diagnosis}
-                    </Badge>
-                  </>
-                )}
-              </div>
+              <h1 className="text-2xl font-semibold">Paciente</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+                asChild
+              >
+                <Link to={`/patients/${id}/edit`}>
+                  <File className="h-4 w-4" />
+                  Editar
+                </Link>
+              </Button>
+              <Button 
+                className="flex items-center gap-2"
+                asChild
+              >
+                <Link to={`/sessions/new?patientId=${id}`}>
+                  <Plus className="h-4 w-4" />
+                  Nueva Sesión
+                </Link>
+              </Button>
             </div>
           </div>
-          
-          <div className={cn(
-            "flex gap-2",
-            isMobile ? "w-full" : "justify-end"
-          )}>
-            <Link to={`/patients/${patient.id}/edit`} className={isMobile ? "flex-1" : ""}>
-              <Button variant="outline" className={isMobile ? "w-full" : ""}>
-                <Edit className="mr-2 h-4 w-4" />
-                Editar
-              </Button>
-            </Link>
-            <Link to={`/sessions/new?patientId=${patient.id}`} className={isMobile ? "flex-1" : ""}>
-              <Button className={isMobile ? "w-full" : ""}>
-                <Plus className="mr-2 h-4 w-4" />
-                Nueva Sesión
-              </Button>
-            </Link>
-          </div>
-        </div>
-        
-        {/* Tabs for patient information */}
-        <Tabs defaultValue="info" className="w-full">
-          <TabsList className="w-full grid grid-cols-3 mb-4">
-            <TabsTrigger value="info">Información</TabsTrigger>
-            <TabsTrigger value="sessions">Sesiones</TabsTrigger>
-            <TabsTrigger value="documents">Documentos</TabsTrigger>
-          </TabsList>
-          
-          {/* Patient Information Tab */}
-          <TabsContent value="info" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Información Personal</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">Fecha de Nacimiento</p>
-                    <div className="flex items-center">
-                      <CalendarDays className="h-4 w-4 mr-2 text-therapy-500" />
-                      <p>{formatDate(patient.dateOfBirth)}</p>
-                    </div>
+        )}
+
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Información del paciente */}
+          <Card className="lg:w-1/3">
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-xl">{patient.name}</CardTitle>
+                  <CardDescription>
+                    {patient.age} años | {patient.gender}
+                  </CardDescription>
+                </div>
+                <Badge className="bg-therapy-500">
+                  {patient.status === "active" ? "Activo" : "Inactivo"}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Información de contacto
+                </h3>
+                <Separator />
+                <div className="grid gap-3 pt-3">
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span>{patient.phone}</span>
                   </div>
-                  
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">Responsable</p>
-                    <div className="flex items-center">
-                      <User className="h-4 w-4 mr-2 text-therapy-500" />
-                      <p>{patient.parentName}</p>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span>{patient.email}</span>
                   </div>
-                  
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">Contacto</p>
-                    <div className="flex items-center">
-                      <Phone className="h-4 w-4 mr-2 text-therapy-500" />
-                      <p>{patient.contactNumber}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">Dirección</p>
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-therapy-500" />
-                      <p>{patient.address || "No especificada"}</p>
-                    </div>
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <span>
+                      {patient.location || "Sin dirección registrada"}
+                    </span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Historial Médico</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Diagnóstico</p>
-                  <p>{patient.diagnosis || "No especificado"}</p>
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Información médica
+                </h3>
+                <Separator />
+                <div className="grid gap-3 pt-3">
+                  <div>
+                    <span className="text-sm font-medium block">Diagnóstico</span>
+                    <span>{patient.diagnosis}</span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium block">Notas</span>
+                    <span className="text-sm text-muted-foreground">
+                      {patient.notes || "Sin notas médicas"}
+                    </span>
+                  </div>
                 </div>
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Sesiones
+                </h3>
+                <Separator />
+                <div className="pt-3">
+                  <div className="flex justify-between">
+                    <span>Total de sesiones</span>
+                    <span className="font-medium">{patientSessions.length}</span>
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span>Última sesión</span>
+                    <span className="font-medium">
+                      {patientSessions.length > 0
+                        ? new Date(patientSessions[0].date).toLocaleDateString("es-ES")
+                        : "N/A"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Tabs con sesiones e historial */}
+          <div className="flex-1">
+            <Tabs 
+              defaultValue="overview" 
+              className="w-full"
+              value={activeTab}
+              onValueChange={setActiveTab}
+            >
+              <TabsList className="w-full grid grid-cols-2">
+                <TabsTrigger value="overview">Resumen</TabsTrigger>
+                <TabsTrigger value="sessions">Sesiones</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview" className="space-y-4 mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Plan de Tratamiento</CardTitle>
+                    <CardDescription>
+                      Objetivos y progreso terapéutico
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {patient.treatmentPlan ? (
+                      <>
+                        <div>
+                          <h4 className="font-medium mb-2">Objetivos Generales</h4>
+                          <p>{patient.treatmentPlan}</p>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-6">
+                        <p className="text-muted-foreground mb-4">
+                          No hay un plan de tratamiento definido
+                        </p>
+                        <Button
+                          variant="outline"
+                          className="flex items-center gap-2"
+                          asChild
+                        >
+                          <Link to={`/patients/${id}/treatment`}>
+                            <Plus className="h-4 w-4" />
+                            Crear Plan de Tratamiento
+                          </Link>
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
                 
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Notas Médicas</p>
-                  <p>{patient.medicalNotes || "No hay notas médicas registradas."}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Sessions Tab */}
-          <TabsContent value="sessions" className="space-y-4">
-            {sortedSessions.length > 0 ? (
-              <div className="space-y-4">
-                {sortedSessions.map((session) => (
-                  <Card key={session.id} className="overflow-hidden">
-                    <div
-                      className="p-4 cursor-pointer hover:bg-muted/40 transition-colors"
-                      onClick={() => toggleSession(session.id)}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center space-x-3">
-                          <CalendarDays className="h-5 w-5 text-therapy-500" />
+                {patientSessions.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Última Sesión</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                          <div className="bg-therapy-100 text-therapy-700 p-3 rounded-full">
+                            <Calendar className="h-5 w-5" />
+                          </div>
                           <div>
-                            <p className="font-medium">{formatDate(session.date)}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {session.title || "Sesión de terapia"}
+                            <p className="text-sm text-muted-foreground">Fecha</p>
+                            <p className="font-medium">
+                              {new Date(patientSessions[0].date).toLocaleDateString("es-ES", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              })}
+                            </p>
+                          </div>
+                          <div className="ml-6">
+                            <p className="text-sm text-muted-foreground">Hora</p>
+                            <p className="font-medium">
+                              {patientSessions[0].time || "No especificada"}
                             </p>
                           </div>
                         </div>
-                        <Button variant="ghost" size="icon">
-                          {expandedSession === session.id ? (
-                            <ChevronUp className="h-5 w-5" />
-                          ) : (
-                            <ChevronDown className="h-5 w-5" />
-                          )}
+
+                        <Separator />
+
+                        <div>
+                          <h4 className="font-medium mb-2">Progreso</h4>
+                          <p>{patientSessions[0].progress}</p>
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          asChild
+                        >
+                          <Link to={`/sessions/${patientSessions[0].id}`}>
+                            Ver Detalles
+                          </Link>
                         </Button>
                       </div>
-                    </div>
-                    
-                    {expandedSession === session.id && (
-                      <>
-                        <Separator />
-                        <CardContent className="pt-4">
-                          <div className="space-y-4">
-                            <div>
-                              <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                                Objetivos de la Sesión
-                              </h4>
-                              <p>{session.objectives || "No se especificaron objetivos."}</p>
-                            </div>
-                            
-                            <div>
-                              <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                                Actividades Realizadas
-                              </h4>
-                              <p>{session.activities || "No se registraron actividades."}</p>
-                            </div>
-                            
-                            <div>
-                              <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                                Progreso
-                              </h4>
-                              <p>{session.progress || "No se registró progreso."}</p>
-                            </div>
-                            
-                            <div>
-                              <h4 className="text-sm font-medium text-muted-foreground mb-1">
-                                Recomendaciones
-                              </h4>
-                              <p>{session.recommendations || "No hay recomendaciones."}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                        <CardFooter>
-                          <Link to={`/sessions/${session.id}/edit`} className="w-full">
-                            <Button variant="outline" className="w-full">
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar Sesión
-                            </Button>
-                          </Link>
-                        </CardFooter>
-                      </>
-                    )}
+                    </CardContent>
                   </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-8">
-                  <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">
-                    No hay sesiones registradas
-                  </h3>
-                  <p className="text-muted-foreground text-center mb-6">
-                    Aún no has registrado ninguna sesión para este paciente.
-                  </p>
-                  <Link to={`/sessions/new?patientId=${patient.id}`}>
-                    <Button>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Nueva Sesión
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-          
-          {/* Documents Tab (Placeholder) */}
-          <TabsContent value="documents">
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-8">
-                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">
-                  No hay documentos adjuntos
-                </h3>
-                <p className="text-muted-foreground text-center mb-6">
-                  Aún no has adjuntado ningún documento para este paciente.
-                </p>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Añadir Documento
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="sessions" className="mt-4">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-lg">Historial de Sesiones</CardTitle>
+                      <Button 
+                        size="sm" 
+                        className="flex items-center gap-2"
+                        asChild
+                      >
+                        <Link to={`/sessions/new?patientId=${id}`}>
+                          <Plus className="h-4 w-4" />
+                          Nueva Sesión
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {patientSessions.length === 0 ? (
+                      <div className="text-center py-12">
+                        <p className="text-muted-foreground mb-4">
+                          Aún no hay sesiones registradas
+                        </p>
+                        <Button
+                          className="flex items-center gap-2"
+                          asChild
+                        >
+                          <Link to={`/sessions/new?patientId=${id}`}>
+                            <Plus className="h-4 w-4" />
+                            Registrar Primera Sesión
+                          </Link>
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {patientSessions.map((session) => (
+                          <Card key={session.id} className="overflow-hidden border-0 shadow-sm">
+                            <div className="flex items-center p-4 bg-white hover:bg-gray-50 transition-colors">
+                              <div className="bg-therapy-100 text-therapy-700 p-3 rounded-full mr-4">
+                                <Calendar className="h-5 w-5" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                                  <div>
+                                    <p className="font-medium">
+                                      {new Date(session.date).toLocaleDateString("es-ES", {
+                                        day: "numeric",
+                                        month: "long",
+                                        year: "numeric",
+                                      })}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground truncate max-w-[250px]">
+                                      {session.type || "Sesión de terapia"}
+                                    </p>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="mt-2 sm:mt-0"
+                                    asChild
+                                  >
+                                    <Link to={`/sessions/${session.id}`}>
+                                      Ver Detalles
+                                    </Link>
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+
+        {isMobile && (
+          <div className="fixed bottom-4 right-4 z-10">
+            <Button 
+              size="lg" 
+              className="rounded-full h-14 w-14 shadow-lg"
+              asChild
+            >
+              <Link to={`/sessions/new?patientId=${id}`}>
+                <Plus className="h-6 w-6" />
+              </Link>
+            </Button>
+          </div>
+        )}
       </motion.div>
     </Layout>
   );
