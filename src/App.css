@@ -64,3 +64,19 @@ body, html {
   width: 100%;
   box-sizing: border-box;
 }
+
+/* Shared report styles */
+.shared-report-header {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+

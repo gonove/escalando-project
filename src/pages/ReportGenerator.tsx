@@ -1,6 +1,7 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,18 +11,78 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, FilePlus, Download, Calendar, ChevronRight } from "lucide-react";
+import { 
+  FileText, 
+  FilePlus, 
+  Download, 
+  Calendar, 
+  ChevronRight, 
+  Share2, 
+  Copy, 
+  Check, 
+  ExternalLink 
+} from "lucide-react";
 import { patients } from "@/data/mockData";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose
+} from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
 
 const ReportGenerator = () => {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const isMobileOrTablet = useIsMobileOrTablet();
   const currentDate = format(new Date(), "d 'de' MMMM 'de' yyyy", { locale: es });
+  const [shareLink, setShareLink] = useState("");
+  const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Mock function to generate a unique report ID
+  const generateReportId = () => {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  };
+  
+  // Function to generate a shareable link for a report
+  const generateShareableLink = (reportId: string) => {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/reports/shared/${reportId}`;
+  };
+  
+  // Function to handle share button click
+  const handleShare = (reportId: string) => {
+    const newShareLink = generateShareableLink(reportId);
+    setShareLink(newShareLink);
+    setCopied(false);
+  };
+  
+  // Function to handle copy link button click
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareLink);
+    setCopied(true);
+    toast({
+      title: "¡Enlace copiado!",
+      description: "El enlace del informe ha sido copiado al portapapeles",
+    });
+  };
+  
+  // Function to view shared report
+  const handleViewSharedReport = () => {
+    // Extract the report ID from the share link
+    const reportId = shareLink.split('/').pop();
+    navigate(`/reports/shared/${reportId}`);
+  };
   
   return (
     <Layout>
@@ -204,27 +265,95 @@ const ReportGenerator = () => {
               "grid gap-4",
               isMobile ? "grid-cols-1" : isTablet ? "grid-cols-2" : "grid-cols-3"
             )}>
-              {[1, 2, 3].map((_, index) => (
-                <Card key={index} className="overflow-hidden border border-muted">
-                  <div className="bg-muted p-2 flex justify-between items-center">
-                    <span className="font-medium text-sm">Informe de Evaluación</span>
-                    <span className="text-xs text-muted-foreground">{currentDate}</span>
-                  </div>
-                  <CardContent className="pt-4">
-                    <p className="font-medium">{patients[index].name}</p>
-                    <p className="text-sm text-muted-foreground mb-3">Evaluación inicial de neurodesarrollo</p>
-                    <div className="flex justify-between mt-4">
-                      <Button variant="ghost" size="sm" className="h-8">
-                        Ver
-                      </Button>
-                      <Button size="sm" variant="outline" className="h-8">
-                        <Download className="h-3.5 w-3.5 mr-1" />
-                        PDF
-                      </Button>
+              {[1, 2, 3].map((_, index) => {
+                // Generate a unique mock report ID for each report
+                const reportId = generateReportId();
+                
+                return (
+                  <Card key={index} className="overflow-hidden border border-muted">
+                    <div className="bg-muted p-2 flex justify-between items-center">
+                      <span className="font-medium text-sm">Informe de Evaluación</span>
+                      <span className="text-xs text-muted-foreground">{currentDate}</span>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    <CardContent className="pt-4">
+                      <p className="font-medium">{patients[index].name}</p>
+                      <p className="text-sm text-muted-foreground mb-3">Evaluación inicial de neurodesarrollo</p>
+                      <div className="flex flex-wrap justify-between mt-4 gap-2">
+                        <Button variant="ghost" size="sm" className="h-8">
+                          Ver
+                        </Button>
+                        <div className="flex gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-8"
+                                onClick={() => handleShare(reportId)}
+                              >
+                                <Share2 className="h-3.5 w-3.5 mr-1" />
+                                Compartir
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md">
+                              <DialogHeader>
+                                <DialogTitle>Compartir Informe</DialogTitle>
+                                <DialogDescription>
+                                  Comparte este enlace con los padres o tutores del paciente para que puedan ver el informe.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="flex items-center space-x-2 mt-4">
+                                <div className="grid flex-1 gap-2">
+                                  <Label htmlFor="link" className="sr-only">Link</Label>
+                                  <Input
+                                    id="link"
+                                    value={shareLink}
+                                    readOnly
+                                    className="font-mono text-sm"
+                                  />
+                                </div>
+                                <Button 
+                                  type="button" 
+                                  size="sm" 
+                                  className="px-3"
+                                  onClick={handleCopyLink}
+                                >
+                                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                  <span className="sr-only">Copiar</span>
+                                </Button>
+                              </div>
+                              <DialogFooter className="sm:justify-start mt-4 flex-col sm:flex-row gap-2">
+                                <Button 
+                                  type="button"
+                                  variant="secondary"
+                                  className="sm:w-auto w-full"
+                                  onClick={handleViewSharedReport}
+                                >
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  Previsualizar
+                                </Button>
+                                <DialogClose asChild>
+                                  <Button 
+                                    type="button" 
+                                    variant="outline"
+                                    className="sm:w-auto w-full"
+                                  >
+                                    Cerrar
+                                  </Button>
+                                </DialogClose>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                          <Button size="sm" variant="outline" className="h-8">
+                            <Download className="h-3.5 w-3.5 mr-1" />
+                            PDF
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
