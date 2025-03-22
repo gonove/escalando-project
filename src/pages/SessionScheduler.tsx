@@ -62,7 +62,7 @@ const SessionScheduler = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="space-y-6"
+        className="space-y-6 w-full"
       >
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -79,7 +79,7 @@ const SessionScheduler = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Form for scheduling a new session */}
-          <Card className="lg:col-span-1 order-2 lg:order-1">
+          <Card className="lg:col-span-1 order-2 lg:order-1 w-full">
             <CardHeader>
               <CardTitle className="text-lg">Nueva Sesión</CardTitle>
               <CardDescription>
@@ -162,7 +162,7 @@ const SessionScheduler = () => {
           </Card>
 
           {/* Calendar Week View */}
-          <Card className="lg:col-span-2 order-1 lg:order-2">
+          <Card className="lg:col-span-2 order-1 lg:order-2 w-full">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-lg">Calendario Semanal</CardTitle>
@@ -251,7 +251,7 @@ const SessionScheduler = () => {
         </div>
 
         {/* Upcoming Sessions */}
-        <Card>
+        <Card className="w-full">
           <CardHeader>
             <CardTitle className="text-lg">Próximas Sesiones</CardTitle>
             <CardDescription>
@@ -263,13 +263,13 @@ const SessionScheduler = () => {
               {scheduledSessions.map((session, i) => {
                 const patient = patients.find(p => p.id === session.patientId);
                 return (
-                  <Card key={i} className="overflow-hidden border-0 shadow-sm">
-                    <div className="flex flex-col sm:flex-row items-start p-4 bg-white hover:bg-gray-50 transition-colors">
+                  <Card key={i} className="overflow-hidden border-0 shadow-sm w-full">
+                    <div className="flex flex-col sm:flex-row items-start p-4 bg-white hover:bg-gray-50 transition-colors w-full">
                       <div className="bg-escalando-100 text-escalando-700 p-3 rounded-full mr-4 mb-3 sm:mb-0">
                         <CalendarCheck className="h-5 w-5" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex-1 min-w-0 w-full">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full">
                           <div>
                             <p className="font-medium">
                               {format(session.date, "EEEE d 'de' MMMM", { locale: es })} • {session.time}
@@ -279,11 +279,11 @@ const SessionScheduler = () => {
                               {patient?.name}
                             </p>
                           </div>
-                          <div className="flex items-center mt-3 sm:mt-0 gap-2">
-                            <Button variant="outline" size="sm">
+                          <div className="flex items-center mt-3 sm:mt-0 gap-2 w-full sm:w-auto">
+                            <Button variant="outline" size="sm" className="w-full sm:w-auto">
                               Reprogramar
                             </Button>
-                            <Button size="sm">
+                            <Button size="sm" className="w-full sm:w-auto">
                               Ver Detalles
                             </Button>
                           </div>

@@ -91,32 +91,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: "/reports", label: "Informes", icon: FileText },
   ];
 
-  // Show sidebar as overlay on mobile and tablet
-  const mobileVariants = {
-    open: { 
-      x: 0,
-      boxShadow: "10px 0px 50px rgba(0,0,0,0.15)",
-      transition: { type: "spring", stiffness: 300, damping: 30 }
-    },
-    closed: { 
-      x: "-100%", 
-      boxShadow: "none",
-      transition: { type: "spring", stiffness: 300, damping: 30 }
-    }
-  };
-
-  // Desktop sidebar width variants
-  const desktopVariants = {
-    open: { width: "280px", transition: { duration: 0.3 } },
-    closed: { width: "80px", transition: { duration: 0.3 } }
-  };
-
-  // Content padding adjustment
-  const contentDesktopVariants = {
-    open: { marginLeft: "280px", transition: { duration: 0.3 } },
-    closed: { marginLeft: "80px", transition: { duration: 0.3 } }
-  };
-
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Mobile overlay when sidebar is open */}
@@ -128,29 +102,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       )}
 
       {/* Sidebar */}
-      <motion.aside
+      <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col bg-white shadow-sm",
-          isMobileOrTablet ? "w-[280px]" : "w-auto"
+          "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-sm transition-transform duration-300",
+          isMobileOrTablet && !sidebarOpen ? "-translate-x-full" : "translate-x-0",
+          !isMobileOrTablet && !sidebarOpen ? "w-20" : "w-64"
         )}
-        initial={isMobileOrTablet ? "closed" : "open"}
-        animate={sidebarOpen ? "open" : "closed"}
-        variants={isMobileOrTablet ? mobileVariants : desktopVariants}
       >
         <div className="flex items-center justify-between p-4 border-b">
-          {(sidebarOpen || isMobileOrTablet) && (
-            <div className="flex items-center gap-2">
+          {(sidebarOpen || !isMobileOrTablet) && (
+            <div className={cn("flex items-center gap-2", !sidebarOpen && !isMobileOrTablet && "justify-center w-full")}>
               <div className="h-8 w-8 rounded-lg bg-escalando-400 flex items-center justify-center">
                 <span className="text-black font-bold">E</span>
               </div>
-              <h1 className="text-lg font-display font-semibold">Escalando</h1>
+              {(sidebarOpen || isMobileOrTablet) && (
+                <h1 className="text-lg font-display font-semibold">Escalando</h1>
+              )}
             </div>
           )}
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="ml-auto"
+            className={cn("ml-auto", !sidebarOpen && !isMobileOrTablet && "ml-0")}
           >
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
@@ -170,7 +144,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
         
         <div className="border-t p-4">
-          {sidebarOpen || isMobileOrTablet ? (
+          {(sidebarOpen || isMobileOrTablet) ? (
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full overflow-hidden">
                 <img
@@ -193,7 +167,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </Button>
           )}
         </div>
-      </motion.aside>
+      </div>
 
       {/* Mobile header */}
       {isMobileOrTablet && (
@@ -216,43 +190,44 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       )}
 
       {/* Main content */}
-      <motion.main
+      <div 
         className={cn(
-          "flex-1 transition-all duration-300 pb-12",
-          isMobileOrTablet ? "mt-16 w-full" : ""
+          "flex-1 w-full transition-all duration-300",
+          isMobileOrTablet ? "mt-16 px-0" : "",
+          !isMobileOrTablet && sidebarOpen ? "ml-64" : "",
+          !isMobileOrTablet && !sidebarOpen ? "ml-20" : ""
         )}
-        initial={isMobileOrTablet ? {} : "open"}
-        animate={!isMobileOrTablet && sidebarOpen ? "open" : "closed"}
-        variants={!isMobileOrTablet ? contentDesktopVariants : {}}
       >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -5 }}
-            transition={{ duration: 0.2 }}
-            className={cn(
-              "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6",
-              isMobileOrTablet && "px-3 py-3"
-            )}
-          >
-            {/* Mobile back button on patient detail pages */}
-            {isMobileOrTablet && location.pathname.includes("/patients/") && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="mb-2 -ml-2 px-2"
-                onClick={() => navigate(-1)}
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Volver
-              </Button>
-            )}
-            {children}
-          </motion.div>
-        </AnimatePresence>
-      </motion.main>
+        <main className="w-full pb-12">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              transition={{ duration: 0.2 }}
+              className={cn(
+                "max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6",
+                isMobileOrTablet && "px-3 py-3"
+              )}
+            >
+              {/* Mobile back button on patient detail pages */}
+              {isMobileOrTablet && location.pathname.includes("/patients/") && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="mb-2 -ml-2 px-2"
+                  onClick={() => navigate(-1)}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Volver
+                </Button>
+              )}
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
     </div>
   );
 };
