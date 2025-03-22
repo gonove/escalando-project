@@ -16,6 +16,8 @@ import SharedReport from "./pages/SharedReport";
 import SessionScheduler from "./pages/SessionScheduler";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import PatientLinks from "./pages/PatientLinks";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +39,8 @@ const App = () => (
             <Route path="/sessions/new" element={<SessionScheduler />} />
             <Route path="/reports" element={<ReportGenerator />} />
             <Route path="/reports/shared/:reportId" element={<SharedReport />} />
+            <Route path="/patient-links/:patientId" element={<PatientLinks />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

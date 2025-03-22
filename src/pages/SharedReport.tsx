@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Download, Calendar, FileText, User } from "lucide-react";
+import { ArrowLeft, Download, Calendar, FileText, User, Link as LinkIcon, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { professionals, patients } from "@/data/mockData";
@@ -32,13 +32,18 @@ const SharedReport = () => {
         professional: professionals[0],
         diagnosis: "Trastorno del Espectro Autista - Nivel 1",
         background: "El paciente presenta dificultades en la interacción social y comunicación desde los 3 años, según reportan los padres. Asiste a terapia ocupacional desde hace 6 meses.",
-        evaluation: "Se realizó una evaluación completa utilizando ADOS-2 y ADI-R, además de observación clínica y entrevista con padres.",
-        treatmentPlan: "Plan de terapia intensiva de 2 sesiones semanales para trabajar habilidades sociales y autorregulación. Reevaluación en 6 meses.",
-        recommendations: "Se recomienda continuar con el apoyo en el entorno escolar, mantener rutinas estructuradas en casa y participar en grupos sociales pequeños y supervisados.",
+        evaluation: "Se realizó una evaluación completa utilizando ADOS-2 y ADI-R, además de observación clínica y entrevista con padres. El paciente muestra buena respuesta a estrategias de estructura visual y responde positivamente a rutinas establecidas.",
+        treatmentPlan: "Plan de terapia intensiva de 2 sesiones semanales para trabajar habilidades sociales y autorregulación. Reevaluación en 6 meses. Se sugiere complementar con actividades grupales estructuradas para potenciar habilidades sociales.",
+        recommendations: "Se recomienda continuar con el apoyo en el entorno escolar, mantener rutinas estructuradas en casa y participar en grupos sociales pequeños y supervisados. Establecer apoyos visuales y sistemas de comunicación aumentativa según sea necesario.",
         goals: [
           "Mejorar habilidades de comunicación social",
           "Desarrollar estrategias de autorregulación emocional",
-          "Incrementar la flexibilidad cognitiva ante cambios"
+          "Incrementar la flexibilidad cognitiva ante cambios",
+          "Fortalecer habilidades de juego e interacción con pares"
+        ],
+        progress: [
+          { date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), note: "Avance en comunicación verbal. Ha incorporado 5 palabras nuevas en su vocabulario." },
+          { date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), note: "Mejora en tolerancia a cambios en rutina. Responde bien a apoyos visuales." }
         ]
       };
       
@@ -92,18 +97,18 @@ const SharedReport = () => {
             <h1 className="text-lg font-display font-semibold">Escalando</h1>
           </div>
           <Button variant="outline" size="sm" asChild>
-            <Link to="/">Ir a Escalando</Link>
+            <Link to={`/patient-links/${report.patient.id}`}>Volver al Portal</Link>
           </Button>
         </div>
       </header>
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
         <Link 
-          to="/" 
+          to={`/patient-links/${report.patient.id}`}
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
-          Volver a Escalando
+          Volver al Portal
         </Link>
         
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -181,6 +186,25 @@ const SharedReport = () => {
                     ))}
                   </ul>
                 </div>
+                
+                {report.progress && report.progress.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Notas de Progreso</h3>
+                    <div className="border rounded-md divide-y">
+                      {report.progress.map((progress: any, index: number) => (
+                        <div key={index} className="p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Calendar className="h-4 w-4 text-escalando-500" />
+                            <span className="text-sm font-medium">
+                              {format(progress.date, "d 'de' MMMM 'de' yyyy", { locale: es })}
+                            </span>
+                          </div>
+                          <p className="text-muted-foreground">{progress.note}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </TabsContent>
               
               <TabsContent value="professional">
@@ -279,6 +303,21 @@ const SharedReport = () => {
             </Button>
           </CardFooter>
         </Card>
+        
+        <div className="text-center mt-8">
+          <Button asChild variant="outline" className="mr-2">
+            <Link to={`/patient-links/${report.patient.id}`}>
+              <LinkIcon className="h-4 w-4 mr-2" />
+              Volver al Portal
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link to="/">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Acceder a Escalando
+            </Link>
+          </Button>
+        </div>
       </div>
     </div>
   );

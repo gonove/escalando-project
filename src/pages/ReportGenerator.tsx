@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { 
   FileText, 
   FilePlus, 
@@ -20,7 +20,12 @@ import {
   Share2, 
   Copy, 
   Check, 
-  ExternalLink 
+  ExternalLink,
+  Grid,
+  List,
+  Eye,
+  Trash2,
+  MoreHorizontal
 } from "lucide-react";
 import { patients } from "@/data/mockData";
 import { format } from "date-fns";
@@ -37,7 +42,56 @@ import {
   DialogTrigger,
   DialogClose
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
+
+const mockReports = [
+  {
+    id: "rep_1",
+    type: "Evaluación Inicial",
+    title: "Evaluación inicial de neurodesarrollo",
+    patientId: "pat_1",
+    date: new Date(),
+    status: "Completado",
+    tags: ["TEA", "Nivel 1"],
+    diagnosis: "Trastorno del Espectro Autista - Nivel 1"
+  },
+  {
+    id: "rep_2",
+    type: "Informe de Progreso",
+    title: "Informe trimestral de avances",
+    patientId: "pat_2",
+    date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+    status: "Completado",
+    tags: ["TEA", "Avance"],
+    diagnosis: "Trastorno del Espectro Autista - Nivel 2"
+  },
+  {
+    id: "rep_3",
+    type: "Plan de Tratamiento",
+    title: "Plan de intervención terapéutica",
+    patientId: "pat_3",
+    date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 14 days ago
+    status: "Borrador",
+    tags: ["TDAH", "Plan"],
+    diagnosis: "Trastorno por Déficit de Atención"
+  },
+  {
+    id: "rep_4",
+    type: "Evaluación de Seguimiento",
+    title: "Evaluación semestral",
+    patientId: "pat_1",
+    date: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000), // 21 days ago
+    status: "Completado",
+    tags: ["TEA", "Seguimiento"],
+    diagnosis: "Trastorno del Espectro Autista - Nivel 1"
+  }
+];
 
 const ReportGenerator = () => {
   const isMobile = useIsMobile();
@@ -46,28 +100,25 @@ const ReportGenerator = () => {
   const currentDate = format(new Date(), "d 'de' MMMM 'de' yyyy", { locale: es });
   const [shareLink, setShareLink] = useState("");
   const [copied, setCopied] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Mock function to generate a unique report ID
   const generateReportId = () => {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
   };
   
-  // Function to generate a shareable link for a report
   const generateShareableLink = (reportId: string) => {
     const baseUrl = window.location.origin;
-    return `${baseUrl}/reports/shared/${reportId}`;
+    return `${baseUrl}/patient-links/${reportId}`;
   };
   
-  // Function to handle share button click
   const handleShare = (reportId: string) => {
     const newShareLink = generateShareableLink(reportId);
     setShareLink(newShareLink);
     setCopied(false);
   };
   
-  // Function to handle copy link button click
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareLink);
     setCopied(true);
@@ -77,11 +128,29 @@ const ReportGenerator = () => {
     });
   };
   
-  // Function to view shared report
   const handleViewSharedReport = () => {
-    // Extract the report ID from the share link
     const reportId = shareLink.split('/').pop();
-    navigate(`/reports/shared/${reportId}`);
+    navigate(`/patient-links/${reportId}`);
+  };
+  
+  const getPatientName = (patientId: string) => {
+    const patient = patients.find(p => p.id === patientId);
+    return patient ? patient.name : "Paciente Desconocido";
+  };
+  
+  const formatDate = (date: Date) => {
+    return format(date, "d MMM yyyy", { locale: es });
+  };
+  
+  const handleViewReport = (reportId: string) => {
+    navigate(`/reports/${reportId}`);
+  };
+  
+  const handleDeleteReport = (reportId: string) => {
+    toast({
+      title: "Informe eliminado",
+      description: "El informe ha sido eliminado correctamente",
+    });
   };
   
   return (
@@ -254,112 +323,235 @@ const ReportGenerator = () => {
         </Tabs>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Informes Recientes</CardTitle>
-            <CardDescription>
-              Informes generados en los últimos 30 días
-            </CardDescription>
+          <CardHeader className="pb-0">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-escalando-500" />
+                  <span>Informes Recientes</span>
+                </CardTitle>
+                <CardDescription>
+                  Informes generados en los últimos 30 días
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="bg-muted rounded-md p-1 flex">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "h-8 px-3 rounded-sm",
+                      viewMode === "grid" && "bg-background shadow-sm"
+                    )}
+                    onClick={() => setViewMode("grid")}
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "h-8 px-3 rounded-sm",
+                      viewMode === "list" && "bg-background shadow-sm"
+                    )}
+                    onClick={() => setViewMode("list")}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+                <Select defaultValue="all">
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Filtrar por" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="complete">Completados</SelectItem>
+                    <SelectItem value="draft">Borradores</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className={cn(
-              "grid gap-4",
-              isMobile ? "grid-cols-1" : isTablet ? "grid-cols-2" : "grid-cols-3"
-            )}>
-              {[1, 2, 3].map((_, index) => {
-                // Generate a unique mock report ID for each report
-                const reportId = generateReportId();
-                
-                return (
-                  <Card key={index} className="overflow-hidden border border-muted">
-                    <div className="bg-muted p-2 flex justify-between items-center">
-                      <span className="font-medium text-sm">Informe de Evaluación</span>
-                      <span className="text-xs text-muted-foreground">{currentDate}</span>
-                    </div>
-                    <CardContent className="pt-4">
-                      <p className="font-medium">{patients[index].name}</p>
-                      <p className="text-sm text-muted-foreground mb-3">Evaluación inicial de neurodesarrollo</p>
-                      <div className="flex flex-wrap justify-between mt-4 gap-2">
-                        <Button variant="ghost" size="sm" className="h-8">
-                          Ver
-                        </Button>
-                        <div className="flex gap-2">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                className="h-8"
-                                onClick={() => handleShare(reportId)}
-                              >
-                                <Share2 className="h-3.5 w-3.5 mr-1" />
-                                Compartir
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md">
-                              <DialogHeader>
-                                <DialogTitle>Compartir Informe</DialogTitle>
-                                <DialogDescription>
-                                  Comparte este enlace con los padres o tutores del paciente para que puedan ver el informe.
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="flex items-center space-x-2 mt-4">
-                                <div className="grid flex-1 gap-2">
-                                  <Label htmlFor="link" className="sr-only">Link</Label>
-                                  <Input
-                                    id="link"
-                                    value={shareLink}
-                                    readOnly
-                                    className="font-mono text-sm"
-                                  />
-                                </div>
+          <CardContent className="pt-6">
+            {viewMode === "grid" ? (
+              <div className={cn(
+                "grid gap-4",
+                isMobile ? "grid-cols-1" : isTablet ? "grid-cols-2" : "grid-cols-3"
+              )}>
+                {mockReports.map((report) => {
+                  const reportId = report.id;
+                  
+                  return (
+                    <Card key={reportId} className="overflow-hidden border border-muted">
+                      <div className="bg-muted p-2 flex justify-between items-center">
+                        <Badge variant={report.status === "Completado" ? "default" : "outline"}>
+                          {report.status}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">{formatDate(report.date)}</span>
+                      </div>
+                      <CardContent className="p-4">
+                        <div className="mb-2">
+                          <p className="text-xs text-muted-foreground uppercase font-medium">
+                            {report.type}
+                          </p>
+                          <p className="font-medium">{getPatientName(report.patientId)}</p>
+                          <p className="text-sm text-muted-foreground mb-2">{report.title}</p>
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            {report.tags.map((tag, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap justify-between mt-4 gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8"
+                            onClick={() => handleViewReport(reportId)}
+                          >
+                            <Eye className="h-3.5 w-3.5 mr-1" />
+                            Ver
+                          </Button>
+                          <div className="flex gap-1">
+                            <Dialog>
+                              <DialogTrigger asChild>
                                 <Button 
-                                  type="button" 
                                   size="sm" 
-                                  className="px-3"
-                                  onClick={handleCopyLink}
+                                  variant="outline" 
+                                  className="h-8"
+                                  onClick={() => handleShare(reportId)}
                                 >
-                                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                                  <span className="sr-only">Copiar</span>
+                                  <Share2 className="h-3.5 w-3.5 mr-1" />
+                                  Compartir
                                 </Button>
-                              </div>
-                              <DialogFooter className="sm:justify-start mt-4 flex-col sm:flex-row gap-2">
-                                <Button 
-                                  type="button"
-                                  variant="secondary"
-                                  className="sm:w-auto w-full"
-                                  onClick={handleViewSharedReport}
-                                >
-                                  <ExternalLink className="h-4 w-4 mr-2" />
-                                  Previsualizar
-                                </Button>
-                                <DialogClose asChild>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-md">
+                                <DialogHeader>
+                                  <DialogTitle>Compartir Informe</DialogTitle>
+                                  <DialogDescription>
+                                    Comparte este enlace con los padres o tutores del paciente para que puedan ver el informe.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="flex items-center space-x-2 mt-4">
+                                  <div className="grid flex-1 gap-2">
+                                    <Label htmlFor="link" className="sr-only">Link</Label>
+                                    <Input
+                                      id="link"
+                                      value={shareLink}
+                                      readOnly
+                                      className="font-mono text-sm"
+                                    />
+                                  </div>
                                   <Button 
                                     type="button" 
-                                    variant="outline"
-                                    className="sm:w-auto w-full"
+                                    size="sm" 
+                                    className="px-3"
+                                    onClick={handleCopyLink}
                                   >
-                                    Cerrar
+                                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                    <span className="sr-only">Copiar</span>
                                   </Button>
-                                </DialogClose>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
-                          <Button size="sm" variant="outline" className="h-8">
-                            <Download className="h-3.5 w-3.5 mr-1" />
-                            PDF
-                          </Button>
+                                </div>
+                                <DialogFooter className="sm:justify-start mt-4 flex-col sm:flex-row gap-2">
+                                  <Button 
+                                    type="button"
+                                    variant="secondary"
+                                    className="sm:w-auto w-full"
+                                    onClick={handleViewSharedReport}
+                                  >
+                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                    Previsualizar
+                                  </Button>
+                                  <DialogClose asChild>
+                                    <Button 
+                                      type="button" 
+                                      variant="outline"
+                                      className="sm:w-auto w-full"
+                                    >
+                                      Cerrar
+                                    </Button>
+                                  </DialogClose>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                            <Button size="sm" variant="outline" className="h-8 px-2">
+                              <Download className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-md border">
+                <div className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_auto_200px_auto] gap-4 p-3 font-medium text-sm text-muted-foreground border-b bg-muted/50">
+                  <div>Paciente / Informe</div>
+                  <div className="hidden sm:block">Fecha</div>
+                  <div className="hidden sm:block">Estado</div>
+                  <div className="text-right">Acciones</div>
+                </div>
+                <div className="divide-y">
+                  {mockReports.map((report) => (
+                    <div 
+                      key={report.id} 
+                      className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_auto_200px_auto] gap-4 p-4 items-center hover:bg-muted/50 transition-colors"
+                    >
+                      <div>
+                        <div className="font-medium">{getPatientName(report.patientId)}</div>
+                        <div className="text-sm text-muted-foreground">{report.title}</div>
+                        <div className="flex flex-wrap gap-1 mt-1 sm:hidden">
+                          {report.tags.map((tag, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </Layout>
-  );
-};
+                      <div className="text-sm text-right sm:text-left">
+                        {formatDate(report.date)}
+                        <div className="sm:hidden text-muted-foreground">
+                          {report.status}
+                        </div>
+                      </div>
+                      <div className="hidden sm:flex items-center gap-2">
+                        <Badge variant={report.status === "Completado" ? "default" : "outline"}>
+                          {report.status}
+                        </Badge>
+                        <div className="flex flex-wrap gap-1">
+                          {report.tags.map((tag, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="hidden sm:flex h-8"
+                          onClick={() => handleViewReport(report.id)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver
+                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="hidden sm:flex h-8"
+                              onClick={() => handleShare(report.id)}
+                            >
+                              <Share2 className="h-3.5 w-3.5 mr-1" />
+                              Compartir
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                              <DialogTitle
 
-export default ReportGenerator;
