@@ -38,6 +38,7 @@ export interface Session {
   progress: string;
   notes?: string;
   exercises?: Exercise[];
+  recommendations?: string;
 }
 
 export interface Exercise {
@@ -47,4 +48,7 @@ export interface Exercise {
   repetitions: number;
   sets: number;
   completed: boolean;
+  duration?: string;
+  frequency?: string;
+  instructions?: string;
 }

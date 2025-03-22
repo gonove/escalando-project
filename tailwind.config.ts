@@ -88,6 +88,20 @@ export default {
 					800: '#854d0e',
 					900: '#713f12',
 					950: '#422006',
+				},
+				// Adding therapy colors for backwards compatibility
+				therapy: {
+					50: '#fefce8',
+					100: '#fef9c3',
+					200: '#fef08a',
+					300: '#fde047',
+					400: '#facc15',
+					500: '#eab308',
+					600: '#ca8a04',
+					700: '#a16207',
+					800: '#854d0e',
+					900: '#713f12',
+					950: '#422006',
 				}
 			},
 			fontFamily: {
@@ -132,7 +146,16 @@ export default {
 				'fade-out': 'fade-out 0.3s ease-out',
 				'slide-in': 'slide-in 0.4s ease-out',
 				'scale-in': 'scale-in 0.3s ease-out'
-			}
+			},
+			screens: {
+				'xs': '480px',
+				// Reinforcing existing breakpoints for clarity
+				'sm': '640px',
+				'md': '768px',
+				'lg': '1024px',
+				'xl': '1280px',
+				'2xl': '1536px',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

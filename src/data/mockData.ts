@@ -41,7 +41,13 @@ export const patients: Patient[] = [
     email: "claudia.suarez@gmail.com",
     diagnosis: "Retraso en el desarrollo psicomotor",
     notes: "Presenta dificultades en coordinación motora fina y equilibrio.",
-    professionalId: "prof1"
+    professionalId: "prof1",
+    phone: "+54 11 5678-9012",
+    age: 4,
+    gender: "Masculino",
+    status: "Activo",
+    location: "Buenos Aires",
+    treatmentPlan: "Estimulación psicomotriz 2 veces por semana"
   },
   {
     id: "pat2",
@@ -52,7 +58,13 @@ export const patients: Patient[] = [
     email: "roberto.garcia@hotmail.com",
     diagnosis: "Parálisis cerebral leve",
     notes: "Necesita trabajo en fortalecimiento muscular y control de movimiento.",
-    professionalId: "prof1"
+    professionalId: "prof1",
+    phone: "+54 11 6789-0123",
+    age: 3,
+    gender: "Femenino",
+    status: "Activo",
+    location: "Buenos Aires",
+    treatmentPlan: "Fisioterapia 3 veces por semana"
   },
   {
     id: "pat3",
@@ -63,7 +75,13 @@ export const patients: Patient[] = [
     email: "mariana.fernandez@gmail.com",
     diagnosis: "Trastorno del espectro autista",
     notes: "Requiere estimulación sensorial y desarrollo de habilidades sociales.",
-    professionalId: "prof2"
+    professionalId: "prof2",
+    phone: "+54 11 7890-1234",
+    age: 5,
+    gender: "Masculino",
+    status: "Activo",
+    location: "Córdoba",
+    treatmentPlan: "Terapia sensorial e integración social"
   },
   {
     id: "pat4",
@@ -74,7 +92,13 @@ export const patients: Patient[] = [
     email: "diego.lopez@gmail.com",
     diagnosis: "Desarrollo típico - seguimiento preventivo",
     notes: "Asiste a sesiones de estimulación temprana como medida preventiva.",
-    professionalId: "prof2"
+    professionalId: "prof2",
+    phone: "+54 11 8901-2345",
+    age: 2,
+    gender: "Femenino",
+    status: "Activo",
+    location: "Buenos Aires",
+    treatmentPlan: "Estimulación temprana preventiva"
   },
   {
     id: "pat5",
@@ -85,7 +109,13 @@ export const patients: Patient[] = [
     email: "patricia.medina@yahoo.com",
     diagnosis: "Hipotonía muscular",
     notes: "Necesita fortalecimiento muscular general y mejora de postura.",
-    professionalId: "prof3"
+    professionalId: "prof3",
+    phone: "+54 11 9012-3456",
+    age: 4,
+    gender: "Masculino",
+    status: "Activo",
+    location: "Rosario",
+    treatmentPlan: "Fortalecimiento muscular y corrección postural"
   }
 ];
 
@@ -94,6 +124,9 @@ export const exercises: Exercise[] = [
     id: "ex1",
     name: "Ejercicios de agarre",
     description: "Práctica de agarre de objetos pequeños para mejorar motricidad fina",
+    repetitions: 10,
+    sets: 3,
+    completed: false,
     duration: "10 minutos",
     frequency: "Diario",
     instructions: "Utilizar juguetes pequeños y seguros como cubos o piezas grandes de rompecabezas."
@@ -102,6 +135,9 @@ export const exercises: Exercise[] = [
     id: "ex2",
     name: "Equilibrio sobre pelota",
     description: "Ejercicios de equilibrio sobre pelota terapéutica",
+    repetitions: 5,
+    sets: 2,
+    completed: false,
     duration: "15 minutos",
     frequency: "3 veces por semana",
     instructions: "Sentar al niño sobre la pelota, sosteniendo su tronco, y realizar movimientos suaves hacia los lados."
@@ -110,6 +146,9 @@ export const exercises: Exercise[] = [
     id: "ex3",
     name: "Estimulación sensorial",
     description: "Exposición a diferentes texturas y sensaciones",
+    repetitions: 1,
+    sets: 1,
+    completed: false,
     duration: "20 minutos",
     frequency: "Diario",
     instructions: "Utilizar telas de diferentes texturas, térmicas frías y calientes, y diferentes materiales."
@@ -118,6 +157,9 @@ export const exercises: Exercise[] = [
     id: "ex4",
     name: "Gateo asistido",
     description: "Facilitación de movimientos de gateo",
+    repetitions: 8,
+    sets: 2,
+    completed: false,
     duration: "10 minutos",
     frequency: "2 veces por día",
     instructions: "Colocar al niño en posición de gateo y ayudar manualmente a realizar el movimiento alternado."
@@ -126,6 +168,9 @@ export const exercises: Exercise[] = [
     id: "ex5",
     name: "Seguimiento visual",
     description: "Ejercicios para mejorar seguimiento visual de objetos",
+    repetitions: 10,
+    sets: 3,
+    completed: false,
     duration: "5 minutos",
     frequency: "3 veces por día",
     instructions: "Mover un objeto llamativo lentamente en el campo visual del niño, horizontal y verticalmente."
@@ -141,7 +186,10 @@ export const sessions: Session[] = [
     notes: "Primera evaluación. Presenta retraso en coordinación y equilibrio.",
     progress: "Se establece línea base para tratamiento.",
     exercises: [exercises[0], exercises[1]],
-    recommendations: "Continuar con sesiones semanales y realizar ejercicios en casa."
+    recommendations: "Continuar con sesiones semanales y realizar ejercicios en casa.",
+    type: "Evaluación inicial",
+    time: "09:00",
+    duration: 60
   },
   {
     id: "ses2",
@@ -151,7 +199,10 @@ export const sessions: Session[] = [
     notes: "Se observa mejor respuesta en ejercicios de agarre.",
     progress: "Ligera mejora en coordinación de mano derecha.",
     exercises: [exercises[0], exercises[4]],
-    recommendations: "Reforzar ejercicios de agarre con objetos de diferentes tamaños."
+    recommendations: "Reforzar ejercicios de agarre con objetos de diferentes tamaños.",
+    type: "Seguimiento",
+    time: "09:00",
+    duration: 45
   },
   {
     id: "ses3",
@@ -161,7 +212,10 @@ export const sessions: Session[] = [
     notes: "Continúa progreso en motricidad fina, comienza trabajo de equilibrio.",
     progress: "Avance notable en precisión de agarre con mano derecha.",
     exercises: [exercises[0], exercises[1], exercises[4]],
-    recommendations: "Incrementar dificultad de ejercicios de equilibrio gradualmente."
+    recommendations: "Incrementar dificultad de ejercicios de equilibrio gradualmente.",
+    type: "Seguimiento",
+    time: "09:00",
+    duration: 60
   },
   {
     id: "ses4",
@@ -171,7 +225,10 @@ export const sessions: Session[] = [
     notes: "Evaluación inicial. Presenta espasticidad en extremidades inferiores.",
     progress: "Se establece plan de tratamiento enfocado en reducir espasticidad.",
     exercises: [exercises[1], exercises[3]],
-    recommendations: "Realizar estiramientos suaves diariamente."
+    recommendations: "Realizar estiramientos suaves diariamente.",
+    type: "Evaluación inicial",
+    time: "11:00",
+    duration: 60
   },
   {
     id: "ses5",
@@ -181,7 +238,10 @@ export const sessions: Session[] = [
     notes: "Evaluación sensorial. Muestra hipersensibilidad táctil.",
     progress: "Se identifican patrones de respuesta ante diferentes estímulos.",
     exercises: [exercises[2]],
-    recommendations: "Introducir gradualmente diferentes texturas en actividades diarias."
+    recommendations: "Introducir gradualmente diferentes texturas en actividades diarias.",
+    type: "Evaluación sensorial",
+    time: "15:00",
+    duration: 45
   }
 ];
 

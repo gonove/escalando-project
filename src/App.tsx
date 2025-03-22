@@ -10,6 +10,10 @@ import { LazyMotion, domAnimation } from "framer-motion";
 import Index from "./pages/Index";
 import Patients from "./pages/Patients";
 import PatientDetail from "./pages/PatientDetail";
+import PatientRegistration from "./pages/PatientRegistration";
+import ReportGenerator from "./pages/ReportGenerator";
+import SessionScheduler from "./pages/SessionScheduler";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +29,12 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/patients" element={<Patients />} />
             <Route path="/patients/:id" element={<PatientDetail />} />
+            <Route path="/patients/new" element={<PatientRegistration />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/sessions" element={<SessionScheduler />} />
+            <Route path="/sessions/:id" element={<NotFound />} />
+            <Route path="/sessions/new" element={<SessionScheduler />} />
+            <Route path="/reports" element={<ReportGenerator />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
