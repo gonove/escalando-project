@@ -17,7 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { professionals } from "@/data/mockData";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -59,20 +59,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const currentPath = location.pathname;
   const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+  const isMobileOrTablet = useIsMobileOrTablet();
   
   // Close sidebar on mobile when navigating to a new page
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false);
-    } else {
+    } else if (!isMobileOrTablet) {
       setSidebarOpen(true);
     }
-  }, [location.pathname, isMobile]);
+  }, [location.pathname, isMobile, isMobileOrTablet]);
   
   // Initialize sidebar based on device
   useEffect(() => {
-    setSidebarOpen(!isMobile);
-  }, [isMobile]);
+    setSidebarOpen(!isMobileOrTablet);
+  }, [isMobileOrTablet]);
   
   // Mock logged in professional for demo
   const currentProfessional = professionals[0];
@@ -89,7 +91,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: "/reports", label: "Informes", icon: FileText },
   ];
 
-  // Show sidebar as overlay on mobile
+  // Show sidebar as overlay on mobile and tablet
   const mobileVariants = {
     open: { 
       x: 0,
@@ -118,7 +120,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Mobile overlay when sidebar is open */}
-      {isMobile && sidebarOpen && (
+      {isMobileOrTablet && sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/20 z-40"
           onClick={() => setSidebarOpen(false)}
@@ -129,14 +131,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <motion.aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex flex-col bg-white shadow-sm",
-          isMobile ? "w-[280px]" : "w-auto"
+          isMobileOrTablet ? "w-[280px]" : "w-auto"
         )}
-        initial={isMobile ? "closed" : "open"}
+        initial={isMobileOrTablet ? "closed" : "open"}
         animate={sidebarOpen ? "open" : "closed"}
-        variants={isMobile ? mobileVariants : desktopVariants}
+        variants={isMobileOrTablet ? mobileVariants : desktopVariants}
       >
         <div className="flex items-center justify-between p-4 border-b">
-          {(sidebarOpen || isMobile) && (
+          {(sidebarOpen || isMobileOrTablet) && (
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-escalando-400 flex items-center justify-center">
                 <span className="text-black font-bold">E</span>
@@ -162,13 +164,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               icon={link.icon}
               label={link.label}
               active={currentPath === link.path}
-              compact={!sidebarOpen && !isMobile}
+              compact={!sidebarOpen && !isMobileOrTablet}
             />
           ))}
         </div>
         
         <div className="border-t p-4">
-          {sidebarOpen || isMobile ? (
+          {sidebarOpen || isMobileOrTablet ? (
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full overflow-hidden">
                 <img
@@ -194,7 +196,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </motion.aside>
 
       {/* Mobile header */}
-      {isMobile && (
+      {isMobileOrTablet && (
         <div className="fixed top-0 left-0 right-0 z-30 bg-white border-b p-4 flex items-center">
           <Button
             variant="ghost"
@@ -217,11 +219,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <motion.main
         className={cn(
           "flex-1 transition-all duration-300 pb-12",
-          isMobile ? "mt-16 w-full" : ""
+          isMobileOrTablet ? "mt-16 w-full" : ""
         )}
-        initial={isMobile ? {} : "open"}
-        animate={!isMobile && sidebarOpen ? "open" : "closed"}
-        variants={!isMobile ? contentDesktopVariants : {}}
+        initial={isMobileOrTablet ? {} : "open"}
+        animate={!isMobileOrTablet && sidebarOpen ? "open" : "closed"}
+        variants={!isMobileOrTablet ? contentDesktopVariants : {}}
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -232,11 +234,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             transition={{ duration: 0.2 }}
             className={cn(
               "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6",
-              isMobile && "px-3 py-3"
+              isMobileOrTablet && "px-3 py-3"
             )}
           >
             {/* Mobile back button on patient detail pages */}
-            {isMobile && location.pathname.includes("/patients/") && (
+            {isMobileOrTablet && location.pathname.includes("/patients/") && (
               <Button 
                 variant="ghost" 
                 size="sm" 

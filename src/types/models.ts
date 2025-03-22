@@ -6,6 +6,7 @@ export interface Professional {
   avatar: string;
   email: string;
   phone: string;
+  bio?: string;
 }
 
 export interface Patient {
@@ -21,6 +22,9 @@ export interface Patient {
   notes: string;
   location: string;
   treatmentPlan: string | null;
+  dateOfBirth: string;
+  parentName?: string;
+  contactNumber?: string;
 }
 
 export interface Session {
@@ -33,4 +37,14 @@ export interface Session {
   duration: number;
   progress: string;
   notes?: string;
+  exercises?: Exercise[];
+}
+
+export interface Exercise {
+  id: string;
+  name: string;
+  description: string;
+  repetitions: number;
+  sets: number;
+  completed: boolean;
 }

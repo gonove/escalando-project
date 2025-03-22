@@ -14,10 +14,13 @@ import { FileText, FilePlus, Download, Calendar, ChevronRight } from "lucide-rea
 import { patients } from "@/data/mockData";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 const ReportGenerator = () => {
   const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+  const isMobileOrTablet = useIsMobileOrTablet();
   const currentDate = format(new Date(), "d 'de' MMMM 'de' yyyy", { locale: es });
   
   return (
@@ -35,7 +38,7 @@ const ReportGenerator = () => {
               Crea y gestiona informes para tus pacientes
             </p>
           </div>
-          <Button className="flex items-center gap-2">
+          <Button className={cn("flex items-center gap-2", isMobile && "w-full")}>
             <FilePlus className="h-4 w-4" />
             Nuevo Informe
           </Button>
@@ -96,7 +99,7 @@ const ReportGenerator = () => {
                 
                 <div className="space-y-2">
                   <Label>Secciones a incluir</Label>
-                  <div className="grid gap-2 md:grid-cols-2">
+                  <div className="grid gap-2 sm:grid-cols-2">
                     <div className="flex items-center gap-2">
                       <Checkbox id="section-background" defaultChecked />
                       <Label htmlFor="section-background" className="cursor-pointer">Antecedentes</Label>
@@ -130,10 +133,10 @@ const ReportGenerator = () => {
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col sm:flex-row gap-3 sm:justify-between">
-                <Button variant="outline">Vista Previa</Button>
-                <div className="flex gap-3">
-                  <Button variant="outline">Guardar como Borrador</Button>
-                  <Button>Generar Informe</Button>
+                <Button variant="outline" className={isMobile ? "w-full" : ""}>Vista Previa</Button>
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                  <Button variant="outline" className="w-full">Guardar como Borrador</Button>
+                  <Button className="w-full">Generar Informe</Button>
                 </div>
               </CardFooter>
             </Card>
@@ -199,7 +202,7 @@ const ReportGenerator = () => {
           <CardContent>
             <div className={cn(
               "grid gap-4",
-              isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3"
+              isMobile ? "grid-cols-1" : isTablet ? "grid-cols-2" : "grid-cols-3"
             )}>
               {[1, 2, 3].map((_, index) => (
                 <Card key={index} className="overflow-hidden border border-muted">

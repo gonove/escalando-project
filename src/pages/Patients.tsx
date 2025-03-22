@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { professionals, patients, getSessionsByPatient } from "@/data/mockData";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 // For demonstration purposes
@@ -43,6 +43,8 @@ const Patients = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredPatients, setFilteredPatients] = useState(myPatients);
   const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+  const isMobileOrTablet = useIsMobileOrTablet();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
@@ -57,7 +59,7 @@ const Patients = () => {
       (patient) =>
         patient.name.toLowerCase().includes(query) ||
         patient.diagnosis?.toLowerCase().includes(query) ||
-        patient.parentName.toLowerCase().includes(query)
+        (patient.parentName && patient.parentName.toLowerCase().includes(query))
     );
     
     setFilteredPatients(filtered);
@@ -183,13 +185,13 @@ const Patients = () => {
                         <div className="text-sm font-medium text-muted-foreground mb-1">
                           Responsable:
                         </div>
-                        <div className="truncate">{patient.parentName}</div>
+                        <div className="truncate">{patient.parentName || "No especificado"}</div>
                       </div>
                       <div>
                         <div className="text-sm font-medium text-muted-foreground mb-1">
                           Contacto:
                         </div>
-                        <div className="truncate">{patient.contactNumber}</div>
+                        <div className="truncate">{patient.contactNumber || patient.phone}</div>
                       </div>
                       {lastSession && (
                         <div className="pt-2">
@@ -198,7 +200,7 @@ const Patients = () => {
                             Última sesión:
                           </div>
                           <div className="flex items-center">
-                            <CalendarDays className="mr-2 h-4 w-4 text-therapy-600" />
+                            <CalendarDays className="mr-2 h-4 w-4 text-escalando-600" />
                             {new Date(lastSession.date).toLocaleDateString('es-ES', {
                               day: '2-digit',
                               month: '2-digit',

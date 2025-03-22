@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { patients, sessions } from "@/data/mockData";
 import { Patient, Session } from "@/types/models";
@@ -12,10 +12,11 @@ import { Separator } from "@/components/ui/separator";
 import { Calendar, Clock, MapPin, Phone, Mail, File, Plus, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
 
 const PatientDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const patient = patients.find((p) => p.id === id) as Patient | undefined;
   const patientSessions = sessions
     .filter((s) => s.patientId === id)
@@ -23,6 +24,8 @@ const PatientDetail = () => {
   
   const [activeTab, setActiveTab] = useState("overview");
   const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+  const isMobileOrTablet = useIsMobileOrTablet();
   
   if (!patient) {
     return (
@@ -48,7 +51,7 @@ const PatientDetail = () => {
         transition={{ duration: 0.5 }}
         className="space-y-6"
       >
-        {!isMobile && (
+        {!isMobileOrTablet && (
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <Button
@@ -98,7 +101,7 @@ const PatientDetail = () => {
                     {patient.age} años | {patient.gender}
                   </CardDescription>
                 </div>
-                <Badge className="bg-therapy-500">
+                <Badge className="bg-escalando-500">
                   {patient.status === "active" ? "Activo" : "Inactivo"}
                 </Badge>
               </div>
@@ -166,6 +169,30 @@ const PatientDetail = () => {
                   </div>
                 </div>
               </div>
+              
+              {isMobileOrTablet && (
+                <div className="flex gap-2 mt-4">
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center gap-2 flex-1"
+                    asChild
+                  >
+                    <Link to={`/patients/${id}/edit`}>
+                      <File className="h-4 w-4" />
+                      Editar
+                    </Link>
+                  </Button>
+                  <Button 
+                    className="flex items-center gap-2 flex-1"
+                    asChild
+                  >
+                    <Link to={`/sessions/new?patientId=${id}`}>
+                      <Plus className="h-4 w-4" />
+                      Nueva Sesión
+                    </Link>
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -225,12 +252,12 @@ const PatientDetail = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                          <div className="bg-therapy-100 text-therapy-700 p-3 rounded-full">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                          <div className="bg-escalando-100 text-escalando-700 p-3 rounded-full">
                             <Calendar className="h-5 w-5" />
                           </div>
                           <div>
-                            <p className="text-sm text-muted-foreground">Fecha</p>
+                            <p className="text-sm text-muted-foreground mb-1">Fecha</p>
                             <p className="font-medium">
                               {new Date(patientSessions[0].date).toLocaleDateString("es-ES", {
                                 day: "numeric",
@@ -239,8 +266,8 @@ const PatientDetail = () => {
                               })}
                             </p>
                           </div>
-                          <div className="ml-6">
-                            <p className="text-sm text-muted-foreground">Hora</p>
+                          <div className="sm:ml-6">
+                            <p className="text-sm text-muted-foreground mb-1">Hora</p>
                             <p className="font-medium">
                               {patientSessions[0].time || "No especificada"}
                             </p>
@@ -307,7 +334,7 @@ const PatientDetail = () => {
                         {patientSessions.map((session) => (
                           <Card key={session.id} className="overflow-hidden border-0 shadow-sm">
                             <div className="flex items-center p-4 bg-white hover:bg-gray-50 transition-colors">
-                              <div className="bg-therapy-100 text-therapy-700 p-3 rounded-full mr-4">
+                              <div className="bg-escalando-100 text-escalando-700 p-3 rounded-full mr-4">
                                 <Calendar className="h-5 w-5" />
                               </div>
                               <div className="flex-1 min-w-0">

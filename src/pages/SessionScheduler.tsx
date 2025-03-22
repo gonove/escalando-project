@@ -12,11 +12,13 @@ import { Calendar as CalendarIcon, Clock, Plus, User, CalendarCheck, ChevronLeft
 import { patients } from "@/data/mockData";
 import { format, addDays, startOfWeek, addWeeks, subWeeks, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 const SessionScheduler = () => {
   const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+  const isMobileOrTablet = useIsMobileOrTablet();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [weekStart, setWeekStart] = useState(startOfWeek(currentDate, { weekStartsOn: 1 }));
@@ -69,7 +71,7 @@ const SessionScheduler = () => {
               Agenda y gestiona sesiones con tus pacientes
             </p>
           </div>
-          <Button className="flex items-center gap-2">
+          <Button className={cn("flex items-center gap-2", isMobile && "w-full")}>
             <Plus className="h-4 w-4" />
             Nueva Sesión
           </Button>
@@ -77,7 +79,7 @@ const SessionScheduler = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Form for scheduling a new session */}
-          <Card className="lg:col-span-1">
+          <Card className="lg:col-span-1 order-2 lg:order-1">
             <CardHeader>
               <CardTitle className="text-lg">Nueva Sesión</CardTitle>
               <CardDescription>
@@ -153,14 +155,14 @@ const SessionScheduler = () => {
                 <Textarea id="notes" placeholder="Detalles adicionales sobre la sesión..." />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button variant="outline" className="mr-2">Cancelar</Button>
-              <Button>Agendar Sesión</Button>
+            <CardFooter className="flex justify-end flex-col sm:flex-row gap-2">
+              <Button variant="outline" className={isMobile ? "w-full" : "mr-2"}>Cancelar</Button>
+              <Button className={isMobile ? "w-full" : ""}>Agendar Sesión</Button>
             </CardFooter>
           </Card>
 
           {/* Calendar Week View */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 order-1 lg:order-2">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-lg">Calendario Semanal</CardTitle>
@@ -182,7 +184,7 @@ const SessionScheduler = () => {
                 {weekDays.map((day, i) => (
                   <div key={i} className="text-center">
                     <p className="text-xs text-muted-foreground uppercase">
-                      {format(day, "EEE", { locale: es })}
+                      {format(day, isMobile ? "EEE" : "EEEE", { locale: es })}
                     </p>
                     <Button 
                       variant={isSameDay(day, selectedDate || new Date()) ? "default" : "ghost"} 
@@ -219,15 +221,15 @@ const SessionScheduler = () => {
                           isToday ? "bg-escalando-400" : "bg-gray-200"
                         )} />
                         <div className="flex-1">
-                          <div className="flex justify-between items-start">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
                             <div>
                               <p className="font-medium">{patient?.name}</p>
-                              <div className="flex items-center text-sm text-muted-foreground">
+                              <div className="flex items-center text-sm text-muted-foreground flex-wrap">
                                 <CalendarIcon className="h-3.5 w-3.5 mr-1" />
                                 <span>{format(session.date, "EEEE d 'de' MMMM", { locale: es })}</span>
                               </div>
                             </div>
-                            <div className="flex items-center text-sm font-medium">
+                            <div className="flex items-center text-sm font-medium mt-1 sm:mt-0">
                               <Clock className="h-3.5 w-3.5 mr-1" />
                               <span>{session.time} ({session.duration} min)</span>
                             </div>
@@ -262,8 +264,8 @@ const SessionScheduler = () => {
                 const patient = patients.find(p => p.id === session.patientId);
                 return (
                   <Card key={i} className="overflow-hidden border-0 shadow-sm">
-                    <div className="flex items-center p-4 bg-white hover:bg-gray-50 transition-colors">
-                      <div className="bg-escalando-100 text-escalando-700 p-3 rounded-full mr-4">
+                    <div className="flex flex-col sm:flex-row items-start p-4 bg-white hover:bg-gray-50 transition-colors">
+                      <div className="bg-escalando-100 text-escalando-700 p-3 rounded-full mr-4 mb-3 sm:mb-0">
                         <CalendarCheck className="h-5 w-5" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -277,7 +279,7 @@ const SessionScheduler = () => {
                               {patient?.name}
                             </p>
                           </div>
-                          <div className="flex items-center mt-2 sm:mt-0 gap-2">
+                          <div className="flex items-center mt-3 sm:mt-0 gap-2">
                             <Button variant="outline" size="sm">
                               Reprogramar
                             </Button>
