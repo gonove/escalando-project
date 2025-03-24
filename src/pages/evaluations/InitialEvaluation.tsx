@@ -19,10 +19,23 @@ import { cn } from "@/lib/utils";
 import FileUploader from "@/components/FileUploader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+// Simulated data - Will use this if no patient is found
+const simulatedPatient = {
+  id: "simulated-patient",
+  name: "Paciente de Demostración",
+  age: 8,
+  gender: "Masculino",
+  diagnosis: "Diagnóstico de ejemplo",
+  phone: "+56 9 1234 5678",
+  email: "paciente@ejemplo.com",
+  status: "active",
+  location: "Santiago, Chile"
+};
+
 const InitialEvaluation = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const patient = patients.find((p) => p.id === id);
+  const patient = patients.find((p) => p.id === id) || simulatedPatient;
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [files, setFiles] = useState<any[]>([]);
@@ -56,17 +69,6 @@ const InitialEvaluation = () => {
     // Navegar de vuelta a la página del paciente
     navigate(`/patients/${id}`);
   };
-
-  if (!patient) {
-    return (
-      <Layout>
-        <div className="flex flex-col items-center justify-center py-12">
-          <h1 className="text-2xl font-semibold mb-4">Paciente no encontrado</h1>
-          <Button onClick={() => navigate("/patients")}>Volver a pacientes</Button>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>

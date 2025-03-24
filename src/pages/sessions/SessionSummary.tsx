@@ -8,7 +8,7 @@ import { patients, sessions } from "@/data/mockData";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -17,11 +17,36 @@ import { ChevronLeft, User, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
+// Simulated data - Will use this if no patient is found
+const simulatedPatient = {
+  id: "simulated-patient",
+  name: "Paciente de Demostración",
+  age: 8,
+  gender: "Masculino",
+  diagnosis: "Diagnóstico de ejemplo",
+  phone: "+56 9 1234 5678",
+  email: "paciente@ejemplo.com",
+  status: "active",
+  location: "Santiago, Chile"
+};
+
+const simulatedSession = {
+  id: "simulated-session",
+  patientId: "simulated-patient",
+  date: new Date().toISOString(),
+  time: "15:00",
+  type: "Sesión de terapia",
+  progress: "Progreso satisfactorio en las actividades realizadas."
+};
+
 const SessionSummary = () => {
   const { patientId, sessionId } = useParams<{ patientId: string; sessionId: string }>();
   const navigate = useNavigate();
-  const patient = patients.find((p) => p.id === patientId);
-  const session = sessionId ? sessions.find(s => s.id === sessionId) : null;
+  const patient = patients.find((p) => p.id === patientId) || simulatedPatient;
+  const session = sessionId 
+    ? sessions.find(s => s.id === sessionId) || simulatedSession 
+    : simulatedSession;
+    
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [files, setFiles] = useState<any[]>([]);
@@ -52,17 +77,6 @@ const SessionSummary = () => {
     // Navegar de vuelta a la página del paciente
     navigate(`/patients/${patientId}`);
   };
-
-  if (!patient) {
-    return (
-      <Layout>
-        <div className="flex flex-col items-center justify-center py-12">
-          <h1 className="text-2xl font-semibold mb-4">Paciente no encontrado</h1>
-          <Button onClick={() => navigate("/patients")}>Volver a pacientes</Button>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
