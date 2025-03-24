@@ -2,19 +2,19 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  Search, 
-  Plus, 
-  ChevronRight, 
-  Edit, 
-  Clock, 
+import {
+  Search,
+  Plus,
+  ChevronRight,
+  Edit,
+  Clock,
   CalendarDays,
   Filter
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -34,10 +34,12 @@ import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobil
 import { cn } from "@/lib/utils";
 
 // For demonstration purposes
-const currentProfessional = professionals[0];
+const currentProfessional = professionals[1];
 const myPatients = patients.filter(
   (patient) => patient.professionalId === currentProfessional.id
 );
+
+console.log(myPatients)
 
 const Patients = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,19 +51,19 @@ const Patients = () => {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
-    
+
     if (query.trim() === "") {
       setFilteredPatients(myPatients);
       return;
     }
-    
+
     const filtered = myPatients.filter(
       (patient) =>
         patient.name.toLowerCase().includes(query) ||
         patient.diagnosis?.toLowerCase().includes(query) ||
         (patient.parentName && patient.parentName.toLowerCase().includes(query))
     );
-    
+
     setFilteredPatients(filtered);
   };
 
@@ -69,21 +71,21 @@ const Patients = () => {
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
-    
+
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDifference = today.getMonth() - birthDate.getMonth();
-    
+
     if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    
+
     if (age < 1) {
       // For babies less than 1 year old, show age in months
-      const ageInMonths = today.getMonth() - birthDate.getMonth() + 
+      const ageInMonths = today.getMonth() - birthDate.getMonth() +
         (today.getFullYear() - birthDate.getFullYear()) * 12;
       return `${ageInMonths} meses`;
     }
-    
+
     return `${age} años`;
   };
 
@@ -112,9 +114,9 @@ const Patients = () => {
             </Button>
           </Link>
         </div>
-        
+
         <div className={cn(
-          "flex flex-col space-y-3", 
+          "flex flex-col space-y-3",
           !isMobile && "md:flex-row md:items-center md:space-y-0 md:space-x-4"
         )}>
           <div className="relative flex-1">
@@ -151,7 +153,7 @@ const Patients = () => {
             const lastSession = patientSessions.length > 0
               ? patientSessions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
               : null;
-              
+
             return (
               <motion.div
                 key={patient.id}
@@ -225,7 +227,7 @@ const Patients = () => {
             );
           })}
         </div>
-        
+
         {filteredPatients.length === 0 && (
           <div className="text-center py-8 sm:py-12">
             <p className="text-lg text-muted-foreground">

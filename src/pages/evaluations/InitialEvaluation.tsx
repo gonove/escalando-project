@@ -22,14 +22,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // Simulated data - Will use this if no patient is found
 const simulatedPatient = {
   id: "simulated-patient",
-  name: "Paciente de Demostración",
+  name: "Pedro Picapiedra",
   age: 8,
   gender: "Masculino",
   diagnosis: "Diagnóstico de ejemplo",
   phone: "+56 9 1234 5678",
   email: "paciente@ejemplo.com",
   status: "active",
-  location: "Santiago, Chile"
+  location: "Asuncion, Paraguay"
 };
 
 const InitialEvaluation = () => {
@@ -60,12 +60,12 @@ const InitialEvaluation = () => {
   const onSubmit = (data: any) => {
     // Aquí iría la lógica para guardar la evaluación inicial
     console.log({ ...data, files });
-    
+
     toast({
       title: "Evaluación guardada",
       description: "La evaluación inicial ha sido guardada con éxito",
     });
-    
+
     // Navegar de vuelta a la página del paciente
     navigate(`/patients/${id}`);
   };
@@ -202,7 +202,7 @@ const InitialEvaluation = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="initialObservations"
@@ -240,7 +240,7 @@ const InitialEvaluation = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="recommendedApproach"
@@ -266,7 +266,7 @@ const InitialEvaluation = () => {
                       <p className="text-sm text-muted-foreground mb-4">
                         Sube imágenes, videos, PDFs u otros archivos relevantes para la evaluación
                       </p>
-                      <FileUploader 
+                      <FileUploader
                         onFilesChange={handleFilesChange}
                         maxFiles={10}
                         maxSize={20 * 1024 * 1024} // 20MB
@@ -283,7 +283,7 @@ const InitialEvaluation = () => {
                   >
                     Cancelar
                   </Button>
-                  <Button 
+                  <Button
                     type="submit"
                     className={cn(isMobile && "w-full")}
                   >

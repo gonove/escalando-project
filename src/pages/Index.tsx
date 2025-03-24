@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { professionals, patients, sessions } from "@/data/mockData";
 
 // Get the first professional for demo purposes
-const currentProfessional = professionals[0];
+const currentProfessional = professionals[1];
 const myPatients = patients.filter(
   (patient) => patient.professionalId === currentProfessional.id
 );
@@ -108,9 +108,9 @@ const Index = () => {
       color: "bg-therapy-500",
     },
     {
-      title: "Tasa de Progreso",
-      value: "87%",
-      description: "Basado en los objetivos terapéuticos",
+      title: "Evaluaciones Terapeuticas",
+      value: "2/3",
+      description: "Evaluaciones completadas",
       icon: Activity,
       color: "bg-therapy-400",
     },
@@ -156,7 +156,7 @@ const Index = () => {
         className="space-y-8"
       >
         <div>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -181,7 +181,7 @@ const Index = () => {
         </div>
 
         <section>
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -210,7 +210,7 @@ const Index = () => {
         </section>
 
         <section>
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -239,7 +239,7 @@ const Index = () => {
         </section>
 
         <section>
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}

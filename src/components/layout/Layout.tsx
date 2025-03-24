@@ -23,16 +23,16 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-const SidebarLink = ({ 
-  to, 
-  icon: Icon, 
-  label, 
+const SidebarLink = ({
+  to,
+  icon: Icon,
+  label,
   active,
   compact
-}: { 
-  to: string; 
-  icon: React.ElementType; 
-  label: string; 
+}: {
+  to: string;
+  icon: React.ElementType;
+  label: string;
   active: boolean;
   compact?: boolean;
 }) => {
@@ -41,8 +41,8 @@ const SidebarLink = ({
       to={to}
       className={cn(
         "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
-        active 
-          ? "bg-escalando-400 text-black font-medium" 
+        active
+          ? "bg-escalando-400 text-black font-medium"
           : "hover:bg-escalando-100 text-gray-700 hover:text-escalando-700",
         compact && "justify-center px-2"
       )}
@@ -61,7 +61,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const isMobileOrTablet = useIsMobileOrTablet();
-  
+
   // Close sidebar on mobile when navigating to a new page
   useEffect(() => {
     if (isMobile) {
@@ -70,14 +70,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       setSidebarOpen(true);
     }
   }, [location.pathname, isMobile, isMobileOrTablet]);
-  
+
   // Initialize sidebar based on device
   useEffect(() => {
     setSidebarOpen(!isMobileOrTablet);
   }, [isMobileOrTablet]);
-  
+
   // Mock logged in professional for demo
-  const currentProfessional = professionals[0];
+  const currentProfessional = professionals[1];
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -95,7 +95,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="flex min-h-screen bg-gray-50">
       {/* Mobile overlay when sidebar is open */}
       {isMobileOrTablet && sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/20 z-40"
           onClick={() => setSidebarOpen(false)}
         />
@@ -129,7 +129,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>
-        
+
         <div className="flex flex-col gap-1 p-3 flex-1 overflow-y-auto">
           {navigationLinks.map((link) => (
             <SidebarLink
@@ -142,7 +142,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             />
           ))}
         </div>
-        
+
         <div className="border-t p-4">
           {(sidebarOpen || isMobileOrTablet) ? (
             <div className="flex items-center gap-3">
@@ -190,7 +190,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       )}
 
       {/* Main content */}
-      <div 
+      <div
         className={cn(
           "flex-1 w-full transition-all duration-300",
           isMobileOrTablet ? "mt-16 px-0" : "",
@@ -213,9 +213,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             >
               {/* Mobile back button on patient detail pages */}
               {isMobileOrTablet && location.pathname.includes("/patients/") && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="mb-2 -ml-2 px-2"
                   onClick={() => navigate(-1)}
                 >
