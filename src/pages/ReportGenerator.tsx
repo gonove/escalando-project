@@ -11,15 +11,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { 
-  FileText, 
-  FilePlus, 
-  Download, 
-  Calendar, 
-  ChevronRight, 
-  Share2, 
-  Copy, 
-  Check, 
+import {
+  FileText,
+  FilePlus,
+  Download,
+  Calendar,
+  ChevronRight,
+  Share2,
+  Copy,
+  Check,
   ExternalLink,
   Grid,
   List,
@@ -32,7 +32,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -103,22 +103,22 @@ const ReportGenerator = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const generateReportId = () => {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
   };
-  
+
   const generateShareableLink = (reportId: string) => {
     const baseUrl = window.location.origin;
     return `${baseUrl}/patient-links/${reportId}`;
   };
-  
+
   const handleShare = (reportId: string) => {
     const newShareLink = generateShareableLink(reportId);
     setShareLink(newShareLink);
     setCopied(false);
   };
-  
+
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareLink);
     setCopied(true);
@@ -127,32 +127,32 @@ const ReportGenerator = () => {
       description: "El enlace del informe ha sido copiado al portapapeles",
     });
   };
-  
+
   const handleViewSharedReport = () => {
     const reportId = shareLink.split('/').pop();
     navigate(`/patient-links/${reportId}`);
   };
-  
+
   const getPatientName = (patientId: string) => {
     const patient = patients.find(p => p.id === patientId);
     return patient ? patient.name : "Paciente Desconocido";
   };
-  
+
   const formatDate = (date: Date) => {
     return format(date, "d MMM yyyy", { locale: es });
   };
-  
+
   const handleViewReport = (reportId: string) => {
     navigate(`/reports/${reportId}`);
   };
-  
+
   const handleDeleteReport = (reportId: string) => {
     toast({
       title: "Informe eliminado",
       description: "El informe ha sido eliminado correctamente",
     });
   };
-  
+
   return (
     <Layout>
       <motion.div
@@ -179,7 +179,7 @@ const ReportGenerator = () => {
             <TabsTrigger value="new">Nuevo Informe</TabsTrigger>
             <TabsTrigger value="templates">Plantillas</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="new" className="space-y-4 mt-4">
             <Card>
               <CardHeader>
@@ -205,7 +205,7 @@ const ReportGenerator = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="report-type">Tipo de Informe</Label>
                     <Select defaultValue="evaluation">
@@ -221,12 +221,12 @@ const ReportGenerator = () => {
                     </Select>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="report-date">Fecha del Informe</Label>
                   <Input id="report-date" type="date" defaultValue={format(new Date(), "yyyy-MM-dd")} />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Secciones a incluir</Label>
                   <div className="grid gap-2 sm:grid-cols-2">
@@ -256,7 +256,7 @@ const ReportGenerator = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="notes">Observaciones Adicionales</Label>
                   <Textarea id="notes" placeholder="Ingrese información adicional relevante para el informe..." className="min-h-[100px]" />
@@ -271,7 +271,7 @@ const ReportGenerator = () => {
               </CardFooter>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="templates" className="space-y-4 mt-4">
             <Card>
               <CardHeader>
@@ -380,7 +380,7 @@ const ReportGenerator = () => {
               )}>
                 {mockReports.map((report) => {
                   const reportId = report.id;
-                  
+
                   return (
                     <Card key={reportId} className="overflow-hidden border border-muted">
                       <div className="bg-muted p-2 flex justify-between items-center">
@@ -405,9 +405,9 @@ const ReportGenerator = () => {
                           </div>
                         </div>
                         <div className="flex flex-wrap justify-between mt-4 gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="h-8"
                             onClick={() => handleViewReport(reportId)}
                           >
@@ -417,9 +417,9 @@ const ReportGenerator = () => {
                           <div className="flex gap-1">
                             <Dialog>
                               <DialogTrigger asChild>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
+                                <Button
+                                  size="sm"
+                                  variant="outline"
                                   className="h-8"
                                   onClick={() => handleShare(reportId)}
                                 >
@@ -444,9 +444,9 @@ const ReportGenerator = () => {
                                       className="font-mono text-sm"
                                     />
                                   </div>
-                                  <Button 
-                                    type="button" 
-                                    size="sm" 
+                                  <Button
+                                    type="button"
+                                    size="sm"
                                     className="px-3"
                                     onClick={handleCopyLink}
                                   >
@@ -455,7 +455,7 @@ const ReportGenerator = () => {
                                   </Button>
                                 </div>
                                 <DialogFooter className="sm:justify-start mt-4 flex-col sm:flex-row gap-2">
-                                  <Button 
+                                  <Button
                                     type="button"
                                     variant="secondary"
                                     className="sm:w-auto w-full"
@@ -465,8 +465,8 @@ const ReportGenerator = () => {
                                     Previsualizar
                                   </Button>
                                   <DialogClose asChild>
-                                    <Button 
-                                      type="button" 
+                                    <Button
+                                      type="button"
                                       variant="outline"
                                       className="sm:w-auto w-full"
                                     >
@@ -496,8 +496,8 @@ const ReportGenerator = () => {
                 </div>
                 <div className="divide-y">
                   {mockReports.map((report) => (
-                    <div 
-                      key={report.id} 
+                    <div
+                      key={report.id}
                       className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_auto_200px_auto] gap-4 p-4 items-center hover:bg-muted/50 transition-colors"
                     >
                       <div>
@@ -530,9 +530,9 @@ const ReportGenerator = () => {
                         </div>
                       </div>
                       <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="hidden sm:flex h-8"
                           onClick={() => handleViewReport(report.id)}
                         >
@@ -553,5 +553,67 @@ const ReportGenerator = () => {
                           </DialogTrigger>
                           <DialogContent className="sm:max-w-md">
                             <DialogHeader>
-                              <DialogTitle
+                              <DialogTitle>Compartir Informe</DialogTitle>
+                              <DialogDescription>
+                                Comparte este enlace con los padres o tutores del paciente para que puedan ver el informe.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="flex items-center space-x-2 mt-4">
+                              <div className="grid flex-1 gap-2">
+                                <Label htmlFor="link" className="sr-only">Link</Label>
+                                <Input
+                                  id="link"
+                                  value={shareLink}
+                                  readOnly
+                                  className="font-mono text-sm"
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                size="sm"
+                                className="px-3"
+                                onClick={handleCopyLink}
+                              >
+                                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                <span className="sr-only">Copiar</span>
+                              </Button>
+                            </div>
+                            <DialogFooter className="sm:justify-start mt-4 flex-col sm:flex-row gap-2">
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                className="sm:w-auto w-full"
+                                onClick={handleViewSharedReport}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                Previsualizar
+                              </Button>
+                              <DialogClose asChild>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className="sm:w-auto w-full"
+                                >
+                                  Cerrar
+                                </Button>
+                              </DialogClose>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                        <Button size="sm" variant="outline" className="h-8 px-2">
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+    </Layout>
+  );
+}
 
+export default ReportGenerator;

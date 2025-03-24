@@ -1,14 +1,13 @@
-
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { 
-  FileText, 
-  Camera, 
-  Home, 
-  Receipt, 
+import {
+  FileText,
+  Camera,
+  Home,
+  Receipt,
   ExternalLink,
   ChevronRight
 } from "lucide-react";
@@ -19,10 +18,10 @@ import { patients } from "@/data/mockData";
 const PatientLinks = () => {
   const { patientId } = useParams();
   const isMobile = useIsMobile();
-  
+
   // Find patient by ID, or use first patient as fallback
   const patient = patients.find(p => p.id === patientId) || patients[0];
-  
+
   // Animation variants for staggered animation
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -33,7 +32,7 @@ const PatientLinks = () => {
       }
     }
   };
-  
+
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -46,7 +45,7 @@ const PatientLinks = () => {
       }
     }
   };
-  
+
   const linkButtons = [
     {
       label: "Informes - Mis avances",
@@ -73,20 +72,20 @@ const PatientLinks = () => {
       link: "#invoices"
     }
   ];
-  
+
   return (
-    <div 
+    <div
       className="min-h-screen flex flex-col items-center pt-10 pb-20 px-4 sm:px-6"
-      style={{ 
+      style={{
         background: "linear-gradient(135deg, #fef9c3 0%, #facc15 100%)",
-        backgroundImage: `url('${process.env.PUBLIC_URL}/lovable-uploads/1ca5d957-aee9-4f69-a7f8-f191c967632f.png')`,
+        // backgroundImage: `url('https://www.vecteezy.com/free-photos/smiling-baby')`,
         backgroundSize: "cover",
         backgroundPosition: "center"
       }}
     >
       <div className="w-full max-w-md mx-auto">
         {/* Avatar and Name */}
-        <motion.div 
+        <motion.div
           className="flex flex-col items-center mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -94,7 +93,7 @@ const PatientLinks = () => {
         >
           <div className="rounded-3xl overflow-hidden border-4 border-white shadow-lg mb-4" style={{ padding: 4, background: "#ff8e8e" }}>
             <Avatar className="w-32 h-32">
-              <AvatarImage src={patient.avatar || "/placeholder.svg"} alt={patient.name} />
+              <AvatarImage src={patient.avatar || "https://static.vecteezy.com/system/resources/thumbnails/050/056/093/small/a-baby-in-a-blue-knitted-hat-is-smiling-photo.jpeg"} alt={patient.name} />
               <AvatarFallback>{patient.name.substring(0, 2)}</AvatarFallback>
             </Avatar>
           </div>
@@ -102,9 +101,9 @@ const PatientLinks = () => {
             {patient.name.split(' ')[0]}
           </h1>
         </motion.div>
-        
+
         {/* Link Buttons */}
-        <motion.div 
+        <motion.div
           className="space-y-4 w-full"
           variants={containerVariants}
           initial="hidden"
@@ -130,26 +129,19 @@ const PatientLinks = () => {
             </motion.div>
           ))}
         </motion.div>
-        
+
         {/* Footer */}
-        <motion.div 
+        <motion.div
           className="mt-20 text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
         >
-          <Link 
-            to="/"
+          <div
+            // to="/"
             className="inline-flex items-center text-xl font-bold text-escalando-700 hover:text-escalando-900 transition-colors"
           >
             ESCALANDO
-          </Link>
-          <div className="flex justify-center mt-4">
-            <img 
-              src="/lovable-uploads/1ca5d957-aee9-4f69-a7f8-f191c967632f.png" 
-              alt="Footprints" 
-              className="h-20 opacity-70"
-            />
           </div>
         </motion.div>
       </div>
