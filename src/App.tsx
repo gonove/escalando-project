@@ -19,6 +19,11 @@ import NotFound from "./pages/NotFound";
 import PatientLinks from "./pages/PatientLinks";
 import Admin from "./pages/Admin";
 
+// New pages
+import InitialEvaluation from "./pages/evaluations/InitialEvaluation";
+import SessionEvaluation from "./pages/evaluations/SessionEvaluation";
+import SessionSummary from "./pages/sessions/SessionSummary";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -41,6 +46,14 @@ const App = () => (
             <Route path="/reports/shared/:reportId" element={<SharedReport />} />
             <Route path="/patient-links/:patientId" element={<PatientLinks />} />
             <Route path="/admin" element={<Admin />} />
+            
+            {/* New routes */}
+            <Route path="/patients/:id/initial-evaluation" element={<InitialEvaluation />} />
+            <Route path="/patients/:patientId/sessions/:sessionId/evaluation" element={<SessionEvaluation />} />
+            <Route path="/patients/:patientId/sessions/:sessionId/summary" element={<SessionSummary />} />
+            <Route path="/patients/:patientId/sessions/evaluation" element={<SessionEvaluation />} />
+            <Route path="/patients/:patientId/sessions/summary" element={<SessionSummary />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

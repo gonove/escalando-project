@@ -48,7 +48,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import FileUploader from "@/components/FileUploader";
 
 const mockReports = [
   {
@@ -93,6 +94,14 @@ const mockReports = [
   }
 ];
 
+const progressMetrics = [
+  { id: "1", name: "Nivel de atención", options: ["Bajo", "Moderado", "Alto", "Muy alto"] },
+  { id: "2", name: "Participación", options: ["Mínima", "Parcial", "Activa", "Muy activa"] },
+  { id: "3", name: "Autonomía", options: ["Dependiente", "Poco autónomo", "Autónomo", "Muy autónomo"] },
+  { id: "4", name: "Regulación emocional", options: ["Dificultad severa", "Dificultad moderada", "Controlada", "Adecuada"] },
+  { id: "5", name: "Comunicación", options: ["Limitada", "Básica", "Funcional", "Avanzada"] },
+];
+
 const ReportGenerator = () => {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
@@ -103,6 +112,11 @@ const ReportGenerator = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [files, setFiles] = useState<any[]>([]);
+
+  const handleFilesChange = (newFiles: any[]) => {
+    setFiles(newFiles);
+  };
 
   const generateReportId = () => {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -163,9 +177,9 @@ const ReportGenerator = () => {
       >
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-semibold">Generador de Informes</h1>
+            <h1 className="text-2xl font-semibold">Informes Externos</h1>
             <p className="text-muted-foreground">
-              Crea y gestiona informes para tus pacientes
+              Crea y gestiona informes para escuelas, médicos y otros profesionales
             </p>
           </div>
           <Button className={cn("flex items-center gap-2", isMobile && "w-full")}>
@@ -183,9 +197,9 @@ const ReportGenerator = () => {
           <TabsContent value="new" className="space-y-4 mt-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Crear Informe de Evaluación</CardTitle>
+                <CardTitle className="text-lg">Crear Informe Externo</CardTitle>
                 <CardDescription>
-                  Complete los datos para generar un informe personalizado
+                  Complete los datos para generar un informe para compartir con otros profesionales
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -216,6 +230,8 @@ const ReportGenerator = () => {
                         <SelectItem value="evaluation">Evaluación Inicial</SelectItem>
                         <SelectItem value="progress">Progreso Terapéutico</SelectItem>
                         <SelectItem value="discharge">Alta de Tratamiento</SelectItem>
+                        <SelectItem value="school">Informe Escolar</SelectItem>
+                        <SelectItem value="medical">Informe Médico</SelectItem>
                         <SelectItem value="custom">Personalizado</SelectItem>
                       </SelectContent>
                     </Select>
@@ -225,6 +241,11 @@ const ReportGenerator = () => {
                 <div className="space-y-2">
                   <Label htmlFor="report-date">Fecha del Informe</Label>
                   <Input id="report-date" type="date" defaultValue={format(new Date(), "yyyy-MM-dd")} />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="report-recipient">Destinatario</Label>
+                  <Input id="report-recipient" placeholder="Nombre del colegio, médico u otro profesional" />
                 </div>
 
                 <div className="space-y-2">
@@ -258,8 +279,53 @@ const ReportGenerator = () => {
                 </div>
 
                 <div className="space-y-2">
+                  <Label>Métricas de Evaluación</Label>
+                  <div className="space-y-4 border rounded-md p-4">
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Seleccione las métricas cualitativas relevantes para este informe
+                    </p>
+                    
+                    {progressMetrics.map((metric) => (
+                      <div key={metric.id} className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Checkbox id={`metric-${metric.id}`} />
+                          <Label htmlFor={`metric-${metric.id}`} className="cursor-pointer">
+                            {metric.name}
+                          </Label>
+                        </div>
+                        {metric.options.length > 0 && (
+                          <div className="ml-6">
+                            <Select>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Seleccionar nivel" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {metric.options.map((option, index) => (
+                                  <SelectItem key={index} value={option.toLowerCase()}>
+                                    {option}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="notes">Observaciones Adicionales</Label>
                   <Textarea id="notes" placeholder="Ingrese información adicional relevante para el informe..." className="min-h-[100px]" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Adjuntar archivos</Label>
+                  <FileUploader 
+                    onFilesChange={handleFilesChange}
+                    maxFiles={5}
+                    maxSize={10 * 1024 * 1024} // 10MB
+                  />
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col sm:flex-row gap-3 sm:justify-between">
@@ -277,26 +343,26 @@ const ReportGenerator = () => {
               <CardHeader>
                 <CardTitle className="text-lg">Plantillas de Informes</CardTitle>
                 <CardDescription>
-                  Utilice y personalice plantillas predefinidas para agilizar la creación de informes
+                  Utilice plantillas predefinidas para agilizar la creación de informes
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {[
                     {
-                      title: "Informe de Evaluación Inicial",
-                      description: "Evaluación completa para nuevos pacientes",
+                      title: "Informe para Colegio",
+                      description: "Incluye recomendaciones educativas y adaptaciones",
                       icon: FileText
                     },
                     {
-                      title: "Reporte de Progreso Mensual",
-                      description: "Seguimiento mensual de avances",
+                      title: "Informe para Pediatra",
+                      description: "Evaluación del desarrollo para uso médico",
+                      icon: FileText
+                    },
+                    {
+                      title: "Informe Trimestral",
+                      description: "Seguimiento periódico para padres y tutores",
                       icon: Calendar
-                    },
-                    {
-                      title: "Informe de Alta",
-                      description: "Documentación para finalizar tratamiento",
-                      icon: FileText
                     },
                   ].map((template, index) => {
                     const Icon = template.icon;
