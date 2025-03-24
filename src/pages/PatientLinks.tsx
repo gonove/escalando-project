@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -78,7 +79,6 @@ const PatientLinks = () => {
       className="min-h-screen flex flex-col items-center pt-10 pb-20 px-4 sm:px-6"
       style={{
         background: "linear-gradient(135deg, #fef9c3 0%, #facc15 100%)",
-        // backgroundImage: `url('https://www.vecteezy.com/free-photos/smiling-baby')`,
         backgroundSize: "cover",
         backgroundPosition: "center"
       }}
@@ -93,7 +93,7 @@ const PatientLinks = () => {
         >
           <div className="rounded-3xl overflow-hidden border-4 border-white shadow-lg mb-4" style={{ padding: 4, background: "#ff8e8e" }}>
             <Avatar className="w-32 h-32">
-              <AvatarImage src={patient.avatar || "https://static.vecteezy.com/system/resources/thumbnails/050/056/093/small/a-baby-in-a-blue-knitted-hat-is-smiling-photo.jpeg"} alt={patient.name} />
+              <AvatarImage src={"https://static.vecteezy.com/system/resources/thumbnails/050/056/093/small/a-baby-in-a-blue-knitted-hat-is-smiling-photo.jpeg"} alt={patient.name} />
               <AvatarFallback>{patient.name.substring(0, 2)}</AvatarFallback>
             </Avatar>
           </div>
@@ -138,7 +138,6 @@ const PatientLinks = () => {
           transition={{ delay: 0.8 }}
         >
           <div
-            // to="/"
             className="inline-flex items-center text-xl font-bold text-escalando-700 hover:text-escalando-900 transition-colors"
           >
             ESCALANDO
