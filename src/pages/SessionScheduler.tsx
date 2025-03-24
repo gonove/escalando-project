@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
@@ -171,9 +170,19 @@ const SessionScheduler = () => {
       errors.patientId = "Este paciente ya tiene 3 sesiones programadas";
     }
     
-    // Check if the selected time slot is already booked for this therapist and date
-    const selectedDateTime = new Date(`${formData.date}T${formData.time}`);
+    // Check if the selected time slot already has 3 sessions booked (center limit)
+    const selectedDateTime = parseISO(formData.date);
+    const sessionsAtSameTime = scheduledSessions.filter(session => {
+      const sessionDate = new Date(session.date);
+      const isSameDate = isSameDay(sessionDate, selectedDateTime);
+      return isSameDate && session.time === formData.time;
+    });
     
+    if (sessionsAtSameTime.length >= 3) {
+      errors.time = "El centro ya tiene 3 sesiones programadas en este horario";
+    }
+    
+    // Check if the selected time slot is already booked for this therapist
     const isTimeSlotBooked = scheduledSessions.some(session => {
       const sessionDate = new Date(session.date);
       const isSameDate = isSameDay(sessionDate, parseISO(formData.date));
@@ -185,7 +194,7 @@ const SessionScheduler = () => {
     });
     
     if (isTimeSlotBooked) {
-      errors.time = "Este horario ya está ocupado";
+      errors.time = "Este horario ya está ocupado para este terapeuta";
     }
     
     setFormErrors(errors);
@@ -246,11 +255,20 @@ const SessionScheduler = () => {
 
   // Check if a time slot is available
   const isTimeSlotAvailable = (date: Date, time: string) => {
-    return !scheduledSessions.some(session => 
+    // Check if the therapist is already booked at this time
+    const isTherapistBooked = scheduledSessions.some(session => 
       session.therapistId === selectedTherapist && 
       isSameDay(session.date, date) && 
       session.time === time
     );
+    
+    // Check if the center already has 3 sessions at this time
+    const sessionsAtTime = scheduledSessions.filter(session => 
+      isSameDay(session.date, date) && 
+      session.time === time
+    );
+    
+    return !isTherapistBooked && sessionsAtTime.length < 3;
   };
 
   return (

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -9,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Clock, MapPin, Phone, Mail, File, Plus, ChevronLeft } from "lucide-react";
+import { Calendar, Clock, MapPin, Phone, Mail, File, Plus, ChevronLeft, Clipboard, ClipboardCheck, FilePlus } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
@@ -43,6 +42,10 @@ const PatientDetail = () => {
     );
   }
 
+  // Calcular evaluaciones pendientes
+  const pendingEvaluations = patientSessions.filter(s => !s.progress).length;
+  const completedEvaluations = patientSessions.filter(s => s.progress).length;
+
   return (
     <Layout>
       <motion.div
@@ -75,6 +78,16 @@ const PatientDetail = () => {
                 <Link to={`/patients/${id}/edit`}>
                   <File className="h-4 w-4" />
                   Editar
+                </Link>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+                asChild
+              >
+                <Link to={`/patients/${id}/initial-evaluation`}>
+                  <Clipboard className="h-4 w-4" />
+                  Evaluación Inicial
                 </Link>
               </Button>
               <Button 
@@ -151,6 +164,23 @@ const PatientDetail = () => {
 
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground">
+                  Evaluaciones
+                </h3>
+                <Separator />
+                <div className="pt-3">
+                  <div className="flex justify-between">
+                    <span>Pendientes</span>
+                    <span className="font-medium">{pendingEvaluations}</span>
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span>Completadas</span>
+                    <span className="font-medium">{completedEvaluations}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-muted-foreground">
                   Sesiones
                 </h3>
                 <Separator />
@@ -171,10 +201,10 @@ const PatientDetail = () => {
               </div>
               
               {isMobileOrTablet && (
-                <div className="flex gap-2 mt-4">
+                <div className="flex flex-col gap-2 mt-4">
                   <Button 
                     variant="outline" 
-                    className="flex items-center gap-2 flex-1"
+                    className="flex items-center gap-2"
                     asChild
                   >
                     <Link to={`/patients/${id}/edit`}>
@@ -183,7 +213,17 @@ const PatientDetail = () => {
                     </Link>
                   </Button>
                   <Button 
-                    className="flex items-center gap-2 flex-1"
+                    variant="outline" 
+                    className="flex items-center gap-2"
+                    asChild
+                  >
+                    <Link to={`/patients/${id}/initial-evaluation`}>
+                      <Clipboard className="h-4 w-4" />
+                      Evaluación Inicial
+                    </Link>
+                  </Button>
+                  <Button 
+                    className="flex items-center gap-2"
                     asChild
                   >
                     <Link to={`/sessions/new?patientId=${id}`}>
@@ -281,15 +321,28 @@ const PatientDetail = () => {
                           <p>{patientSessions[0].progress}</p>
                         </div>
 
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          asChild
-                        >
-                          <Link to={`/sessions/${patientSessions[0].id}`}>
-                            Ver Detalles
-                          </Link>
-                        </Button>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Button
+                            variant="outline"
+                            className="flex-1 flex items-center gap-2"
+                            asChild
+                          >
+                            <Link to={`/patients/${id}/sessions/${patientSessions[0].id}/summary`}>
+                              <FilePlus className="h-4 w-4" />
+                              Resumen de Sesión
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="flex-1 flex items-center gap-2"
+                            asChild
+                          >
+                            <Link to={`/patients/${id}/sessions/${patientSessions[0].id}/evaluation`}>
+                              <ClipboardCheck className="h-4 w-4" />
+                              Evaluación de Sesión
+                            </Link>
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -351,16 +404,30 @@ const PatientDetail = () => {
                                       {session.type || "Sesión de terapia"}
                                     </p>
                                   </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="mt-2 sm:mt-0"
-                                    asChild
-                                  >
-                                    <Link to={`/sessions/${session.id}`}>
-                                      Ver Detalles
-                                    </Link>
-                                  </Button>
+                                  <div className="mt-2 sm:mt-0 flex flex-col sm:flex-row gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="flex items-center gap-1"
+                                      asChild
+                                    >
+                                      <Link to={`/patients/${id}/sessions/${session.id}/summary`}>
+                                        <FilePlus className="h-3.5 w-3.5" />
+                                        Resumen
+                                      </Link>
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="flex items-center gap-1"
+                                      asChild
+                                    >
+                                      <Link to={`/patients/${id}/sessions/${session.id}/evaluation`}>
+                                        <ClipboardCheck className="h-3.5 w-3.5" />
+                                        Evaluación
+                                      </Link>
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
                             </div>

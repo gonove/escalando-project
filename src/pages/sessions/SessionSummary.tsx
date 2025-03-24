@@ -27,16 +27,22 @@ const simulatedPatient = {
   phone: "+56 9 1234 5678",
   email: "paciente@ejemplo.com",
   status: "active",
-  location: "Santiago, Chile"
+  location: "Santiago, Chile",
+  professionalId: "prof_1",
+  dateOfBirth: "2014-05-15",
+  notes: "Notas de ejemplo",
+  treatmentPlan: "Plan de tratamiento de muestra",
 };
 
 const simulatedSession = {
   id: "simulated-session",
   patientId: "simulated-patient",
+  professionalId: "prof_1",
   date: new Date().toISOString(),
   time: "15:00",
   type: "Sesión de terapia",
-  progress: "Progreso satisfactorio en las actividades realizadas."
+  progress: "Progreso satisfactorio en las actividades realizadas.",
+  duration: 60,
 };
 
 const SessionSummary = () => {
