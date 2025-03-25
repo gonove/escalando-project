@@ -16,8 +16,16 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { professionals } from "@/data/mockData";
 import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
+import { useAuth } from "@/context/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -61,6 +69,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const isMobileOrTablet = useIsMobileOrTablet();
+  const { user, signOut, isAdmin } = useAuth();
 
   // Close sidebar on mobile when navigating to a new page
   useEffect(() => {
@@ -76,11 +85,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     setSidebarOpen(!isMobileOrTablet);
   }, [isMobileOrTablet]);
 
-  // Mock logged in professional for demo
-  const currentProfessional = professionals[1];
-
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
   };
 
   const navigationLinks = [
@@ -90,6 +101,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: "/sessions", label: "Sesiones", icon: Calendar },
     { path: "/reports", label: "Informes", icon: FileText },
   ];
+
+  // Only show admin link if user is admin
+  if (isAdmin) {
+    navigationLinks.push({ path: "/admin", label: "Administración", icon: Settings });
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -146,46 +162,85 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="border-t p-4">
           {(sidebarOpen || isMobileOrTablet) ? (
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full overflow-hidden">
-                <img
-                  src={currentProfessional.avatar}
-                  alt={currentProfessional.name}
-                  className="h-full w-full object-cover"
-                />
-              </div>
+              <Avatar className="h-10 w-10 border">
+                <AvatarImage src={user?.user_metadata?.avatar_url} />
+                <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase() || "U"}</AvatarFallback>
+              </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{currentProfessional.name}</p>
-                <p className="text-xs text-gray-500 truncate">{currentProfessional.specialty}</p>
+                <p className="text-sm font-medium truncate">{user?.user_metadata?.name || user?.email}</p>
+                <p className="text-xs text-gray-500 truncate">{user?.user_metadata?.specialty || "Profesional"}</p>
               </div>
-              <Button variant="ghost" size="icon" className="text-gray-500">
-                <Settings className="h-5 w-5" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-gray-500">
+                    <Settings className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>Mi Perfil</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           ) : (
-            <Button variant="ghost" size="icon" className="mx-auto">
-              <UserCircle className="h-5 w-5" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="mx-auto">
+                  <UserCircle className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate('/profile')}>Mi Perfil</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Cerrar Sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>
 
       {/* Mobile header */}
       {isMobileOrTablet && (
-        <div className="fixed top-0 left-0 right-0 z-30 bg-white border-b p-4 flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="mr-2"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
+        <div className="fixed top-0 left-0 right-0 z-30 bg-white border-b p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="mr-2"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
             <div className="h-7 w-7 rounded-md bg-escalando-400 flex items-center justify-center">
               <span className="text-black font-bold text-xs">E</span>
             </div>
             <h1 className="text-lg font-display font-semibold">Escalando</h1>
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase() || "U"}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate('/profile')}>Mi Perfil</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+                <LogOut className="mr-2 h-4 w-4" />
+                Cerrar Sesión
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
 
