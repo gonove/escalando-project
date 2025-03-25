@@ -12,14 +12,14 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  Plus, 
-  UserCheck, 
-  UserPlus, 
-  Settings, 
-  Users, 
-  Shield, 
-  FileText, 
+import {
+  Plus,
+  UserCheck,
+  UserPlus,
+  Settings,
+  Users,
+  Shield,
+  FileText,
   Upload,
   Search,
   MoreVertical,
@@ -47,7 +47,7 @@ const Admin = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
-  
+
   // Initialize form with react-hook-form
   const form = useForm<ProfessionalFormData>({
     defaultValues: {
@@ -58,51 +58,55 @@ const Admin = () => {
       avatar: null
     }
   });
-  
+
   // Filter professionals based on search term
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
     setSearchTerm(term);
-    
+
     if (term.trim() === "") {
       setFilteredProfessionals(professionals);
     } else {
       const filtered = professionals.filter(
-        prof => prof.name.toLowerCase().includes(term.toLowerCase()) || 
+        prof => prof.name.toLowerCase().includes(term.toLowerCase()) ||
                 prof.specialty.toLowerCase().includes(term.toLowerCase())
       );
       setFilteredProfessionals(filtered);
     }
   };
-  
+
   // Handle adding a new professional
   const handleAddProfessional = async (data: ProfessionalFormData) => {
     setIsSubmitting(true);
-    
+
+    console.log(data)
     try {
       // First, create a new user in the auth system
       // Note: In production, we would typically use auth.admin.createUser or other admin API
       // For now, we'll use a server-side approach through our trigger function
-      
+
       // Insert the professional into the profiles table
       // The trigger we created will handle sending the invitation email
       const { data: profileData, error } = await supabase
         .from('profiles')
         .insert({
-          email: data.email,
+          id: crypto.randomUUID(),
           name: data.name,
+          email: data.email,
           specialty: data.specialty,
-          role: data.role
+          role: data.role,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         });
-        
+
       if (error) {
         throw error;
       }
-      
+
       // Reset form and show success message
       form.reset();
       setDialogOpen(false);
-      
+
       toast({
         title: "Profesional invitado",
         description: "Se ha enviado una invitación al email del profesional",
@@ -110,7 +114,7 @@ const Admin = () => {
       });
     } catch (error: any) {
       console.error("Error adding professional:", error);
-      
+
       toast({
         title: "Error al agregar profesional",
         description: error.message || "Ha ocurrido un error al invitar al profesional",
@@ -120,7 +124,7 @@ const Admin = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <Layout>
       <motion.div
@@ -144,7 +148,7 @@ const Admin = () => {
             <TabsTrigger value="permissions">Permisos</TabsTrigger>
             <TabsTrigger value="settings">Configuración</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="professionals" className="space-y-4 mt-4">
             <Card className="overflow-hidden">
               <CardHeader className="pb-0">
@@ -169,7 +173,7 @@ const Admin = () => {
                           Ingresa los datos del profesional para enviarle una invitación
                         </DialogDescription>
                       </DialogHeader>
-                      
+
                       <Form {...form}>
                         <form onSubmit={form.handleSubmit(handleAddProfessional)} className="space-y-4">
                           <FormField
@@ -185,7 +189,7 @@ const Admin = () => {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="email"
@@ -199,7 +203,7 @@ const Admin = () => {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="specialty"
@@ -223,7 +227,7 @@ const Admin = () => {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={form.control}
                             name="role"
@@ -246,7 +250,7 @@ const Admin = () => {
                               </FormItem>
                             )}
                           />
-                          
+
                           <DialogFooter className="mt-6">
                             <Button type="submit" disabled={isSubmitting}>
                               {isSubmitting ? "Enviando invitación..." : "Invitar Profesional"}
@@ -346,7 +350,7 @@ const Admin = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="permissions" className="space-y-4 mt-4">
             <Card>
               <CardHeader>
@@ -365,14 +369,14 @@ const Admin = () => {
                     <TabsTrigger value="therapist">Terapeuta</TabsTrigger>
                     <TabsTrigger value="assistant">Asistente</TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="admin" className="pt-4 space-y-4">
                     <div className="bg-secondary/30 rounded-lg p-4">
                       <p className="text-sm font-medium">
                         Los administradores tienen acceso completo a todas las funciones de la plataforma.
                       </p>
                     </div>
-                    
+
                     <div className="space-y-4">
                       {[
                         "Gestión de usuarios",
@@ -391,14 +395,14 @@ const Admin = () => {
                       ))}
                     </div>
                   </TabsContent>
-                  
+
                   <TabsContent value="therapist" className="pt-4 space-y-4">
                     <div className="bg-secondary/30 rounded-lg p-4">
                       <p className="text-sm font-medium">
                         Los terapeutas tienen acceso a sus pacientes e informes asignados.
                       </p>
                     </div>
-                    
+
                     <div className="space-y-4">
                       {[
                         "Ver pacientes asignados",
@@ -417,7 +421,7 @@ const Admin = () => {
                       ))}
                     </div>
                   </TabsContent>
-                  
+
                   <TabsContent value="assistant" className="pt-4 space-y-4">
                     {/* Similar content for assistant role */}
                   </TabsContent>
@@ -428,7 +432,7 @@ const Admin = () => {
               </CardFooter>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="settings" className="space-y-4 mt-4">
             <Card>
               <CardHeader>
@@ -471,9 +475,9 @@ const Admin = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="space-y-2">
                   <h3 className="font-medium">Apariencia</h3>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -487,9 +491,9 @@ const Admin = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="space-y-2">
                   <h3 className="font-medium">Configuración de Informes</h3>
                   <div className="space-y-3">
