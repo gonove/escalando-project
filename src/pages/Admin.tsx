@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
@@ -23,16 +22,14 @@ import {
   Upload,
   Search,
   MoreVertical,
-  CheckCircle,
-  Clock
+  CheckCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { professionals } from "@/data/mockData";
 import { cn } from "@/lib/utils";
-import { useForm } from "react-hook-form";
-import { inviteProfessional, supabase } from "@/integrations/supabase/client";
+import { useForm, Controller } from "react-hook-form";
+import { inviteProfessional } from "@/integrations/supabase/client";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Badge } from "@/components/ui/badge";
 
 // Define the form type for adding a professional
 type ProfessionalFormData = {
@@ -40,17 +37,7 @@ type ProfessionalFormData = {
   email: string;
   specialty: string;
   role: string;
-};
-
-// Define the type for pending professionals from the database
-type PendingProfessional = {
-  id: string;
-  name: string;
-  email: string;
-  specialty: string | null;
-  role: string;
-  status: string;
-  created_at: string;
+  avatar?: File | null;
 };
 
 const Admin = () => {
@@ -58,8 +45,6 @@ const Admin = () => {
   const [filteredProfessionals, setFilteredProfessionals] = useState(professionals);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [pendingProfessionals, setPendingProfessionals] = useState<PendingProfessional[]>([]);
-  const [isLoadingPending, setIsLoadingPending] = useState(true);
   const { toast } = useToast();
 
   // Initialize form with react-hook-form
@@ -68,39 +53,10 @@ const Admin = () => {
       name: "",
       email: "",
       specialty: "",
-      role: "therapist"
+      role: "therapist",
+      avatar: null
     }
   });
-
-  // Fetch pending professionals
-  useEffect(() => {
-    const fetchPendingProfessionals = async () => {
-      setIsLoadingPending(true);
-      try {
-        const { data, error } = await supabase
-          .from('pending_professionals')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (error) {
-          throw error;
-        }
-        
-        setPendingProfessionals(data || []);
-      } catch (error) {
-        console.error("Error fetching pending professionals:", error);
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar los profesionales pendientes",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoadingPending(false);
-      }
-    };
-
-    fetchPendingProfessionals();
-  }, [toast]);
 
   // Filter professionals based on search term
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,7 +79,7 @@ const Admin = () => {
     setIsSubmitting(true);
 
     try {
-      // Store the professional information in the pending_professionals table
+      // Use the new invite function that handles both auth user creation and profile creation
       const { error } = await inviteProfessional(
         data.email,
         data.name,
@@ -140,25 +96,16 @@ const Admin = () => {
       setDialogOpen(false);
 
       toast({
-        title: "Solicitud enviada",
-        description: "La información del profesional ha sido registrada y será procesada pronto",
+        title: "Profesional invitado",
+        description: "Se ha enviado una invitación al email del profesional",
         variant: "default",
       });
-
-      // Refresh the pending professionals list
-      const { data: updatedPending } = await supabase
-        .from('pending_professionals')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      setPendingProfessionals(updatedPending || []);
-      
     } catch (error: any) {
       console.error("Error adding professional:", error);
 
       toast({
         title: "Error al agregar profesional",
-        description: error.message || "Ha ocurrido un error al registrar al profesional",
+        description: error.message || "Ha ocurrido un error al invitar al profesional",
         variant: "destructive",
       });
     } finally {
@@ -209,9 +156,9 @@ const Admin = () => {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Registrar Profesional</DialogTitle>
+                        <DialogTitle>Invitar Profesional</DialogTitle>
                         <DialogDescription>
-                          Ingresa los datos del profesional para registrarlo en el sistema
+                          Ingresa los datos del profesional para enviarle una invitación
                         </DialogDescription>
                       </DialogHeader>
 
@@ -294,7 +241,7 @@ const Admin = () => {
 
                           <DialogFooter className="mt-6">
                             <Button type="submit" disabled={isSubmitting}>
-                              {isSubmitting ? "Procesando..." : "Registrar Profesional"}
+                              {isSubmitting ? "Enviando invitación..." : "Invitar Profesional"}
                             </Button>
                           </DialogFooter>
                         </form>
@@ -304,217 +251,90 @@ const Admin = () => {
                 </div>
               </CardHeader>
               <CardContent className="pt-6">
-                {/* Tabs for active and pending professionals */}
-                <Tabs defaultValue="active" className="mb-6">
-                  <TabsList className="w-full max-w-xs">
-                    <TabsTrigger value="active" className="flex-1">Activos</TabsTrigger>
-                    <TabsTrigger value="pending" className="flex-1">Pendientes 
-                      {pendingProfessionals.length > 0 && (
-                        <Badge variant="secondary" className="ml-2">{pendingProfessionals.length}</Badge>
-                      )}
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="active" className="mt-4">
-                    <div className="relative mb-4">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Buscar profesionales..."
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={handleSearch}
-                      />
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {filteredProfessionals.map((professional, index) => (
-                        <Card key={index} className="overflow-hidden">
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-4">
-                              <Avatar className="h-12 w-12 border">
-                                <AvatarImage src={professional.avatar} />
-                                <AvatarFallback>{professional.name.substring(0, 2)}</AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium truncate">{professional.name}</p>
-                                <p className="text-sm text-muted-foreground">{professional.specialty}</p>
-                                <div className="flex items-center mt-1">
-                                  <div className="flex items-center">
-                                    <span className="inline-block h-2 w-2 rounded-full bg-green-500 mr-1"></span>
-                                    <span className="text-xs text-green-600 font-medium">Activo</span>
-                                  </div>
-                                  <Separator orientation="vertical" className="h-4 mx-2" />
-                                  <span className="text-xs text-muted-foreground">
-                                    {professional.email}
-                                  </span>
-                                </div>
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar profesionales..."
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={handleSearch}
+                  />
+                </div>
+                <div className="space-y-4">
+                  {filteredProfessionals.map((professional, index) => (
+                    <Card key={index} className="overflow-hidden">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-4">
+                          <Avatar className="h-12 w-12 border">
+                            <AvatarImage src={professional.avatar} />
+                            <AvatarFallback>{professional.name.substring(0, 2)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{professional.name}</p>
+                            <p className="text-sm text-muted-foreground">{professional.specialty}</p>
+                            <div className="flex items-center mt-1">
+                              <div className="flex items-center">
+                                <span className="inline-block h-2 w-2 rounded-full bg-green-500 mr-1"></span>
+                                <span className="text-xs text-green-600 font-medium">Activo</span>
                               </div>
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="rounded-full">
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Gestionar Profesional</DialogTitle>
-                                    <DialogDescription>
-                                      Modifica los permisos y datos del profesional
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="py-4 space-y-4">
-                                    <div className="space-y-2">
-                                      <h4 className="font-medium">Permisos</h4>
-                                      <div className="space-y-3">
-                                        {["Ver informes", "Editar informes", "Gestionar pacientes", "Acceso a facturación"].map((permission, i) => (
-                                          <div key={i} className="flex items-center justify-between">
-                                            <Label htmlFor={`permission-${i}`} className="cursor-pointer flex items-center gap-2">
-                                              {permission}
-                                            </Label>
-                                            <Switch id={`permission-${i}`} defaultChecked={i < 2} />
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                    <Separator />
-                                    <div className="space-y-2">
-                                      <h4 className="font-medium">Acciones</h4>
-                                      <div className="space-y-2">
-                                        <Button variant="outline" className="w-full justify-start">
-                                          <Shield className="h-4 w-4 mr-2" />
-                                          Cambiar rol
-                                        </Button>
-                                        <Button variant="outline" className="w-full justify-start">
-                                          <Settings className="h-4 w-4 mr-2" />
-                                          Editar perfil
-                                        </Button>
-                                        <Button variant="destructive" className="w-full justify-start">
-                                          Desactivar cuenta
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
+                              <Separator orientation="vertical" className="h-4 mx-2" />
+                              <span className="text-xs text-muted-foreground">
+                                {professional.email}
+                              </span>
                             </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="pending" className="mt-4">
-                    {isLoadingPending ? (
-                      <div className="flex justify-center items-center py-12">
-                        <div className="animate-spin h-8 w-8 border-4 border-escalando-500 border-t-transparent rounded-full"></div>
-                      </div>
-                    ) : pendingProfessionals.length === 0 ? (
-                      <div className="text-center py-12 border rounded-lg bg-muted/20">
-                        <Clock className="mx-auto h-12 w-12 text-muted-foreground opacity-50 mb-3" />
-                        <h3 className="text-lg font-medium mb-1">No hay profesionales pendientes</h3>
-                        <p className="text-muted-foreground">
-                          Cuando invites nuevos profesionales, aparecerán aquí
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {pendingProfessionals.map((professional) => (
-                          <Card key={professional.id} className="overflow-hidden">
-                            <CardContent className="p-4">
-                              <div className="flex items-center gap-4">
-                                <Avatar className="h-12 w-12 border">
-                                  <AvatarFallback>{professional.name.substring(0, 2)}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium truncate">{professional.name}</p>
-                                  <p className="text-sm text-muted-foreground">{professional.specialty || "Sin especialidad"}</p>
-                                  <div className="flex items-center mt-1">
-                                    <div className="flex items-center">
-                                      <span className="inline-block h-2 w-2 rounded-full bg-amber-500 mr-1"></span>
-                                      <span className="text-xs text-amber-600 font-medium">Pendiente</span>
-                                    </div>
-                                    <Separator orientation="vertical" className="h-4 mx-2" />
-                                    <span className="text-xs text-muted-foreground">
-                                      {professional.email}
-                                    </span>
+                          </div>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="rounded-full">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Gestionar Profesional</DialogTitle>
+                                <DialogDescription>
+                                  Modifica los permisos y datos del profesional
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="py-4 space-y-4">
+                                <div className="space-y-2">
+                                  <h4 className="font-medium">Permisos</h4>
+                                  <div className="space-y-3">
+                                    {["Ver informes", "Editar informes", "Gestionar pacientes", "Acceso a facturación"].map((permission, i) => (
+                                      <div key={i} className="flex items-center justify-between">
+                                        <Label htmlFor={`permission-${i}`} className="cursor-pointer flex items-center gap-2">
+                                          {permission}
+                                        </Label>
+                                        <Switch id={`permission-${i}`} defaultChecked={i < 2} />
+                                      </div>
+                                    ))}
                                   </div>
                                 </div>
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="rounded-full">
-                                      <MoreVertical className="h-4 w-4" />
+                                <Separator />
+                                <div className="space-y-2">
+                                  <h4 className="font-medium">Acciones</h4>
+                                  <div className="space-y-2">
+                                    <Button variant="outline" className="w-full justify-start">
+                                      <Shield className="h-4 w-4 mr-2" />
+                                      Cambiar rol
                                     </Button>
-                                  </DialogTrigger>
-                                  <DialogContent>
-                                    <DialogHeader>
-                                      <DialogTitle>Profesional Pendiente</DialogTitle>
-                                      <DialogDescription>
-                                        Detalles del profesional pendiente de aprobación
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="py-4 space-y-4">
-                                      <div className="grid gap-3">
-                                        <div>
-                                          <Label className="text-xs text-muted-foreground">Nombre</Label>
-                                          <p className="font-medium">{professional.name}</p>
-                                        </div>
-                                        <div>
-                                          <Label className="text-xs text-muted-foreground">Email</Label>
-                                          <p className="font-medium">{professional.email}</p>
-                                        </div>
-                                        <div>
-                                          <Label className="text-xs text-muted-foreground">Especialidad</Label>
-                                          <p className="font-medium">{professional.specialty || "Sin especialidad"}</p>
-                                        </div>
-                                        <div>
-                                          <Label className="text-xs text-muted-foreground">Rol</Label>
-                                          <p className="font-medium">
-                                            {professional.role === "admin" ? "Administrador" :
-                                            professional.role === "therapist" ? "Terapeuta" :
-                                            professional.role === "assistant" ? "Asistente" : professional.role}
-                                          </p>
-                                        </div>
-                                        <div>
-                                          <Label className="text-xs text-muted-foreground">Fecha de solicitud</Label>
-                                          <p className="font-medium">
-                                            {new Date(professional.created_at).toLocaleDateString('es-ES', {
-                                              day: '2-digit',
-                                              month: '2-digit',
-                                              year: 'numeric',
-                                              hour: '2-digit',
-                                              minute: '2-digit'
-                                            })}
-                                          </p>
-                                        </div>
-                                      </div>
-                                      <Separator />
-                                      <div className="space-y-2">
-                                        <h4 className="font-medium">Acciones</h4>
-                                        <div className="flex flex-col gap-2">
-                                          <Button className="w-full">
-                                            <UserCheck className="h-4 w-4 mr-2" />
-                                            Aprobar y enviar invitación
-                                          </Button>
-                                          <Button variant="outline" className="w-full">
-                                            <Shield className="h-4 w-4 mr-2" />
-                                            Editar antes de aprobar
-                                          </Button>
-                                          <Button variant="destructive" className="w-full justify-start">
-                                            Rechazar solicitud
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </DialogContent>
-                                </Dialog>
+                                    <Button variant="outline" className="w-full justify-start">
+                                      <Settings className="h-4 w-4 mr-2" />
+                                      Editar perfil
+                                    </Button>
+                                    <Button variant="destructive" className="w-full justify-start">
+                                      Desactivar cuenta
+                                    </Button>
+                                  </div>
+                                </div>
                               </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-                  </TabsContent>
-                </Tabs>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

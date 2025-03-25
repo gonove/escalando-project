@@ -17,19 +17,17 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   }
 });
 
-// Function to create a professional record by adding to pending_professionals table
+// Function to directly invite users (without the foreign key constraint issues)
 export const inviteProfessional = async (email: string, name: string, specialty: string, role: string) => {
   try {
-    // Insert the professional into the pending_professionals table
-    const { data, error } = await supabase
-      .from('pending_professionals')
-      .insert({
-        email,
+    // First create the auth user and send invitation
+    const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
+      data: {
         name,
         specialty,
-        role,
-        status: 'pending'
-      });
+        role
+      }
+    });
     
     if (error) throw error;
     
