@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,14 +25,39 @@ import {
   MoreVertical,
   CheckCircle
 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { professionals } from "@/data/mockData";
 import { cn } from "@/lib/utils";
+import { useForm, Controller } from "react-hook-form";
+import { supabase } from "@/integrations/supabase/client";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+
+// Define the form type for adding a professional
+type ProfessionalFormData = {
+  name: string;
+  email: string;
+  specialty: string;
+  role: string;
+  avatar?: File | null;
+};
 
 const Admin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProfessionals, setFilteredProfessionals] = useState(professionals);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
+  
+  // Initialize form with react-hook-form
+  const form = useForm<ProfessionalFormData>({
+    defaultValues: {
+      name: "",
+      email: "",
+      specialty: "",
+      role: "therapist",
+      avatar: null
+    }
+  });
   
   // Filter professionals based on search term
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,11 +76,47 @@ const Admin = () => {
   };
   
   // Handle adding a new professional
-  const handleAddProfessional = () => {
-    toast({
-      title: "Profesional agregado",
-      description: "El profesional ha sido agregado correctamente",
-    });
+  const handleAddProfessional = async (data: ProfessionalFormData) => {
+    setIsSubmitting(true);
+    
+    try {
+      // Insert the professional into the profiles table
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            name: data.name,
+            email: data.email,
+            specialty: data.specialty,
+            role: data.role
+          }
+        ])
+        .select();
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Reset form and show success message
+      form.reset();
+      setDialogOpen(false);
+      
+      toast({
+        title: "Profesional invitado",
+        description: "Se ha enviado una invitación al email del profesional",
+        variant: "default",
+      });
+    } catch (error: any) {
+      console.error("Error adding professional:", error);
+      
+      toast({
+        title: "Error al agregar profesional",
+        description: error.message || "Ha ocurrido un error al invitar al profesional",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   return (
@@ -92,7 +153,7 @@ const Admin = () => {
                       <span>Profesionales</span>
                     </div>
                   </CardTitle>
-                  <Dialog>
+                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                     <DialogTrigger asChild>
                       <Button className="flex items-center gap-2">
                         <UserPlus className="h-4 w-4" />
@@ -101,57 +162,96 @@ const Admin = () => {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Agregar Profesional</DialogTitle>
+                        <DialogTitle>Invitar Profesional</DialogTitle>
                         <DialogDescription>
-                          Ingresa los datos del nuevo profesional
+                          Ingresa los datos del profesional para enviarle una invitación
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                          <Label htmlFor="name">Nombre Completo</Label>
-                          <Input id="name" placeholder="Nombre y apellido" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="email">Correo Electrónico</Label>
-                          <Input id="email" type="email" placeholder="correo@ejemplo.com" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="specialty">Especialidad</Label>
-                          <Select>
-                            <SelectTrigger id="specialty">
-                              <SelectValue placeholder="Selecciona especialidad" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="psychology">Psicología</SelectItem>
-                              <SelectItem value="speech">Fonoaudiología</SelectItem>
-                              <SelectItem value="occupational">Terapia Ocupacional</SelectItem>
-                              <SelectItem value="physical">Fisioterapia</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="role">Rol</Label>
-                          <Select defaultValue="therapist">
-                            <SelectTrigger id="role">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="admin">Administrador</SelectItem>
-                              <SelectItem value="therapist">Terapeuta</SelectItem>
-                              <SelectItem value="assistant">Asistente</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Label htmlFor="avatar">Foto de Perfil</Label>
-                          <div className="flex-1">
-                            <Input id="avatar" type="file" className="cursor-pointer" />
-                          </div>
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button type="submit" onClick={handleAddProfessional}>Agregar Profesional</Button>
-                      </DialogFooter>
+                      
+                      <Form {...form}>
+                        <form onSubmit={form.handleSubmit(handleAddProfessional)} className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nombre Completo</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Nombre y apellido" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Correo Electrónico</FormLabel>
+                                <FormControl>
+                                  <Input type="email" placeholder="correo@ejemplo.com" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="specialty"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Especialidad</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecciona especialidad" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="psychology">Psicología</SelectItem>
+                                    <SelectItem value="speech">Fonoaudiología</SelectItem>
+                                    <SelectItem value="occupational">Terapia Ocupacional</SelectItem>
+                                    <SelectItem value="physical">Fisioterapia</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="role"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Rol</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="admin">Administrador</SelectItem>
+                                    <SelectItem value="therapist">Terapeuta</SelectItem>
+                                    <SelectItem value="assistant">Asistente</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <DialogFooter className="mt-6">
+                            <Button type="submit" disabled={isSubmitting}>
+                              {isSubmitting ? "Enviando invitación..." : "Invitar Profesional"}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
                     </DialogContent>
                   </Dialog>
                 </div>
