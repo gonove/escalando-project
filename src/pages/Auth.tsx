@@ -6,25 +6,17 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2 } from "lucide-react";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("login");
   
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   
-  // Register form state
-  const [registerEmail, setRegisterEmail] = useState("");
-  const [registerPassword, setRegisterPassword] = useState("");
-  const [registerName, setRegisterName] = useState("");
-  const [registerSpecialty, setRegisterSpecialty] = useState("");
-  
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, user } = useAuth();
   const navigate = useNavigate();
   
   // Redirect if already logged in
@@ -43,20 +35,6 @@ const Auth = () => {
       navigate("/");
     } catch (error) {
       console.error("Login error:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      await signUp(registerEmail, registerPassword, registerName, registerSpecialty);
-      setActiveTab("login");
-    } catch (error) {
-      console.error("Register error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -82,112 +60,48 @@ const Auth = () => {
           <CardHeader>
             <CardTitle className="text-center">Bienvenido</CardTitle>
             <CardDescription className="text-center">
-              Inicia sesión o regístrate para continuar
+              Inicia sesión para acceder a la plataforma
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
-                <TabsTrigger value="register">Registrarse</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="login">
-                <form onSubmit={handleLogin} className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Correo Electrónico</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="correo@ejemplo.com"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="password">Contraseña</Label>
-                      <Button type="button" variant="link" className="px-0 h-auto text-xs">
-                        ¿Olvidaste tu contraseña?
-                      </Button>
-                    </div>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Iniciando sesión...
-                      </>
-                    ) : (
-                      "Iniciar Sesión"
-                    )}
+            <form onSubmit={handleLogin} className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Correo Electrónico</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="correo@ejemplo.com"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Contraseña</Label>
+                  <Button type="button" variant="link" className="px-0 h-auto text-xs">
+                    ¿Olvidaste tu contraseña?
                   </Button>
-                </form>
-              </TabsContent>
-              
-              <TabsContent value="register">
-                <form onSubmit={handleRegister} className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="register-name">Nombre Completo</Label>
-                    <Input
-                      id="register-name"
-                      placeholder="Nombre y Apellido"
-                      value={registerName}
-                      onChange={(e) => setRegisterName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-email">Correo Electrónico</Label>
-                    <Input
-                      id="register-email"
-                      type="email"
-                      placeholder="correo@ejemplo.com"
-                      value={registerEmail}
-                      onChange={(e) => setRegisterEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-specialty">Especialidad</Label>
-                    <Input
-                      id="register-specialty"
-                      placeholder="Ej: Psicología, Fonoaudiología, etc."
-                      value={registerSpecialty}
-                      onChange={(e) => setRegisterSpecialty(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-password">Contraseña</Label>
-                    <Input
-                      id="register-password"
-                      type="password"
-                      value={registerPassword}
-                      onChange={(e) => setRegisterPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Registrando...
-                      </>
-                    ) : (
-                      "Registrarse"
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Iniciando sesión...
+                  </>
+                ) : (
+                  "Iniciar Sesión"
+                )}
+              </Button>
+            </form>
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-sm text-muted-foreground">
