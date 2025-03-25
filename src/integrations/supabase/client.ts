@@ -16,3 +16,24 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
   }
 });
+
+// Function to directly invite users (without the foreign key constraint issues)
+export const inviteProfessional = async (email: string, name: string, specialty: string, role: string) => {
+  try {
+    // First create the auth user and send invitation
+    const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
+      data: {
+        name,
+        specialty,
+        role
+      }
+    });
+    
+    if (error) throw error;
+    
+    return { data, error: null };
+  } catch (error) {
+    console.error("Error inviting professional:", error);
+    return { data: null, error };
+  }
+};

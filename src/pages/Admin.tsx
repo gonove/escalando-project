@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
@@ -29,7 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { professionals } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import { useForm, Controller } from "react-hook-form";
-import { supabase } from "@/integrations/supabase/client";
+import { inviteProfessional } from "@/integrations/supabase/client";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 
 // Define the form type for adding a professional
@@ -79,25 +78,14 @@ const Admin = () => {
   const handleAddProfessional = async (data: ProfessionalFormData) => {
     setIsSubmitting(true);
 
-    console.log(data)
     try {
-      // First, create a new user in the auth system
-      // Note: In production, we would typically use auth.admin.createUser or other admin API
-      // For now, we'll use a server-side approach through our trigger function
-
-      // Insert the professional into the profiles table
-      // The trigger we created will handle sending the invitation email
-      const { data: profileData, error } = await supabase
-        .from('profiles')
-        .insert({
-          id: crypto.randomUUID(),
-          name: data.name,
-          email: data.email,
-          specialty: data.specialty,
-          role: data.role,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
+      // Use the new invite function that handles both auth user creation and profile creation
+      const { error } = await inviteProfessional(
+        data.email,
+        data.name,
+        data.specialty,
+        data.role
+      );
 
       if (error) {
         throw error;
