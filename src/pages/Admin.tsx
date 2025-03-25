@@ -80,18 +80,20 @@ const Admin = () => {
     setIsSubmitting(true);
     
     try {
+      // First, create a new user in the auth system
+      // Note: In production, we would typically use auth.admin.createUser or other admin API
+      // For now, we'll use a server-side approach through our trigger function
+      
       // Insert the professional into the profiles table
+      // The trigger we created will handle sending the invitation email
       const { data: profileData, error } = await supabase
         .from('profiles')
-        .insert([
-          {
-            name: data.name,
-            email: data.email,
-            specialty: data.specialty,
-            role: data.role
-          }
-        ])
-        .select();
+        .insert({
+          email: data.email,
+          name: data.name,
+          specialty: data.specialty,
+          role: data.role
+        });
         
       if (error) {
         throw error;
