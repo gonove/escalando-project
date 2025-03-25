@@ -28,7 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { professionals } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import { useForm, Controller } from "react-hook-form";
-import { inviteProfessional } from "@/integrations/supabase/client";
+import { inviteProfessional, supabase } from "@/integrations/supabase/client";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 
 // Define the form type for adding a professional
@@ -79,7 +79,7 @@ const Admin = () => {
     setIsSubmitting(true);
 
     try {
-      // Use the new invite function that handles both auth user creation and profile creation
+      // Store the professional information in the pending_professionals table
       const { error } = await inviteProfessional(
         data.email,
         data.name,
@@ -96,8 +96,8 @@ const Admin = () => {
       setDialogOpen(false);
 
       toast({
-        title: "Profesional invitado",
-        description: "Se ha enviado una invitación al email del profesional",
+        title: "Solicitud enviada",
+        description: "La información del profesional ha sido registrada y será procesada pronto",
         variant: "default",
       });
     } catch (error: any) {
@@ -105,7 +105,7 @@ const Admin = () => {
 
       toast({
         title: "Error al agregar profesional",
-        description: error.message || "Ha ocurrido un error al invitar al profesional",
+        description: error.message || "Ha ocurrido un error al registrar al profesional",
         variant: "destructive",
       });
     } finally {
@@ -156,9 +156,9 @@ const Admin = () => {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Invitar Profesional</DialogTitle>
+                        <DialogTitle>Registrar Profesional</DialogTitle>
                         <DialogDescription>
-                          Ingresa los datos del profesional para enviarle una invitación
+                          Ingresa los datos del profesional para registrarlo en el sistema
                         </DialogDescription>
                       </DialogHeader>
 
@@ -241,7 +241,7 @@ const Admin = () => {
 
                           <DialogFooter className="mt-6">
                             <Button type="submit" disabled={isSubmitting}>
-                              {isSubmitting ? "Enviando invitación..." : "Invitar Profesional"}
+                              {isSubmitting ? "Procesando..." : "Registrar Profesional"}
                             </Button>
                           </DialogFooter>
                         </form>
