@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
@@ -7,13 +8,40 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar as CalendarIcon, Clock, Plus, User, CalendarCheck, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
+import { 
+  Calendar as CalendarIcon, 
+  Clock, 
+  Plus, 
+  User, 
+  CalendarCheck, 
+  ChevronLeft, 
+  ChevronRight,
+  UsersRound
+} from "lucide-react";
 import { patients } from "@/data/mockData";
-import { format, addDays, startOfWeek, addWeeks, subWeeks, isSameDay, parseISO, isAfter, isBefore, getHours } from "date-fns";
+import { 
+  format, 
+  addDays, 
+  startOfWeek, 
+  startOfMonth,
+  endOfMonth,
+  addMonths,
+  subMonths,
+  addWeeks, 
+  subWeeks, 
+  isSameDay, 
+  parseISO, 
+  isAfter, 
+  isBefore, 
+  getDate,
+  getDay,
+  eachDayOfInterval
+} from "date-fns";
 import { es } from "date-fns/locale";
 import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Tooltip,
   TooltipContent,
@@ -106,7 +134,10 @@ const SessionScheduler = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [weekStart, setWeekStart] = useState(startOfWeek(currentDate, { weekStartsOn: 1 }));
+  const [monthStart, setMonthStart] = useState(startOfMonth(currentDate));
   const [selectedTherapist, setSelectedTherapist] = useState<string>("th_1");
+  const [viewAll, setViewAll] = useState<boolean>(false);
+  const [calendarView, setCalendarView] = useState<"week" | "month">("week");
   const [scheduledSessions, setScheduledSessions] = useState(initialScheduledSessions);
   const [formData, setFormData] = useState({
     patientId: "",
@@ -122,12 +153,50 @@ const SessionScheduler = () => {
   // Generate days for the week view
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
   
-  const nextWeek = () => {
-    setWeekStart(addWeeks(weekStart, 1));
+  // Generate days for the month view
+  const generateMonthDays = () => {
+    const monthStartDay = startOfMonth(currentDate);
+    const monthEndDay = endOfMonth(currentDate);
+    const days = eachDayOfInterval({ start: monthStartDay, end: monthEndDay });
+    
+    // Get the first day of the month
+    const firstDayOfMonth = getDay(monthStartDay);
+    
+    // Adjust for Monday as first day of week (European/Spanish calendar)
+    const adjustedFirstDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+    
+    // Add days from previous month to fill the first week
+    const prevMonthDays = Array.from({ length: adjustedFirstDay }).map((_, i) => 
+      addDays(monthStartDay, -(adjustedFirstDay - i))
+    );
+    
+    // Add days from next month to complete the calendar grid (6 rows x 7 days)
+    const totalDaysToShow = 42; // 6 weeks
+    const daysFromNextMonth = Array.from({ length: totalDaysToShow - prevMonthDays.length - days.length }).map((_, i) => 
+      addDays(monthEndDay, i + 1)
+    );
+    
+    return [...prevMonthDays, ...days, ...daysFromNextMonth];
   };
   
-  const prevWeek = () => {
-    setWeekStart(subWeeks(weekStart, 1));
+  const monthDays = generateMonthDays();
+  
+  const nextPeriod = () => {
+    if (calendarView === "week") {
+      setWeekStart(addWeeks(weekStart, 1));
+    } else {
+      setMonthStart(addMonths(monthStart, 1));
+      setCurrentDate(addMonths(currentDate, 1));
+    }
+  };
+  
+  const prevPeriod = () => {
+    if (calendarView === "week") {
+      setWeekStart(subWeeks(weekStart, 1));
+    } else {
+      setMonthStart(subMonths(monthStart, 1));
+      setCurrentDate(subMonths(currentDate, 1));
+    }
   };
 
   // Handle form input changes
@@ -242,7 +311,8 @@ const SessionScheduler = () => {
   // Filter sessions by therapist and date
   const getFilteredSessions = () => {
     return scheduledSessions.filter(session => {
-      const isForSelectedTherapist = session.therapistId === selectedTherapist;
+      // Si viewAll está activado, ignorar el filtro de terapeuta
+      const isForSelectedTherapist = viewAll || session.therapistId === selectedTherapist;
       
       // If a date is selected, filter by that date too
       if (selectedDate) {
@@ -250,6 +320,16 @@ const SessionScheduler = () => {
       }
       
       return isForSelectedTherapist;
+    });
+  };
+
+  // Get sessions for a specific date
+  const getSessionsForDate = (date: Date) => {
+    return scheduledSessions.filter(session => {
+      if (viewAll) {
+        return isSameDay(session.date, date);
+      }
+      return session.therapistId === selectedTherapist && isSameDay(session.date, date);
     });
   };
 
@@ -269,6 +349,24 @@ const SessionScheduler = () => {
     );
     
     return !isTherapistBooked && sessionsAtTime.length < 3;
+  };
+
+  // Get the number of sessions at a specific time slot
+  const getSessionsCountAtTime = (date: Date, time: string) => {
+    return scheduledSessions.filter(session => 
+      isSameDay(session.date, date) && 
+      session.time === time
+    ).length;
+  };
+
+  // Handle calendar view change
+  const handleCalendarViewChange = (view: "week" | "month") => {
+    setCalendarView(view);
+    if (view === "month") {
+      setMonthStart(startOfMonth(currentDate));
+    } else {
+      setWeekStart(startOfWeek(currentDate, { weekStartsOn: 1 }));
+    }
   };
 
   return (
@@ -403,6 +501,7 @@ const SessionScheduler = () => {
                           {centerHours.map((time) => {
                             const date = formData.date ? parseISO(formData.date) : new Date();
                             const isAvailable = isTimeSlotAvailable(date, time);
+                            const sessionsCount = getSessionsCountAtTime(date, time);
                             
                             return (
                               <SelectItem 
@@ -412,9 +511,16 @@ const SessionScheduler = () => {
                               >
                                 <div className="flex items-center justify-between w-full">
                                   <span>{time}</span>
-                                  {!isAvailable && (
+                                  {sessionsCount > 0 ? (
+                                    <span className={cn(
+                                      "text-xs rounded-full px-2 py-0.5",
+                                      sessionsCount === 3 ? "bg-red-100 text-red-600" : "bg-muted"
+                                    )}>
+                                      {sessionsCount}/3
+                                    </span>
+                                  ) : !isAvailable ? (
                                     <span className="text-xs text-destructive">Ocupado</span>
-                                  )}
+                                  ) : null}
                                 </div>
                               </SelectItem>
                             );
@@ -487,125 +593,277 @@ const SessionScheduler = () => {
             </CardContent>
           </Card>
 
-          {/* Calendar Week View */}
+          {/* Calendar View */}
           <Card className="lg:col-span-2 order-1 lg:order-2 w-full">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center">
-                <CardTitle className="text-lg">Calendario Semanal</CardTitle>
+                <CardTitle className="text-lg">Calendario</CardTitle>
                 <div className="flex items-center gap-1">
-                  <Button variant="outline" size="icon" onClick={prevWeek}>
+                  <Button variant="outline" size="icon" onClick={prevPeriod}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="icon" onClick={nextWeek}>
+                  <Button variant="outline" size="icon" onClick={nextPeriod}>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
               <CardDescription>
-                {format(weekStart, "d 'de' MMMM", { locale: es })} - {format(addDays(weekStart, 6), "d 'de' MMMM, yyyy", { locale: es })}
+                {calendarView === "week" ? (
+                  <>
+                    {format(weekStart, "d 'de' MMMM", { locale: es })} - {format(addDays(weekStart, 6), "d 'de' MMMM, yyyy", { locale: es })}
+                  </>
+                ) : (
+                  <>
+                    {format(monthStart, "MMMM yyyy", { locale: es })}
+                  </>
+                )}
               </CardDescription>
               
-              {/* Selector de terapeuta para el calendario */}
-              <div className="mt-4">
-                <Label htmlFor="calendar-therapist" className="mr-2">Ver agenda de:</Label>
-                <Select 
-                  value={selectedTherapist} 
-                  onValueChange={setSelectedTherapist}
-                >
-                  <SelectTrigger id="calendar-therapist" className="w-full sm:w-[250px]">
-                    <SelectValue placeholder="Seleccionar terapeuta" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {therapists.map((therapist) => (
-                      <SelectItem key={therapist.id} value={therapist.id}>
-                        {therapist.name} - {therapist.specialty}
+              <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <Label htmlFor="calendar-therapist" className="sm:mr-2">Ver agenda de:</Label>
+                  <Select 
+                    value={viewAll ? "all" : selectedTherapist} 
+                    onValueChange={(value) => {
+                      if (value === "all") {
+                        setViewAll(true);
+                      } else {
+                        setViewAll(false);
+                        setSelectedTherapist(value);
+                      }
+                    }}
+                  >
+                    <SelectTrigger id="calendar-therapist" className="w-full sm:w-[250px]">
+                      <SelectValue placeholder="Seleccionar terapeuta" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        <div className="flex items-center gap-2">
+                          <UsersRound className="h-4 w-4" />
+                          <span>Todos los terapeutas</span>
+                        </div>
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-7 gap-1 mb-2">
-                {weekDays.map((day, i) => (
-                  <div key={i} className="text-center">
-                    <p className="text-xs text-muted-foreground uppercase">
-                      {format(day, isMobile ? "EEE" : "EEEE", { locale: es })}
-                    </p>
-                    <Button 
-                      variant={isSameDay(day, selectedDate || new Date()) ? "default" : "ghost"} 
-                      className={cn(
-                        "w-full rounded-full font-normal",
-                        isSameDay(day, new Date()) && !isSameDay(day, selectedDate || new Date()) && "bg-escalando-100 text-escalando-900 hover:bg-escalando-200 hover:text-escalando-900"
-                      )}
-                      onClick={() => setSelectedDate(day)}
-                    >
-                      {format(day, "d")}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium">
-                    Sesiones programadas
-                    {selectedDate && (
-                      <span className="ml-2 text-muted-foreground">
-                        ({format(selectedDate, "d 'de' MMMM", { locale: es })})
-                      </span>
-                    )}
-                  </h3>
-                  
-                  <Tabs defaultValue="day" className="w-auto">
+                      {therapists.map((therapist) => (
+                        <SelectItem key={therapist.id} value={therapist.id}>
+                          {therapist.name} - {therapist.specialty}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center">
+                  <Tabs 
+                    value={calendarView} 
+                    onValueChange={(value) => handleCalendarViewChange(value as "week" | "month")}
+                    className="w-auto"
+                  >
                     <TabsList className="grid w-[180px] grid-cols-2">
-                      <TabsTrigger value="day">Día</TabsTrigger>
-                      <TabsTrigger value="week">Semana</TabsTrigger>
+                      <TabsTrigger value="week">Semanal</TabsTrigger>
+                      <TabsTrigger value="month">Mensual</TabsTrigger>
                     </TabsList>
                   </Tabs>
                 </div>
-                
-                <div className="bg-muted/30 rounded-md p-4">
-                  <div className="text-sm font-medium mb-4">Horario: {therapists.find(t => t.id === selectedTherapist)?.name}</div>
-                  <div className="space-y-2">
-                    {getFilteredSessions().length > 0 ? (
-                      getFilteredSessions().map((session, i) => {
-                        const patient = patients.find(p => p.id === session.patientId);
-                        
-                        return (
-                          <Card 
-                            key={i} 
-                            className="overflow-hidden border border-muted shadow-sm"
-                          >
-                            <div className="p-3 flex items-center gap-3">
-                              <div className="w-2 h-10 rounded-full bg-escalando-400" />
-                              <div className="flex-1">
-                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
-                                  <div>
-                                    <p className="font-medium">{patient?.name}</p>
-                                    <div className="flex items-center text-sm text-muted-foreground flex-wrap">
-                                      <CalendarIcon className="h-3.5 w-3.5 mr-1" />
-                                      <span>{format(session.date, "EEEE d 'de' MMMM", { locale: es })}</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {calendarView === "week" ? (
+                // Vista semanal
+                <div className="space-y-4">
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {weekDays.map((day, i) => (
+                      <div key={i} className="text-center">
+                        <p className="text-xs text-muted-foreground uppercase">
+                          {format(day, isMobile ? "EEE" : "EEEE", { locale: es })}
+                        </p>
+                        <Button 
+                          variant={isSameDay(day, selectedDate || new Date()) ? "default" : "ghost"} 
+                          className={cn(
+                            "w-full rounded-full font-normal",
+                            isSameDay(day, new Date()) && !isSameDay(day, selectedDate || new Date()) && "bg-escalando-100 text-escalando-900 hover:bg-escalando-200 hover:text-escalando-900"
+                          )}
+                          onClick={() => setSelectedDate(day)}
+                        >
+                          {format(day, "d")}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-medium">
+                        Sesiones programadas
+                        {selectedDate && (
+                          <span className="ml-2 text-muted-foreground">
+                            ({format(selectedDate, "d 'de' MMMM", { locale: es })})
+                          </span>
+                        )}
+                      </h3>
+                    </div>
+                    
+                    <div className="bg-muted/30 rounded-md p-4">
+                      <div className="text-sm font-medium mb-4">
+                        {viewAll ? "Horario: Todos los terapeutas" : `Horario: ${therapists.find(t => t.id === selectedTherapist)?.name}`}
+                      </div>
+                      <div className="space-y-2">
+                        {getFilteredSessions().length > 0 ? (
+                          getFilteredSessions().map((session, i) => {
+                            const patient = patients.find(p => p.id === session.patientId);
+                            const therapist = therapists.find(t => t.id === session.therapistId);
+                            
+                            return (
+                              <Card 
+                                key={i} 
+                                className="overflow-hidden border border-muted shadow-sm"
+                              >
+                                <div className="p-3 flex items-center gap-3">
+                                  <div className="w-2 h-10 rounded-full bg-escalando-400" />
+                                  <div className="flex-1">
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
+                                      <div>
+                                        <p className="font-medium">{patient?.name}</p>
+                                        <div className="flex items-center text-sm text-muted-foreground flex-wrap">
+                                          <CalendarIcon className="h-3.5 w-3.5 mr-1" />
+                                          <span>{format(session.date, "EEEE d 'de' MMMM", { locale: es })}</span>
+                                        </div>
+                                        {viewAll && (
+                                          <div className="text-sm text-muted-foreground mt-1">
+                                            <span className="font-medium">Terapeuta:</span> {therapist?.name}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center text-sm font-medium mt-1 sm:mt-0">
+                                        <Clock className="h-3.5 w-3.5 mr-1" />
+                                        <span>{session.time} ({session.duration} min)</span>
+                                      </div>
                                     </div>
                                   </div>
-                                  <div className="flex items-center text-sm font-medium mt-1 sm:mt-0">
-                                    <Clock className="h-3.5 w-3.5 mr-1" />
-                                    <span>{session.time} ({session.duration} min)</span>
-                                  </div>
                                 </div>
-                              </div>
-                            </div>
-                          </Card>
-                        );
-                      })
-                    ) : (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground">No hay sesiones programadas{selectedDate ? ` para ${format(selectedDate, "d 'de' MMMM", { locale: es })}` : ""}</p>
+                              </Card>
+                            );
+                          })
+                        ) : (
+                          <div className="text-center py-8">
+                            <p className="text-muted-foreground">No hay sesiones programadas{selectedDate ? ` para ${format(selectedDate, "d 'de' MMMM", { locale: es })}` : ""}</p>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                // Vista mensual
+                <div className="space-y-4">
+                  <div className="grid grid-cols-7 gap-1">
+                    {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((day, i) => (
+                      <div key={i} className="text-center p-2">
+                        <p className="text-xs text-muted-foreground uppercase">{day}</p>
+                      </div>
+                    ))}
+                    
+                    {monthDays.map((day, i) => {
+                      const isCurrentMonth = day.getMonth() === currentDate.getMonth();
+                      const isToday = isSameDay(day, new Date());
+                      const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
+                      const daySessionsCount = getSessionsForDate(day).length;
+                      
+                      return (
+                        <div 
+                          key={i} 
+                          className={cn(
+                            "p-1 h-20 border border-border/40 relative",
+                            !isCurrentMonth && "bg-muted/20",
+                            isSelected && "ring-2 ring-primary ring-inset"
+                          )}
+                          onClick={() => setSelectedDate(day)}
+                        >
+                          <div className={cn(
+                            "flex justify-center items-center w-6 h-6 rounded-full mx-auto",
+                            isToday && "bg-escalando-100 text-escalando-900",
+                            isSelected && "bg-primary text-primary-foreground"
+                          )}>
+                            {format(day, "d")}
+                          </div>
+                          
+                          {daySessionsCount > 0 && (
+                            <div className="mt-1">
+                              <div className={cn(
+                                "text-xs text-center w-full py-0.5 rounded",
+                                daySessionsCount >= 3 ? "bg-red-100 text-red-600" : "bg-muted text-muted-foreground"
+                              )}>
+                                {daySessionsCount} {daySessionsCount === 1 ? "sesión" : "sesiones"}
+                              </div>
+                              
+                              {daySessionsCount <= 2 && getSessionsForDate(day).map((session, idx) => (
+                                <div 
+                                  key={idx}
+                                  className="text-xs truncate mt-0.5 bg-escalando-100 text-escalando-800 px-1 py-0.5 rounded"
+                                  title={`${patients.find(p => p.id === session.patientId)?.name} - ${session.time}`}
+                                >
+                                  {session.time.substring(0, 5)} - {patients.find(p => p.id === session.patientId)?.name.split(" ")[0]}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {selectedDate && (
+                    <div className="mt-6 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">
+                          Sesiones del {format(selectedDate, "d 'de' MMMM", { locale: es })}
+                        </h3>
+                      </div>
+                      
+                      <div className="bg-muted/30 rounded-md p-4">
+                        <div className="space-y-2">
+                          {getSessionsForDate(selectedDate).length > 0 ? (
+                            getSessionsForDate(selectedDate).map((session, i) => {
+                              const patient = patients.find(p => p.id === session.patientId);
+                              const therapist = therapists.find(t => t.id === session.therapistId);
+                              
+                              return (
+                                <Card 
+                                  key={i} 
+                                  className="overflow-hidden border border-muted shadow-sm"
+                                >
+                                  <div className="p-3 flex items-center gap-3">
+                                    <div className="w-2 h-10 rounded-full bg-escalando-400" />
+                                    <div className="flex-1">
+                                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
+                                        <div>
+                                          <p className="font-medium">{patient?.name}</p>
+                                          {viewAll && (
+                                            <div className="text-sm text-muted-foreground mt-1">
+                                              <span className="font-medium">Terapeuta:</span> {therapist?.name}
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div className="flex items-center text-sm font-medium mt-1 sm:mt-0">
+                                          <Clock className="h-3.5 w-3.5 mr-1" />
+                                          <span>{session.time} ({session.duration} min)</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </Card>
+                              );
+                            })
+                          ) : (
+                            <div className="text-center py-8">
+                              <p className="text-muted-foreground">No hay sesiones programadas para esta fecha</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
