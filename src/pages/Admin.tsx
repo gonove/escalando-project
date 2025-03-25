@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,108 +12,52 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import {
-  Plus,
-  UserCheck,
-  UserPlus,
-  Settings,
-  Users,
-  Shield,
-  FileText,
+import { 
+  Plus, 
+  UserCheck, 
+  UserPlus, 
+  Settings, 
+  Users, 
+  Shield, 
+  FileText, 
   Upload,
   Search,
   MoreVertical,
   CheckCircle
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { professionals } from "@/data/mockData";
 import { cn } from "@/lib/utils";
-import { useForm, Controller } from "react-hook-form";
-import { inviteProfessional } from "@/integrations/supabase/client";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-
-// Define the form type for adding a professional
-type ProfessionalFormData = {
-  name: string;
-  email: string;
-  specialty: string;
-  role: string;
-  avatar?: File | null;
-};
 
 const Admin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProfessionals, setFilteredProfessionals] = useState(professionals);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
-
-  // Initialize form with react-hook-form
-  const form = useForm<ProfessionalFormData>({
-    defaultValues: {
-      name: "",
-      email: "",
-      specialty: "",
-      role: "therapist",
-      avatar: null
-    }
-  });
-
+  
   // Filter professionals based on search term
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
     setSearchTerm(term);
-
+    
     if (term.trim() === "") {
       setFilteredProfessionals(professionals);
     } else {
       const filtered = professionals.filter(
-        prof => prof.name.toLowerCase().includes(term.toLowerCase()) ||
+        prof => prof.name.toLowerCase().includes(term.toLowerCase()) || 
                 prof.specialty.toLowerCase().includes(term.toLowerCase())
       );
       setFilteredProfessionals(filtered);
     }
   };
-
+  
   // Handle adding a new professional
-  const handleAddProfessional = async (data: ProfessionalFormData) => {
-    setIsSubmitting(true);
-
-    try {
-      // Use the new invite function that handles both auth user creation and profile creation
-      const { error } = await inviteProfessional(
-        data.email,
-        data.name,
-        data.specialty,
-        data.role
-      );
-
-      if (error) {
-        throw error;
-      }
-
-      // Reset form and show success message
-      form.reset();
-      setDialogOpen(false);
-
-      toast({
-        title: "Profesional invitado",
-        description: "Se ha enviado una invitación al email del profesional",
-        variant: "default",
-      });
-    } catch (error: any) {
-      console.error("Error adding professional:", error);
-
-      toast({
-        title: "Error al agregar profesional",
-        description: error.message || "Ha ocurrido un error al invitar al profesional",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleAddProfessional = () => {
+    toast({
+      title: "Profesional agregado",
+      description: "El profesional ha sido agregado correctamente",
+    });
   };
-
+  
   return (
     <Layout>
       <motion.div
@@ -136,7 +81,7 @@ const Admin = () => {
             <TabsTrigger value="permissions">Permisos</TabsTrigger>
             <TabsTrigger value="settings">Configuración</TabsTrigger>
           </TabsList>
-
+          
           <TabsContent value="professionals" className="space-y-4 mt-4">
             <Card className="overflow-hidden">
               <CardHeader className="pb-0">
@@ -147,7 +92,7 @@ const Admin = () => {
                       <span>Profesionales</span>
                     </div>
                   </CardTitle>
-                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <Dialog>
                     <DialogTrigger asChild>
                       <Button className="flex items-center gap-2">
                         <UserPlus className="h-4 w-4" />
@@ -156,96 +101,57 @@ const Admin = () => {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Invitar Profesional</DialogTitle>
+                        <DialogTitle>Agregar Profesional</DialogTitle>
                         <DialogDescription>
-                          Ingresa los datos del profesional para enviarle una invitación
+                          Ingresa los datos del nuevo profesional
                         </DialogDescription>
                       </DialogHeader>
-
-                      <Form {...form}>
-                        <form onSubmit={form.handleSubmit(handleAddProfessional)} className="space-y-4">
-                          <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Nombre Completo</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Nombre y apellido" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="email"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Correo Electrónico</FormLabel>
-                                <FormControl>
-                                  <Input type="email" placeholder="correo@ejemplo.com" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="specialty"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Especialidad</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Selecciona especialidad" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="psychology">Psicología</SelectItem>
-                                    <SelectItem value="speech">Fonoaudiología</SelectItem>
-                                    <SelectItem value="occupational">Terapia Ocupacional</SelectItem>
-                                    <SelectItem value="physical">Fisioterapia</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="role"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Rol</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="admin">Administrador</SelectItem>
-                                    <SelectItem value="therapist">Terapeuta</SelectItem>
-                                    <SelectItem value="assistant">Asistente</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <DialogFooter className="mt-6">
-                            <Button type="submit" disabled={isSubmitting}>
-                              {isSubmitting ? "Enviando invitación..." : "Invitar Profesional"}
-                            </Button>
-                          </DialogFooter>
-                        </form>
-                      </Form>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="name">Nombre Completo</Label>
+                          <Input id="name" placeholder="Nombre y apellido" />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="email">Correo Electrónico</Label>
+                          <Input id="email" type="email" placeholder="correo@ejemplo.com" />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="specialty">Especialidad</Label>
+                          <Select>
+                            <SelectTrigger id="specialty">
+                              <SelectValue placeholder="Selecciona especialidad" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="psychology">Psicología</SelectItem>
+                              <SelectItem value="speech">Fonoaudiología</SelectItem>
+                              <SelectItem value="occupational">Terapia Ocupacional</SelectItem>
+                              <SelectItem value="physical">Fisioterapia</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="role">Rol</Label>
+                          <Select defaultValue="therapist">
+                            <SelectTrigger id="role">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="admin">Administrador</SelectItem>
+                              <SelectItem value="therapist">Terapeuta</SelectItem>
+                              <SelectItem value="assistant">Asistente</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor="avatar">Foto de Perfil</Label>
+                          <div className="flex-1">
+                            <Input id="avatar" type="file" className="cursor-pointer" />
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button type="submit" onClick={handleAddProfessional}>Agregar Profesional</Button>
+                      </DialogFooter>
                     </DialogContent>
                   </Dialog>
                 </div>
@@ -338,7 +244,7 @@ const Admin = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
+          
           <TabsContent value="permissions" className="space-y-4 mt-4">
             <Card>
               <CardHeader>
@@ -357,14 +263,14 @@ const Admin = () => {
                     <TabsTrigger value="therapist">Terapeuta</TabsTrigger>
                     <TabsTrigger value="assistant">Asistente</TabsTrigger>
                   </TabsList>
-
+                  
                   <TabsContent value="admin" className="pt-4 space-y-4">
                     <div className="bg-secondary/30 rounded-lg p-4">
                       <p className="text-sm font-medium">
                         Los administradores tienen acceso completo a todas las funciones de la plataforma.
                       </p>
                     </div>
-
+                    
                     <div className="space-y-4">
                       {[
                         "Gestión de usuarios",
@@ -383,14 +289,14 @@ const Admin = () => {
                       ))}
                     </div>
                   </TabsContent>
-
+                  
                   <TabsContent value="therapist" className="pt-4 space-y-4">
                     <div className="bg-secondary/30 rounded-lg p-4">
                       <p className="text-sm font-medium">
                         Los terapeutas tienen acceso a sus pacientes e informes asignados.
                       </p>
                     </div>
-
+                    
                     <div className="space-y-4">
                       {[
                         "Ver pacientes asignados",
@@ -409,7 +315,7 @@ const Admin = () => {
                       ))}
                     </div>
                   </TabsContent>
-
+                  
                   <TabsContent value="assistant" className="pt-4 space-y-4">
                     {/* Similar content for assistant role */}
                   </TabsContent>
@@ -420,7 +326,7 @@ const Admin = () => {
               </CardFooter>
             </Card>
           </TabsContent>
-
+          
           <TabsContent value="settings" className="space-y-4 mt-4">
             <Card>
               <CardHeader>
@@ -463,9 +369,9 @@ const Admin = () => {
                     </div>
                   </div>
                 </div>
-
+                
                 <Separator />
-
+                
                 <div className="space-y-2">
                   <h3 className="font-medium">Apariencia</h3>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -479,9 +385,9 @@ const Admin = () => {
                     </div>
                   </div>
                 </div>
-
+                
                 <Separator />
-
+                
                 <div className="space-y-2">
                   <h3 className="font-medium">Configuración de Informes</h3>
                   <div className="space-y-3">
