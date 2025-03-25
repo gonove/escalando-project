@@ -17,12 +17,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   }
 });
 
-// Function to create a professional record
-// Instead of directly using auth.admin, we'll insert into a pending_professionals table
+// Function to create a professional record by adding to pending_professionals table
 export const inviteProfessional = async (email: string, name: string, specialty: string, role: string) => {
   try {
     // Insert the professional into the pending_professionals table
-    // We'll need to create this table in Supabase and have a server-side function process it
     const { data, error } = await supabase
       .from('pending_professionals')
       .insert({
@@ -30,8 +28,7 @@ export const inviteProfessional = async (email: string, name: string, specialty:
         name,
         specialty,
         role,
-        status: 'pending',
-        created_at: new Date().toISOString()
+        status: 'pending'
       });
     
     if (error) throw error;
