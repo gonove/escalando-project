@@ -59,6 +59,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Check if the current user has admin role
   const checkUserRole = async (userId: string) => {
     try {
+      // Use the direct query approach instead of the get_user_role function
+      // This avoids the infinite recursion issue
       const { data, error } = await supabase
         .from('profiles')
         .select('role')
