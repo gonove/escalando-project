@@ -8,31 +8,31 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  Plus, 
-  User, 
-  CalendarCheck, 
-  ChevronLeft, 
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  Plus,
+  User,
+  CalendarCheck,
+  ChevronLeft,
   ChevronRight,
   UsersRound
 } from "lucide-react";
 import { patients } from "@/data/mockData";
-import { 
-  format, 
-  addDays, 
-  startOfWeek, 
+import {
+  format,
+  addDays,
+  startOfWeek,
   startOfMonth,
   endOfMonth,
   addMonths,
   subMonths,
-  addWeeks, 
-  subWeeks, 
-  isSameDay, 
-  parseISO, 
-  isAfter, 
-  isBefore, 
+  addWeeks,
+  subWeeks,
+  isSameDay,
+  parseISO,
+  isAfter,
+  isBefore,
   getDate,
   getDay,
   eachDayOfInterval
@@ -42,7 +42,7 @@ import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobil
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "@/components/ui/calendar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -85,30 +85,30 @@ const sessionTypes = [
 
 // Fake scheduled sessions for the UI
 const initialScheduledSessions = [
-  { 
+  {
     id: "ses_1",
-    patientId: patients[0].id, 
+    patientId: patients[0].id,
     therapistId: "th_1",
-    date: addDays(new Date(), 1), 
-    time: "09:00", 
+    date: addDays(new Date(), 1),
+    time: "09:00",
     duration: 60,
     type: "regular"
   },
-  { 
+  {
     id: "ses_2",
-    patientId: patients[1].id, 
+    patientId: patients[1].id,
     therapistId: "th_2",
-    date: addDays(new Date(), 2), 
-    time: "11:30", 
+    date: addDays(new Date(), 2),
+    time: "11:30",
     duration: 45,
     type: "follow-up"
   },
-  { 
+  {
     id: "ses_3",
-    patientId: patients[2].id, 
+    patientId: patients[2].id,
     therapistId: "th_3",
-    date: addDays(new Date(), 4), 
-    time: "16:00", 
+    date: addDays(new Date(), 4),
+    time: "16:00",
     duration: 60,
     type: "regular"
   },
@@ -122,7 +122,7 @@ const initialScheduledSessions = [
     type: "follow-up"
   },
   {
-    id: "ses_5", 
+    id: "ses_5",
     patientId: patients[3].id,
     therapistId: "th_4",
     date: addDays(new Date(), 1),
@@ -159,38 +159,38 @@ const SessionScheduler = () => {
   const [selectedTimeForRecurring, setSelectedTimeForRecurring] = useState<string | null>(null);
   const [selectedDateForRecurring, setSelectedDateForRecurring] = useState<Date | null>(null);
   const { toast } = useToast();
-  
+
   // Generate days for the week view
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
-  
+
   // Generate days for the month view
   const generateMonthDays = () => {
     const monthStartDay = startOfMonth(currentDate);
     const monthEndDay = endOfMonth(currentDate);
     const days = eachDayOfInterval({ start: monthStartDay, end: monthEndDay });
-    
+
     // Get the first day of the month
     const firstDayOfMonth = getDay(monthStartDay);
-    
+
     // Adjust for Monday as first day of week (European/Spanish calendar)
     const adjustedFirstDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
-    
+
     // Add days from previous month to fill the first week
-    const prevMonthDays = Array.from({ length: adjustedFirstDay }).map((_, i) => 
+    const prevMonthDays = Array.from({ length: adjustedFirstDay }).map((_, i) =>
       addDays(monthStartDay, -(adjustedFirstDay - i))
     );
-    
+
     // Add days from next month to complete the calendar grid (6 rows x 7 days)
     const totalDaysToShow = 42; // 6 weeks
-    const daysFromNextMonth = Array.from({ length: totalDaysToShow - prevMonthDays.length - days.length }).map((_, i) => 
+    const daysFromNextMonth = Array.from({ length: totalDaysToShow - prevMonthDays.length - days.length }).map((_, i) =>
       addDays(monthEndDay, i + 1)
     );
-    
+
     return [...prevMonthDays, ...days, ...daysFromNextMonth];
   };
-  
+
   const monthDays = generateMonthDays();
-  
+
   const nextPeriod = () => {
     if (calendarView === "week" || calendarView === "time") {
       setWeekStart(addWeeks(weekStart, 1));
@@ -199,7 +199,7 @@ const SessionScheduler = () => {
       setCurrentDate(addMonths(currentDate, 1));
     }
   };
-  
+
   const prevPeriod = () => {
     if (calendarView === "week" || calendarView === "time") {
       setWeekStart(subWeeks(weekStart, 1));
@@ -215,7 +215,7 @@ const SessionScheduler = () => {
       ...formData,
       [field]: value
     });
-    
+
     // Clear error for this field if it exists
     if (formErrors[field]) {
       const newErrors = { ...formErrors };
@@ -227,28 +227,28 @@ const SessionScheduler = () => {
   // Validate form before submission
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!formData.patientId) {
       errors.patientId = "Debe seleccionar un paciente";
     }
-    
+
     if (!formData.date) {
       errors.date = "Debe seleccionar una fecha";
     }
-    
+
     if (!formData.time) {
       errors.time = "Debe seleccionar una hora";
     }
-    
+
     // Check if the patient already has 3 scheduled sessions
     const patientSessions = scheduledSessions.filter(
       session => session.patientId === formData.patientId
     );
-    
+
     if (patientSessions.length >= 3) {
       errors.patientId = "Este paciente ya tiene 3 sesiones programadas";
     }
-    
+
     // Check if the selected time slot already has 3 sessions booked (center limit)
     const selectedDateTime = parseISO(formData.date);
     const sessionsAtSameTime = scheduledSessions.filter(session => {
@@ -256,26 +256,26 @@ const SessionScheduler = () => {
       const isSameDate = isSameDay(sessionDate, selectedDateTime);
       return isSameDate && session.time === formData.time;
     });
-    
+
     if (sessionsAtSameTime.length >= 3) {
       errors.time = "El centro ya tiene 3 sesiones programadas en este horario";
     }
-    
+
     // Check if the selected time slot is already booked for this therapist
     const isTimeSlotBooked = scheduledSessions.some(session => {
       const sessionDate = new Date(session.date);
       const isSameDate = isSameDay(sessionDate, parseISO(formData.date));
       return (
-        isSameDate && 
-        session.time === formData.time && 
+        isSameDate &&
+        session.time === formData.time &&
         session.therapistId === selectedTherapist
       );
     });
-    
+
     if (isTimeSlotBooked) {
       errors.time = "Este horario ya está ocupado para este terapeuta";
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -283,11 +283,11 @@ const SessionScheduler = () => {
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     // Create a new session
     const newSession = {
       id: `ses_${Date.now()}`,
@@ -298,10 +298,10 @@ const SessionScheduler = () => {
       duration: parseInt(formData.duration),
       type: formData.type
     };
-    
+
     // Add the new session
     setScheduledSessions([...scheduledSessions, newSession]);
-    
+
     // Reset form
     setFormData({
       patientId: "",
@@ -311,12 +311,12 @@ const SessionScheduler = () => {
       type: "regular",
       notes: ""
     });
-    
+
     toast({
       title: "Sesión agendada",
       description: "La sesión ha sido programada correctamente",
     });
-    
+
     setShowNewSessionForm(false);
   };
 
@@ -330,18 +330,18 @@ const SessionScheduler = () => {
       });
       return;
     }
-    
+
     // Create recurring sessions based on the pattern
     const newSessions = [];
     let currentDate = new Date(selectedDateForRecurring);
     let sessionsCreated = 0;
-    
+
     // Determine end condition
     const endDate = recurrencePattern.endDate ? parseISO(recurrencePattern.endDate) : null;
     const maxOccurrences = recurrencePattern.occurrences || 100; // Fallback to a large number
-    
+
     while (
-      (endDate ? isBefore(currentDate, endDate) : true) && 
+      (endDate ? isBefore(currentDate, endDate) : true) &&
       sessionsCreated < maxOccurrences
     ) {
       // Create a session for this date
@@ -356,7 +356,7 @@ const SessionScheduler = () => {
         isRecurring: true,
         recurrencePattern
       });
-      
+
       // Advance to next date based on frequency
       switch (recurrencePattern.frequency) {
         case "daily":
@@ -369,18 +369,18 @@ const SessionScheduler = () => {
           currentDate = addMonths(currentDate, recurrencePattern.interval);
           break;
       }
-      
+
       sessionsCreated++;
     }
-    
+
     // Add the new sessions
     setScheduledSessions([...scheduledSessions, ...newSessions]);
-    
+
     toast({
       title: "Sesiones recurrentes agendadas",
       description: `Se han programado ${newSessions.length} sesiones recurrentes`,
     });
-    
+
     setShowRecurringForm(false);
     setSelectedTimeForRecurring(null);
   };
@@ -390,12 +390,12 @@ const SessionScheduler = () => {
     return scheduledSessions.filter(session => {
       // Si viewAll está activado, ignorar el filtro de terapeuta
       const isForSelectedTherapist = viewAll || session.therapistId === selectedTherapist;
-      
+
       // If a date is selected, filter by that date too
       if (selectedDate) {
         return isForSelectedTherapist && isSameDay(session.date, selectedDate);
       }
-      
+
       return isForSelectedTherapist;
     });
   };
@@ -416,10 +416,10 @@ const SessionScheduler = () => {
       const isDateMatch = isSameDay(session.date, date);
       const isTimeMatch = session.time === time;
       const isTherapistMatch = viewAll || session.therapistId === selectedTherapist;
-      
+
       return isDateMatch && isTimeMatch && isTherapistMatch;
     });
-    
+
     // Add patient name to each session for display purposes
     return sessions.map(session => {
       const patient = patients.find(p => p.id === session.patientId);
@@ -433,25 +433,25 @@ const SessionScheduler = () => {
   // Check if a time slot is available
   const isTimeSlotAvailable = (date: Date, time: string) => {
     // Check if the therapist is already booked at this time
-    const isTherapistBooked = scheduledSessions.some(session => 
-      session.therapistId === selectedTherapist && 
-      isSameDay(session.date, date) && 
+    const isTherapistBooked = scheduledSessions.some(session =>
+      session.therapistId === selectedTherapist &&
+      isSameDay(session.date, date) &&
       session.time === time
     );
-    
+
     // Check if the center already has 3 sessions at this time
-    const sessionsAtTime = scheduledSessions.filter(session => 
-      isSameDay(session.date, date) && 
+    const sessionsAtTime = scheduledSessions.filter(session =>
+      isSameDay(session.date, date) &&
       session.time === time
     );
-    
+
     return !isTherapistBooked && sessionsAtTime.length < 3;
   };
 
   // Get the number of sessions at a specific time slot
   const getSessionsCountAtTime = (date: Date, time: string) => {
-    return scheduledSessions.filter(session => 
-      isSameDay(session.date, date) && 
+    return scheduledSessions.filter(session =>
+      isSameDay(session.date, date) &&
       session.time === time
     ).length;
   };
@@ -469,7 +469,7 @@ const SessionScheduler = () => {
   // Handle click on a time slot to schedule a session
   const handleTimeSlotClick = (date: Date, time: string) => {
     const isAvailable = isTimeSlotAvailable(date, time);
-    
+
     if (!isAvailable) {
       toast({
         title: "Horario no disponible",
@@ -478,14 +478,14 @@ const SessionScheduler = () => {
       });
       return;
     }
-    
+
     // Set selected date and time in the form
     setFormData({
       ...formData,
       date: format(date, "yyyy-MM-dd"),
       time: time
     });
-    
+
     // Show the new session form
     setShowNewSessionForm(true);
   };
@@ -493,7 +493,7 @@ const SessionScheduler = () => {
   // Handle click to open recurring session modal
   const handleOpenRecurringModal = (date: Date, time: string) => {
     const isAvailable = isTimeSlotAvailable(date, time);
-    
+
     if (!isAvailable) {
       toast({
         title: "Horario no disponible",
@@ -502,7 +502,7 @@ const SessionScheduler = () => {
       });
       return;
     }
-    
+
     setSelectedDateForRecurring(date);
     setSelectedTimeForRecurring(time);
     setShowRecurringForm(true);
@@ -523,7 +523,7 @@ const SessionScheduler = () => {
               Agenda y gestiona sesiones con tus pacientes
             </p>
           </div>
-          <Button 
+          <Button
             className={cn("flex items-center gap-2", isMobile && "w-full")}
             onClick={() => setShowNewSessionForm(true)}
           >
@@ -556,12 +556,12 @@ const SessionScheduler = () => {
                 </>
               )}
             </CardDescription>
-            
+
             <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <Label htmlFor="calendar-therapist" className="sm:mr-2">Ver agenda de:</Label>
-                <Select 
-                  value={viewAll ? "all" : selectedTherapist} 
+                <Select
+                  value={viewAll ? "all" : selectedTherapist}
                   onValueChange={(value) => {
                     if (value === "all") {
                       setViewAll(true);
@@ -589,10 +589,10 @@ const SessionScheduler = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="flex items-center">
-                <Tabs 
-                  value={calendarView} 
+                <Tabs
+                  value={calendarView}
                   onValueChange={(value) => handleCalendarViewChange(value as "week" | "month" | "time")}
                   className="w-auto"
                 >
@@ -607,7 +607,7 @@ const SessionScheduler = () => {
           </CardHeader>
           <CardContent>
             {calendarView === "time" && (
-              <WeeklyTimeView 
+              <WeeklyTimeView
                 weekDays={weekDays}
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
@@ -623,7 +623,7 @@ const SessionScheduler = () => {
                   // For simplicity, we'll use a context menu or double click
                   // Long-press is harder to implement in this interface
                   handleTimeSlotClick(date, time);
-                  
+
                   // We'll store the data for potential recurring session
                   setSelectedDateForRecurring(date);
                   setSelectedTimeForRecurring(time);
@@ -640,8 +640,8 @@ const SessionScheduler = () => {
                       <p className="text-xs text-muted-foreground uppercase">
                         {format(day, isMobile ? "EEE" : "EEEE", { locale: es })}
                       </p>
-                      <Button 
-                        variant={isSameDay(day, selectedDate || new Date()) ? "default" : "ghost"} 
+                      <Button
+                        variant={isSameDay(day, selectedDate || new Date()) ? "default" : "ghost"}
                         className={cn(
                           "w-full rounded-full font-normal",
                           isSameDay(day, new Date()) && !isSameDay(day, selectedDate || new Date()) && "bg-escalando-100 text-escalando-900 hover:bg-escalando-200 hover:text-escalando-900"
@@ -665,7 +665,7 @@ const SessionScheduler = () => {
                       )}
                     </h3>
                   </div>
-                  
+
                   <div className="bg-muted/30 rounded-md p-4">
                     <div className="text-sm font-medium mb-4">
                       {viewAll ? "Horario: Todos los terapeutas" : `Horario: ${therapists.find(t => t.id === selectedTherapist)?.name}`}
@@ -675,10 +675,10 @@ const SessionScheduler = () => {
                         getFilteredSessions().map((session, i) => {
                           const patient = patients.find(p => p.id === session.patientId);
                           const therapist = therapists.find(t => t.id === session.therapistId);
-                          
+
                           return (
-                            <Card 
-                              key={i} 
+                            <Card
+                              key={i}
                               className="overflow-hidden border border-muted shadow-sm"
                             >
                               <div className="p-3 flex items-center gap-3">
@@ -718,7 +718,7 @@ const SessionScheduler = () => {
               </div>
             )}
             {calendarView === "month" && (
-              <MonthlyView 
+              <MonthlyView
                 monthDays={monthDays}
                 currentDate={currentDate}
                 selectedDate={selectedDate}
@@ -745,7 +745,7 @@ const SessionScheduler = () => {
                   // Primero ordenar por fecha
                   const dateCompare = a.date.getTime() - b.date.getTime();
                   if (dateCompare !== 0) return dateCompare;
-                  
+
                   // Si la fecha es igual, ordenar por hora
                   const timeA = parseInt(a.time.replace(':', ''));
                   const timeB = parseInt(b.time.replace(':', ''));
@@ -755,7 +755,7 @@ const SessionScheduler = () => {
                 .map((session, i) => {
                   const patient = patients.find(p => p.id === session.patientId);
                   const therapist = therapists.find(t => t.id === session.therapistId);
-                  
+
                   return (
                     <Card key={i} className="overflow-hidden border-0 shadow-sm w-full">
                       <div className="flex flex-col sm:flex-row items-start p-4 bg-white hover:bg-gray-50 transition-colors w-full">
@@ -770,7 +770,7 @@ const SessionScheduler = () => {
                               </p>
                               <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-3">
                                 <p className="text-sm flex items-center">
-                                  <User className="h-3.5 w-3.5 mr-1" /> 
+                                  <User className="h-3.5 w-3.5 mr-1" />
                                   {patient?.name}
                                 </p>
                                 <span className="hidden xs:inline text-muted-foreground">•</span>
@@ -793,7 +793,7 @@ const SessionScheduler = () => {
                     </Card>
                   );
                 })}
-                
+
               {scheduledSessions.filter(session => isAfter(session.date, new Date())).length === 0 && (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">No hay sesiones programadas para los próximos días</p>
@@ -812,13 +812,13 @@ const SessionScheduler = () => {
                 Complete los datos para agendar una sesión
               </DialogDescription>
             </DialogHeader>
-            
+
             <form onSubmit={handleSubmit}>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="therapist">Terapeuta</Label>
-                  <Select 
-                    value={selectedTherapist} 
+                  <Select
+                    value={selectedTherapist}
                     onValueChange={(value) => setSelectedTherapist(value)}
                   >
                     <SelectTrigger id="therapist">
@@ -833,13 +833,13 @@ const SessionScheduler = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="patient" className={cn(formErrors.patientId && "text-destructive")}>
                     Paciente
                   </Label>
-                  <Select 
-                    value={formData.patientId} 
+                  <Select
+                    value={formData.patientId}
                     onValueChange={(value) => handleInputChange("patientId", value)}
                   >
                     <SelectTrigger id="patient" className={cn(formErrors.patientId && "border-destructive")}>
@@ -851,13 +851,13 @@ const SessionScheduler = () => {
                         const sessionCount = scheduledSessions.filter(
                           session => session.patientId === patient.id
                         ).length;
-                        
+
                         // Deshabilitar pacientes que ya tienen 3 sesiones
                         const disabled = sessionCount >= 3;
-                        
+
                         return (
-                          <SelectItem 
-                            key={patient.id} 
+                          <SelectItem
+                            key={patient.id}
                             value={patient.id}
                             disabled={disabled}
                           >
@@ -878,17 +878,17 @@ const SessionScheduler = () => {
                     <p className="text-sm font-medium text-destructive">{formErrors.patientId}</p>
                   )}
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="session-time" className={cn(formErrors.time && "text-destructive")}>
                       Hora
                     </Label>
-                    <Select 
-                      value={formData.time} 
+                    <Select
+                      value={formData.time}
                       onValueChange={(value) => handleInputChange("time", value)}
                     >
-                      <SelectTrigger 
+                      <SelectTrigger
                         id="session-time"
                         className={cn(formErrors.time && "border-destructive")}
                       >
@@ -899,10 +899,10 @@ const SessionScheduler = () => {
                           const date = formData.date ? parseISO(formData.date) : new Date();
                           const isAvailable = isTimeSlotAvailable(date, time);
                           const sessionsCount = getSessionsCountAtTime(date, time);
-                          
+
                           return (
-                            <SelectItem 
-                              key={time} 
+                            <SelectItem
+                              key={time}
                               value={time}
                               disabled={!isAvailable}
                             >
@@ -928,11 +928,11 @@ const SessionScheduler = () => {
                       <p className="text-sm font-medium text-destructive">{formErrors.time}</p>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="session-duration">Duración</Label>
-                    <Select 
-                      value={formData.duration} 
+                    <Select
+                      value={formData.duration}
                       onValueChange={(value) => handleInputChange("duration", value)}
                     >
                       <SelectTrigger id="session-duration">
@@ -947,11 +947,11 @@ const SessionScheduler = () => {
                     </Select>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="session-type">Tipo de Sesión</Label>
-                  <Select 
-                    value={formData.type} 
+                  <Select
+                    value={formData.type}
                     onValueChange={(value) => handleInputChange("type", value)}
                   >
                     <SelectTrigger id="session-type">
@@ -966,12 +966,12 @@ const SessionScheduler = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="notes">Notas</Label>
-                  <Textarea 
-                    id="notes" 
-                    placeholder="Detalles adicionales sobre la sesión..." 
+                  <Textarea
+                    id="notes"
+                    placeholder="Detalles adicionales sobre la sesión..."
                     value={formData.notes}
                     onChange={(e) => handleInputChange("notes", e.target.value)}
                   />
@@ -992,7 +992,7 @@ const SessionScheduler = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex justify-end flex-col sm:flex-row gap-2">
                 <Button type="button" variant="outline" className={isMobile ? "w-full" : "mr-2"} onClick={() => setShowNewSessionForm(false)}>
                   Cancelar
@@ -1006,7 +1006,7 @@ const SessionScheduler = () => {
         </Dialog>
 
         {/* Recurring Session Form */}
-        <RecurringSessionForm 
+        <RecurringSessionForm
           isOpen={showRecurringForm}
           onClose={() => setShowRecurringForm(false)}
           onConfirm={handleRecurringSession}
