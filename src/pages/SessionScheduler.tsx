@@ -42,6 +42,7 @@ import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobil
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "@/components/ui/calendar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -54,6 +55,10 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import WeeklyTimeView from "@/components/scheduler/WeeklyTimeView";
+import MonthlyView from "@/components/scheduler/MonthlyView";
+import RecurringSessionForm from "@/components/scheduler/RecurringSessionForm";
+import { RecurrencePattern } from "@/types/models";
 
 // Lista de terapeutas
 const therapists = [
@@ -137,7 +142,7 @@ const SessionScheduler = () => {
   const [monthStart, setMonthStart] = useState(startOfMonth(currentDate));
   const [selectedTherapist, setSelectedTherapist] = useState<string>("th_1");
   const [viewAll, setViewAll] = useState<boolean>(false);
-  const [calendarView, setCalendarView] = useState<"week" | "month">("week");
+  const [calendarView, setCalendarView] = useState<"week" | "month" | "time">("time");
   const [scheduledSessions, setScheduledSessions] = useState(initialScheduledSessions);
   const [formData, setFormData] = useState({
     patientId: "",
@@ -148,6 +153,11 @@ const SessionScheduler = () => {
     notes: ""
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [showNewSessionForm, setShowNewSessionForm] = useState(false);
+  const [isRecurringSession, setIsRecurringSession] = useState(false);
+  const [showRecurringForm, setShowRecurringForm] = useState(false);
+  const [selectedTimeForRecurring, setSelectedTimeForRecurring] = useState<string | null>(null);
+  const [selectedDateForRecurring, setSelectedDateForRecurring] = useState<Date | null>(null);
   const { toast } = useToast();
   
   // Generate days for the week view
@@ -182,7 +192,7 @@ const SessionScheduler = () => {
   const monthDays = generateMonthDays();
   
   const nextPeriod = () => {
-    if (calendarView === "week") {
+    if (calendarView === "week" || calendarView === "time") {
       setWeekStart(addWeeks(weekStart, 1));
     } else {
       setMonthStart(addMonths(monthStart, 1));
@@ -191,7 +201,7 @@ const SessionScheduler = () => {
   };
   
   const prevPeriod = () => {
-    if (calendarView === "week") {
+    if (calendarView === "week" || calendarView === "time") {
       setWeekStart(subWeeks(weekStart, 1));
     } else {
       setMonthStart(subMonths(monthStart, 1));
@@ -306,6 +316,73 @@ const SessionScheduler = () => {
       title: "Sesión agendada",
       description: "La sesión ha sido programada correctamente",
     });
+    
+    setShowNewSessionForm(false);
+  };
+
+  // Handle recurring session creation
+  const handleRecurringSession = (recurrencePattern: RecurrencePattern) => {
+    if (!selectedDateForRecurring || !selectedTimeForRecurring || !formData.patientId) {
+      toast({
+        title: "Error",
+        description: "Debe seleccionar un paciente, fecha y hora para programar sesiones recurrentes",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Create recurring sessions based on the pattern
+    const newSessions = [];
+    let currentDate = new Date(selectedDateForRecurring);
+    let sessionsCreated = 0;
+    
+    // Determine end condition
+    const endDate = recurrencePattern.endDate ? parseISO(recurrencePattern.endDate) : null;
+    const maxOccurrences = recurrencePattern.occurrences || 100; // Fallback to a large number
+    
+    while (
+      (endDate ? isBefore(currentDate, endDate) : true) && 
+      sessionsCreated < maxOccurrences
+    ) {
+      // Create a session for this date
+      newSessions.push({
+        id: `ses_${Date.now()}_${sessionsCreated}`,
+        patientId: formData.patientId,
+        therapistId: selectedTherapist,
+        date: new Date(currentDate),
+        time: selectedTimeForRecurring,
+        duration: parseInt(formData.duration || "60"),
+        type: formData.type || "regular",
+        isRecurring: true,
+        recurrencePattern
+      });
+      
+      // Advance to next date based on frequency
+      switch (recurrencePattern.frequency) {
+        case "daily":
+          currentDate = addDays(currentDate, recurrencePattern.interval);
+          break;
+        case "weekly":
+          currentDate = addWeeks(currentDate, recurrencePattern.interval);
+          break;
+        case "monthly":
+          currentDate = addMonths(currentDate, recurrencePattern.interval);
+          break;
+      }
+      
+      sessionsCreated++;
+    }
+    
+    // Add the new sessions
+    setScheduledSessions([...scheduledSessions, ...newSessions]);
+    
+    toast({
+      title: "Sesiones recurrentes agendadas",
+      description: `Se han programado ${newSessions.length} sesiones recurrentes`,
+    });
+    
+    setShowRecurringForm(false);
+    setSelectedTimeForRecurring(null);
   };
 
   // Filter sessions by therapist and date
@@ -330,6 +407,26 @@ const SessionScheduler = () => {
         return isSameDay(session.date, date);
       }
       return session.therapistId === selectedTherapist && isSameDay(session.date, date);
+    });
+  };
+
+  // Get sessions for a specific date and time
+  const getSessionsForDateTime = (date: Date, time: string) => {
+    const sessions = scheduledSessions.filter(session => {
+      const isDateMatch = isSameDay(session.date, date);
+      const isTimeMatch = session.time === time;
+      const isTherapistMatch = viewAll || session.therapistId === selectedTherapist;
+      
+      return isDateMatch && isTimeMatch && isTherapistMatch;
+    });
+    
+    // Add patient name to each session for display purposes
+    return sessions.map(session => {
+      const patient = patients.find(p => p.id === session.patientId);
+      return {
+        ...session,
+        patientName: patient ? patient.name : "Paciente desconocido"
+      };
     });
   };
 
@@ -360,13 +457,55 @@ const SessionScheduler = () => {
   };
 
   // Handle calendar view change
-  const handleCalendarViewChange = (view: "week" | "month") => {
+  const handleCalendarViewChange = (view: "week" | "month" | "time") => {
     setCalendarView(view);
     if (view === "month") {
       setMonthStart(startOfMonth(currentDate));
     } else {
       setWeekStart(startOfWeek(currentDate, { weekStartsOn: 1 }));
     }
+  };
+
+  // Handle click on a time slot to schedule a session
+  const handleTimeSlotClick = (date: Date, time: string) => {
+    const isAvailable = isTimeSlotAvailable(date, time);
+    
+    if (!isAvailable) {
+      toast({
+        title: "Horario no disponible",
+        description: "Este horario ya está ocupado o el centro está al máximo de capacidad",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Set selected date and time in the form
+    setFormData({
+      ...formData,
+      date: format(date, "yyyy-MM-dd"),
+      time: time
+    });
+    
+    // Show the new session form
+    setShowNewSessionForm(true);
+  };
+
+  // Handle click to open recurring session modal
+  const handleOpenRecurringModal = (date: Date, time: string) => {
+    const isAvailable = isTimeSlotAvailable(date, time);
+    
+    if (!isAvailable) {
+      toast({
+        title: "Horario no disponible",
+        description: "Este horario ya está ocupado o el centro está al máximo de capacidad",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setSelectedDateForRecurring(date);
+    setSelectedTimeForRecurring(time);
+    setShowRecurringForm(true);
   };
 
   return (
@@ -384,489 +523,211 @@ const SessionScheduler = () => {
               Agenda y gestiona sesiones con tus pacientes
             </p>
           </div>
-          <Button className={cn("flex items-center gap-2", isMobile && "w-full")}>
+          <Button 
+            className={cn("flex items-center gap-2", isMobile && "w-full")}
+            onClick={() => setShowNewSessionForm(true)}
+          >
             <Plus className="h-4 w-4" />
             Nueva Sesión
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Form for scheduling a new session */}
-          <Card className="lg:col-span-1 order-2 lg:order-1 w-full">
-            <CardHeader>
-              <CardTitle className="text-lg">Nueva Sesión</CardTitle>
-              <CardDescription>
-                Complete los datos para agendar una sesión
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="therapist">Terapeuta</Label>
-                    <Select 
-                      value={selectedTherapist} 
-                      onValueChange={(value) => setSelectedTherapist(value)}
-                    >
-                      <SelectTrigger id="therapist">
-                        <SelectValue placeholder="Seleccionar terapeuta" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {therapists.map((therapist) => (
-                          <SelectItem key={therapist.id} value={therapist.id}>
-                            {therapist.name} - {therapist.specialty}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+        <Card className="w-full">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-lg">Calendario</CardTitle>
+              <div className="flex items-center gap-1">
+                <Button variant="outline" size="icon" onClick={prevPeriod}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={nextPeriod}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <CardDescription>
+              {calendarView === "week" || calendarView === "time" ? (
+                <>
+                  {format(weekStart, "d 'de' MMMM", { locale: es })} - {format(addDays(weekStart, 6), "d 'de' MMMM, yyyy", { locale: es })}
+                </>
+              ) : (
+                <>
+                  {format(monthStart, "MMMM yyyy", { locale: es })}
+                </>
+              )}
+            </CardDescription>
+            
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <Label htmlFor="calendar-therapist" className="sm:mr-2">Ver agenda de:</Label>
+                <Select 
+                  value={viewAll ? "all" : selectedTherapist} 
+                  onValueChange={(value) => {
+                    if (value === "all") {
+                      setViewAll(true);
+                    } else {
+                      setViewAll(false);
+                      setSelectedTherapist(value);
+                    }
+                  }}
+                >
+                  <SelectTrigger id="calendar-therapist" className="w-full sm:w-[250px]">
+                    <SelectValue placeholder="Seleccionar terapeuta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      <div className="flex items-center gap-2">
+                        <UsersRound className="h-4 w-4" />
+                        <span>Todos los terapeutas</span>
+                      </div>
+                    </SelectItem>
+                    {therapists.map((therapist) => (
+                      <SelectItem key={therapist.id} value={therapist.id}>
+                        {therapist.name} - {therapist.specialty}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex items-center">
+                <Tabs 
+                  value={calendarView} 
+                  onValueChange={(value) => handleCalendarViewChange(value as "week" | "month" | "time")}
+                  className="w-auto"
+                >
+                  <TabsList className="grid w-[280px] grid-cols-3">
+                    <TabsTrigger value="time">Semanal con hora</TabsTrigger>
+                    <TabsTrigger value="week">Semanal</TabsTrigger>
+                    <TabsTrigger value="month">Mensual</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {calendarView === "time" && (
+              <WeeklyTimeView 
+                weekDays={weekDays}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                centerHours={centerHours}
+                getSessionsForDateTime={getSessionsForDateTime}
+                isTimeSlotAvailable={isTimeSlotAvailable}
+                getSessionsCountAtTime={getSessionsCountAtTime}
+                viewAll={viewAll}
+                selectedTherapist={selectedTherapist}
+                therapists={therapists}
+                onScheduleClick={(date, time) => {
+                  // On right-click or long press, open recurring session
+                  // For simplicity, we'll use a context menu or double click
+                  // Long-press is harder to implement in this interface
+                  handleTimeSlotClick(date, time);
+                  
+                  // We'll store the data for potential recurring session
+                  setSelectedDateForRecurring(date);
+                  setSelectedTimeForRecurring(time);
+                  setIsRecurringSession(false);
+                }}
+              />
+            )}
+            {calendarView === "week" && (
+              // Vista semanal (código existente)
+              <div className="space-y-4">
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                  {weekDays.map((day, i) => (
+                    <div key={i} className="text-center">
+                      <p className="text-xs text-muted-foreground uppercase">
+                        {format(day, isMobile ? "EEE" : "EEEE", { locale: es })}
+                      </p>
+                      <Button 
+                        variant={isSameDay(day, selectedDate || new Date()) ? "default" : "ghost"} 
+                        className={cn(
+                          "w-full rounded-full font-normal",
+                          isSameDay(day, new Date()) && !isSameDay(day, selectedDate || new Date()) && "bg-escalando-100 text-escalando-900 hover:bg-escalando-200 hover:text-escalando-900"
+                        )}
+                        onClick={() => setSelectedDate(day)}
+                      >
+                        {format(day, "d")}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium">
+                      Sesiones programadas
+                      {selectedDate && (
+                        <span className="ml-2 text-muted-foreground">
+                          ({format(selectedDate, "d 'de' MMMM", { locale: es })})
+                        </span>
+                      )}
+                    </h3>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="patient" className={cn(formErrors.patientId && "text-destructive")}>
-                      Paciente
-                    </Label>
-                    <Select 
-                      value={formData.patientId} 
-                      onValueChange={(value) => handleInputChange("patientId", value)}
-                    >
-                      <SelectTrigger id="patient" className={cn(formErrors.patientId && "border-destructive")}>
-                        <SelectValue placeholder="Seleccionar paciente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {patients.map((patient) => {
-                          // Contar sesiones programadas para este paciente
-                          const sessionCount = scheduledSessions.filter(
-                            session => session.patientId === patient.id
-                          ).length;
-                          
-                          // Deshabilitar pacientes que ya tienen 3 sesiones
-                          const disabled = sessionCount >= 3;
+                  <div className="bg-muted/30 rounded-md p-4">
+                    <div className="text-sm font-medium mb-4">
+                      {viewAll ? "Horario: Todos los terapeutas" : `Horario: ${therapists.find(t => t.id === selectedTherapist)?.name}`}
+                    </div>
+                    <div className="space-y-2">
+                      {getFilteredSessions().length > 0 ? (
+                        getFilteredSessions().map((session, i) => {
+                          const patient = patients.find(p => p.id === session.patientId);
+                          const therapist = therapists.find(t => t.id === session.therapistId);
                           
                           return (
-                            <SelectItem 
-                              key={patient.id} 
-                              value={patient.id}
-                              disabled={disabled}
+                            <Card 
+                              key={i} 
+                              className="overflow-hidden border border-muted shadow-sm"
                             >
-                              <div className="flex items-center justify-between w-full">
-                                <span>{patient.name}</span>
-                                {sessionCount > 0 && (
-                                  <span className="text-xs bg-muted rounded-full px-2 py-0.5">
-                                    {sessionCount} sesión{sessionCount > 1 ? "es" : ""}
-                                  </span>
-                                )}
-                              </div>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                    {formErrors.patientId && (
-                      <p className="text-sm font-medium text-destructive">{formErrors.patientId}</p>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="session-date" className={cn(formErrors.date && "text-destructive")}>
-                      Fecha
-                    </Label>
-                    <Input 
-                      id="session-date" 
-                      type="date" 
-                      value={formData.date}
-                      onChange={(e) => handleInputChange("date", e.target.value)}
-                      className={cn(formErrors.date && "border-destructive")}
-                    />
-                    {formErrors.date && (
-                      <p className="text-sm font-medium text-destructive">{formErrors.date}</p>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="session-time" className={cn(formErrors.time && "text-destructive")}>
-                        Hora
-                      </Label>
-                      <Select 
-                        value={formData.time} 
-                        onValueChange={(value) => handleInputChange("time", value)}
-                      >
-                        <SelectTrigger 
-                          id="session-time"
-                          className={cn(formErrors.time && "border-destructive")}
-                        >
-                          <SelectValue placeholder="Seleccionar hora" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {centerHours.map((time) => {
-                            const date = formData.date ? parseISO(formData.date) : new Date();
-                            const isAvailable = isTimeSlotAvailable(date, time);
-                            const sessionsCount = getSessionsCountAtTime(date, time);
-                            
-                            return (
-                              <SelectItem 
-                                key={time} 
-                                value={time}
-                                disabled={!isAvailable}
-                              >
-                                <div className="flex items-center justify-between w-full">
-                                  <span>{time}</span>
-                                  {sessionsCount > 0 ? (
-                                    <span className={cn(
-                                      "text-xs rounded-full px-2 py-0.5",
-                                      sessionsCount === 3 ? "bg-red-100 text-red-600" : "bg-muted"
-                                    )}>
-                                      {sessionsCount}/3
-                                    </span>
-                                  ) : !isAvailable ? (
-                                    <span className="text-xs text-destructive">Ocupado</span>
-                                  ) : null}
+                              <div className="p-3 flex items-center gap-3">
+                                <div className="w-2 h-10 rounded-full bg-escalando-400" />
+                                <div className="flex-1">
+                                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
+                                    <div>
+                                      <p className="font-medium">{patient?.name}</p>
+                                      <div className="flex items-center text-sm text-muted-foreground flex-wrap">
+                                        <CalendarIcon className="h-3.5 w-3.5 mr-1" />
+                                        <span>{format(session.date, "EEEE d 'de' MMMM", { locale: es })}</span>
+                                      </div>
+                                      {viewAll && (
+                                        <div className="text-sm text-muted-foreground mt-1">
+                                          <span className="font-medium">Terapeuta:</span> {therapist?.name}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center text-sm font-medium mt-1 sm:mt-0">
+                                      <Clock className="h-3.5 w-3.5 mr-1" />
+                                      <span>{session.time} ({session.duration} min)</span>
+                                    </div>
+                                  </div>
                                 </div>
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                      {formErrors.time && (
-                        <p className="text-sm font-medium text-destructive">{formErrors.time}</p>
+                              </div>
+                            </Card>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-8">
+                          <p className="text-muted-foreground">No hay sesiones programadas{selectedDate ? ` para ${format(selectedDate, "d 'de' MMMM", { locale: es })}` : ""}</p>
+                        </div>
                       )}
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="session-duration">Duración</Label>
-                      <Select 
-                        value={formData.duration} 
-                        onValueChange={(value) => handleInputChange("duration", value)}
-                      >
-                        <SelectTrigger id="session-duration">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="30">30 minutos</SelectItem>
-                          <SelectItem value="45">45 minutos</SelectItem>
-                          <SelectItem value="60">60 minutos</SelectItem>
-                          <SelectItem value="90">90 minutos</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="session-type">Tipo de Sesión</Label>
-                    <Select 
-                      value={formData.type} 
-                      onValueChange={(value) => handleInputChange("type", value)}
-                    >
-                      <SelectTrigger id="session-type">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sessionTypes.map(type => (
-                          <SelectItem key={type.id} value={type.id}>
-                            {type.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Notas</Label>
-                    <Textarea 
-                      id="notes" 
-                      placeholder="Detalles adicionales sobre la sesión..." 
-                      value={formData.notes}
-                      onChange={(e) => handleInputChange("notes", e.target.value)}
-                    />
-                  </div>
-                </div>
-                
-                <CardFooter className="flex justify-end flex-col sm:flex-row gap-2 px-0 pt-6">
-                  <Button type="button" variant="outline" className={isMobile ? "w-full" : "mr-2"}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" className={isMobile ? "w-full" : ""}>
-                    Agendar Sesión
-                  </Button>
-                </CardFooter>
-              </form>
-            </CardContent>
-          </Card>
-
-          {/* Calendar View */}
-          <Card className="lg:col-span-2 order-1 lg:order-2 w-full">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-lg">Calendario</CardTitle>
-                <div className="flex items-center gap-1">
-                  <Button variant="outline" size="icon" onClick={prevPeriod}>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="icon" onClick={nextPeriod}>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
-              <CardDescription>
-                {calendarView === "week" ? (
-                  <>
-                    {format(weekStart, "d 'de' MMMM", { locale: es })} - {format(addDays(weekStart, 6), "d 'de' MMMM, yyyy", { locale: es })}
-                  </>
-                ) : (
-                  <>
-                    {format(monthStart, "MMMM yyyy", { locale: es })}
-                  </>
-                )}
-              </CardDescription>
-              
-              <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <Label htmlFor="calendar-therapist" className="sm:mr-2">Ver agenda de:</Label>
-                  <Select 
-                    value={viewAll ? "all" : selectedTherapist} 
-                    onValueChange={(value) => {
-                      if (value === "all") {
-                        setViewAll(true);
-                      } else {
-                        setViewAll(false);
-                        setSelectedTherapist(value);
-                      }
-                    }}
-                  >
-                    <SelectTrigger id="calendar-therapist" className="w-full sm:w-[250px]">
-                      <SelectValue placeholder="Seleccionar terapeuta" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">
-                        <div className="flex items-center gap-2">
-                          <UsersRound className="h-4 w-4" />
-                          <span>Todos los terapeutas</span>
-                        </div>
-                      </SelectItem>
-                      {therapists.map((therapist) => (
-                        <SelectItem key={therapist.id} value={therapist.id}>
-                          {therapist.name} - {therapist.specialty}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="flex items-center">
-                  <Tabs 
-                    value={calendarView} 
-                    onValueChange={(value) => handleCalendarViewChange(value as "week" | "month")}
-                    className="w-auto"
-                  >
-                    <TabsList className="grid w-[180px] grid-cols-2">
-                      <TabsTrigger value="week">Semanal</TabsTrigger>
-                      <TabsTrigger value="month">Mensual</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {calendarView === "week" ? (
-                // Vista semanal
-                <div className="space-y-4">
-                  <div className="grid grid-cols-7 gap-1 mb-2">
-                    {weekDays.map((day, i) => (
-                      <div key={i} className="text-center">
-                        <p className="text-xs text-muted-foreground uppercase">
-                          {format(day, isMobile ? "EEE" : "EEEE", { locale: es })}
-                        </p>
-                        <Button 
-                          variant={isSameDay(day, selectedDate || new Date()) ? "default" : "ghost"} 
-                          className={cn(
-                            "w-full rounded-full font-normal",
-                            isSameDay(day, new Date()) && !isSameDay(day, selectedDate || new Date()) && "bg-escalando-100 text-escalando-900 hover:bg-escalando-200 hover:text-escalando-900"
-                          )}
-                          onClick={() => setSelectedDate(day)}
-                        >
-                          {format(day, "d")}
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-6 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-medium">
-                        Sesiones programadas
-                        {selectedDate && (
-                          <span className="ml-2 text-muted-foreground">
-                            ({format(selectedDate, "d 'de' MMMM", { locale: es })})
-                          </span>
-                        )}
-                      </h3>
-                    </div>
-                    
-                    <div className="bg-muted/30 rounded-md p-4">
-                      <div className="text-sm font-medium mb-4">
-                        {viewAll ? "Horario: Todos los terapeutas" : `Horario: ${therapists.find(t => t.id === selectedTherapist)?.name}`}
-                      </div>
-                      <div className="space-y-2">
-                        {getFilteredSessions().length > 0 ? (
-                          getFilteredSessions().map((session, i) => {
-                            const patient = patients.find(p => p.id === session.patientId);
-                            const therapist = therapists.find(t => t.id === session.therapistId);
-                            
-                            return (
-                              <Card 
-                                key={i} 
-                                className="overflow-hidden border border-muted shadow-sm"
-                              >
-                                <div className="p-3 flex items-center gap-3">
-                                  <div className="w-2 h-10 rounded-full bg-escalando-400" />
-                                  <div className="flex-1">
-                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
-                                      <div>
-                                        <p className="font-medium">{patient?.name}</p>
-                                        <div className="flex items-center text-sm text-muted-foreground flex-wrap">
-                                          <CalendarIcon className="h-3.5 w-3.5 mr-1" />
-                                          <span>{format(session.date, "EEEE d 'de' MMMM", { locale: es })}</span>
-                                        </div>
-                                        {viewAll && (
-                                          <div className="text-sm text-muted-foreground mt-1">
-                                            <span className="font-medium">Terapeuta:</span> {therapist?.name}
-                                          </div>
-                                        )}
-                                      </div>
-                                      <div className="flex items-center text-sm font-medium mt-1 sm:mt-0">
-                                        <Clock className="h-3.5 w-3.5 mr-1" />
-                                        <span>{session.time} ({session.duration} min)</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </Card>
-                            );
-                          })
-                        ) : (
-                          <div className="text-center py-8">
-                            <p className="text-muted-foreground">No hay sesiones programadas{selectedDate ? ` para ${format(selectedDate, "d 'de' MMMM", { locale: es })}` : ""}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                // Vista mensual
-                <div className="space-y-4">
-                  <div className="grid grid-cols-7 gap-1">
-                    {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((day, i) => (
-                      <div key={i} className="text-center p-2">
-                        <p className="text-xs text-muted-foreground uppercase">{day}</p>
-                      </div>
-                    ))}
-                    
-                    {monthDays.map((day, i) => {
-                      const isCurrentMonth = day.getMonth() === currentDate.getMonth();
-                      const isToday = isSameDay(day, new Date());
-                      const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
-                      const daySessionsCount = getSessionsForDate(day).length;
-                      
-                      return (
-                        <div 
-                          key={i} 
-                          className={cn(
-                            "p-1 h-20 border border-border/40 relative",
-                            !isCurrentMonth && "bg-muted/20",
-                            isSelected && "ring-2 ring-primary ring-inset"
-                          )}
-                          onClick={() => setSelectedDate(day)}
-                        >
-                          <div className={cn(
-                            "flex justify-center items-center w-6 h-6 rounded-full mx-auto",
-                            isToday && "bg-escalando-100 text-escalando-900",
-                            isSelected && "bg-primary text-primary-foreground"
-                          )}>
-                            {format(day, "d")}
-                          </div>
-                          
-                          {daySessionsCount > 0 && (
-                            <div className="mt-1">
-                              <div className={cn(
-                                "text-xs text-center w-full py-0.5 rounded",
-                                daySessionsCount >= 3 ? "bg-red-100 text-red-600" : "bg-muted text-muted-foreground"
-                              )}>
-                                {daySessionsCount} {daySessionsCount === 1 ? "sesión" : "sesiones"}
-                              </div>
-                              
-                              {daySessionsCount <= 2 && getSessionsForDate(day).map((session, idx) => (
-                                <div 
-                                  key={idx}
-                                  className="text-xs truncate mt-0.5 bg-escalando-100 text-escalando-800 px-1 py-0.5 rounded"
-                                  title={`${patients.find(p => p.id === session.patientId)?.name} - ${session.time}`}
-                                >
-                                  {session.time.substring(0, 5)} - {patients.find(p => p.id === session.patientId)?.name.split(" ")[0]}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  
-                  {selectedDate && (
-                    <div className="mt-6 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-medium">
-                          Sesiones del {format(selectedDate, "d 'de' MMMM", { locale: es })}
-                        </h3>
-                      </div>
-                      
-                      <div className="bg-muted/30 rounded-md p-4">
-                        <div className="space-y-2">
-                          {getSessionsForDate(selectedDate).length > 0 ? (
-                            getSessionsForDate(selectedDate).map((session, i) => {
-                              const patient = patients.find(p => p.id === session.patientId);
-                              const therapist = therapists.find(t => t.id === session.therapistId);
-                              
-                              return (
-                                <Card 
-                                  key={i} 
-                                  className="overflow-hidden border border-muted shadow-sm"
-                                >
-                                  <div className="p-3 flex items-center gap-3">
-                                    <div className="w-2 h-10 rounded-full bg-escalando-400" />
-                                    <div className="flex-1">
-                                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
-                                        <div>
-                                          <p className="font-medium">{patient?.name}</p>
-                                          {viewAll && (
-                                            <div className="text-sm text-muted-foreground mt-1">
-                                              <span className="font-medium">Terapeuta:</span> {therapist?.name}
-                                            </div>
-                                          )}
-                                        </div>
-                                        <div className="flex items-center text-sm font-medium mt-1 sm:mt-0">
-                                          <Clock className="h-3.5 w-3.5 mr-1" />
-                                          <span>{session.time} ({session.duration} min)</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </Card>
-                              );
-                            })
-                          ) : (
-                            <div className="text-center py-8">
-                              <p className="text-muted-foreground">No hay sesiones programadas para esta fecha</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+            )}
+            {calendarView === "month" && (
+              <MonthlyView 
+                monthDays={monthDays}
+                currentDate={currentDate}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                getSessionsForDate={getSessionsForDate}
+              />
+            )}
+          </CardContent>
+        </Card>
 
         {/* Upcoming Sessions */}
         <Card className="w-full">
@@ -941,6 +802,216 @@ const SessionScheduler = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* New Session Form Dialog */}
+        <Dialog open={showNewSessionForm} onOpenChange={setShowNewSessionForm}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Nueva Sesión</DialogTitle>
+              <DialogDescription>
+                Complete los datos para agendar una sesión
+              </DialogDescription>
+            </DialogHeader>
+            
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="therapist">Terapeuta</Label>
+                  <Select 
+                    value={selectedTherapist} 
+                    onValueChange={(value) => setSelectedTherapist(value)}
+                  >
+                    <SelectTrigger id="therapist">
+                      <SelectValue placeholder="Seleccionar terapeuta" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {therapists.map((therapist) => (
+                        <SelectItem key={therapist.id} value={therapist.id}>
+                          {therapist.name} - {therapist.specialty}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="patient" className={cn(formErrors.patientId && "text-destructive")}>
+                    Paciente
+                  </Label>
+                  <Select 
+                    value={formData.patientId} 
+                    onValueChange={(value) => handleInputChange("patientId", value)}
+                  >
+                    <SelectTrigger id="patient" className={cn(formErrors.patientId && "border-destructive")}>
+                      <SelectValue placeholder="Seleccionar paciente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {patients.map((patient) => {
+                        // Contar sesiones programadas para este paciente
+                        const sessionCount = scheduledSessions.filter(
+                          session => session.patientId === patient.id
+                        ).length;
+                        
+                        // Deshabilitar pacientes que ya tienen 3 sesiones
+                        const disabled = sessionCount >= 3;
+                        
+                        return (
+                          <SelectItem 
+                            key={patient.id} 
+                            value={patient.id}
+                            disabled={disabled}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <span>{patient.name}</span>
+                              {sessionCount > 0 && (
+                                <span className="text-xs bg-muted rounded-full px-2 py-0.5">
+                                  {sessionCount} sesión{sessionCount > 1 ? "es" : ""}
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  {formErrors.patientId && (
+                    <p className="text-sm font-medium text-destructive">{formErrors.patientId}</p>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="session-time" className={cn(formErrors.time && "text-destructive")}>
+                      Hora
+                    </Label>
+                    <Select 
+                      value={formData.time} 
+                      onValueChange={(value) => handleInputChange("time", value)}
+                    >
+                      <SelectTrigger 
+                        id="session-time"
+                        className={cn(formErrors.time && "border-destructive")}
+                      >
+                        <SelectValue placeholder="Seleccionar hora" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {centerHours.map((time) => {
+                          const date = formData.date ? parseISO(formData.date) : new Date();
+                          const isAvailable = isTimeSlotAvailable(date, time);
+                          const sessionsCount = getSessionsCountAtTime(date, time);
+                          
+                          return (
+                            <SelectItem 
+                              key={time} 
+                              value={time}
+                              disabled={!isAvailable}
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <span>{time}</span>
+                                {sessionsCount > 0 ? (
+                                  <span className={cn(
+                                    "text-xs rounded-full px-2 py-0.5",
+                                    sessionsCount === 3 ? "bg-red-100 text-red-600" : "bg-muted"
+                                  )}>
+                                    {sessionsCount}/3
+                                  </span>
+                                ) : !isAvailable ? (
+                                  <span className="text-xs text-destructive">Ocupado</span>
+                                ) : null}
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    {formErrors.time && (
+                      <p className="text-sm font-medium text-destructive">{formErrors.time}</p>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="session-duration">Duración</Label>
+                    <Select 
+                      value={formData.duration} 
+                      onValueChange={(value) => handleInputChange("duration", value)}
+                    >
+                      <SelectTrigger id="session-duration">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30">30 minutos</SelectItem>
+                        <SelectItem value="45">45 minutos</SelectItem>
+                        <SelectItem value="60">60 minutos</SelectItem>
+                        <SelectItem value="90">90 minutos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="session-type">Tipo de Sesión</Label>
+                  <Select 
+                    value={formData.type} 
+                    onValueChange={(value) => handleInputChange("type", value)}
+                  >
+                    <SelectTrigger id="session-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sessionTypes.map(type => (
+                        <SelectItem key={type.id} value={type.id}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notas</Label>
+                  <Textarea 
+                    id="notes" 
+                    placeholder="Detalles adicionales sobre la sesión..." 
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange("notes", e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setIsRecurringSession(true);
+                        setShowRecurringForm(true);
+                      }}
+                    >
+                      Programar como sesión recurrente
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end flex-col sm:flex-row gap-2">
+                <Button type="button" variant="outline" className={isMobile ? "w-full" : "mr-2"} onClick={() => setShowNewSessionForm(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" className={isMobile ? "w-full" : ""}>
+                  Agendar Sesión
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Recurring Session Form */}
+        <RecurringSessionForm 
+          isOpen={showRecurringForm}
+          onClose={() => setShowRecurringForm(false)}
+          onConfirm={handleRecurringSession}
+          initialDate={selectedDateForRecurring || new Date()}
+        />
       </motion.div>
     </Layout>
   );

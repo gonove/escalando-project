@@ -49,6 +49,28 @@ export interface Session {
   notes?: string;
   exercises?: Exercise[];
   recommendations?: string;
+  isRecurring?: boolean;
+  recurrencePattern?: RecurrencePattern;
+  billingStatus?: 'pending' | 'completed' | 'cancelled';
+  billingDocuments?: BillingDocument[];
+  reportStatus?: 'pending' | 'completed';
+}
+
+export interface RecurrencePattern {
+  frequency: 'daily' | 'weekly' | 'monthly';
+  interval: number;
+  dayOfWeek?: number; // 0-6, where 0 is Sunday
+  endDate?: string;
+  occurrences?: number;
+}
+
+export interface BillingDocument {
+  id: string;
+  sessionId: string;
+  fileName: string;
+  fileUrl: string;
+  uploadDate: string;
+  type: 'invoice' | 'receipt' | 'other';
 }
 
 export interface Exercise {

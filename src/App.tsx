@@ -18,6 +18,7 @@ import PatientEdit from "./pages/PatientEdit";
 import ReportGenerator from "./pages/ReportGenerator";
 import SharedReport from "./pages/SharedReport";
 import SessionScheduler from "./pages/SessionScheduler";
+import SessionBilling from "./pages/SessionBilling";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import PatientLinks from "./pages/PatientLinks";
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/patients/:id/edit" element={<ProtectedRoute><PatientEdit /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/sessions" element={<ProtectedRoute><SessionScheduler /></ProtectedRoute>} />
+              <Route path="/billing" element={<ProtectedRoute><SessionBilling /></ProtectedRoute>} />
               <Route path="/sessions/:id" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
               <Route path="/sessions/new" element={<ProtectedRoute><SessionScheduler /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute><ReportGenerator /></ProtectedRoute>} />
