@@ -21,10 +21,20 @@ export interface Patient {
   diagnosis: string;
   notes: string;
   location: string;
-  treatmentPlan?: string | null;
   dateOfBirth: string;
   parentName?: string;
   contactNumber?: string;
+  developmentalMilestones?: DevelopmentalMilestone[];
+}
+
+export interface DevelopmentalMilestone {
+  id: string;
+  patientId: string;
+  ageMonths: number;
+  date: string;
+  milestone: string;
+  category: 'motor' | 'cognitive' | 'language' | 'social' | 'other';
+  notes?: string;
 }
 
 export interface Session {

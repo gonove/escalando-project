@@ -16,12 +16,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/context/AuthContext";
 
 const PatientEdit = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,13 +108,40 @@ const PatientEdit = () => {
             </Button>
             <h1 className="text-2xl font-semibold">Editar Paciente</h1>
           </div>
-          <Button 
-            onClick={handleSubmit}
-            className="flex items-center gap-2"
-          >
-            <Save className="h-4 w-4" />
-            Guardar Cambios
-          </Button>
+          <div className="flex items-center gap-3">
+            {isAdmin && (
+              <div className="flex items-center gap-2 mr-2">
+                <Label htmlFor="patient-status" className="text-sm">Estado:</Label>
+                <Select
+                  value={patient.status}
+                  onValueChange={(value) => handleChange("status", value)}
+                >
+                  <SelectTrigger id="patient-status" className="w-[130px]">
+                    <SelectValue placeholder="Estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-green-500 text-white">Activo</Badge>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="inactive">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-gray-500 text-white">Inactivo</Badge>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <Button 
+              onClick={handleSubmit}
+              className="flex items-center gap-2"
+            >
+              <Save className="h-4 w-4" />
+              Guardar Cambios
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="personal" className="w-full">

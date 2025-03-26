@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -13,6 +12,7 @@ import { Calendar, Clock, MapPin, Phone, Mail, File, Plus, ChevronLeft, Clipboar
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
+import DevelopmentalMilestones from "@/components/patient/DevelopmentalMilestones";
 
 const PatientDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,7 +43,6 @@ const PatientDetail = () => {
     );
   }
 
-  // Calcular evaluaciones pendientes
   const pendingEvaluations = patientSessions.filter(s => !s.progress).length;
   const completedEvaluations = patientSessions.filter(s => s.progress).length;
 
@@ -105,7 +104,6 @@ const PatientDetail = () => {
         )}
 
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Información del paciente */}
           <Card className="lg:w-1/3">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
@@ -237,7 +235,6 @@ const PatientDetail = () => {
             </CardContent>
           </Card>
 
-          {/* Tabs con sesiones e historial */}
           <div className="flex-1">
             <Tabs 
               defaultValue="overview" 
@@ -245,9 +242,10 @@ const PatientDetail = () => {
               value={activeTab}
               onValueChange={setActiveTab}
             >
-              <TabsList className="w-full grid grid-cols-2">
+              <TabsList className="w-full grid grid-cols-3">
                 <TabsTrigger value="overview">Resumen</TabsTrigger>
                 <TabsTrigger value="sessions">Sesiones</TabsTrigger>
+                <TabsTrigger value="development">Neurodesarrollo</TabsTrigger>
               </TabsList>
               
               <TabsContent value="overview" className="space-y-4 mt-4">
@@ -401,6 +399,23 @@ const PatientDetail = () => {
                         ))}
                       </div>
                     )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="development" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Ficha de Neurodesarrollo</CardTitle>
+                    <CardDescription>
+                      Registro de hitos del desarrollo alcanzados por el paciente
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <DevelopmentalMilestones 
+                      patientId={id || ""} 
+                      initialMilestones={patient?.developmentalMilestones || []}
+                    />
                   </CardContent>
                 </Card>
               </TabsContent>
