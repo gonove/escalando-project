@@ -21,7 +21,7 @@ export interface Patient {
   diagnosis: string;
   notes: string;
   location: string;
-  treatmentPlan: string | null;
+  treatmentPlan?: string | null;
   dateOfBirth: string;
   parentName?: string;
   contactNumber?: string;

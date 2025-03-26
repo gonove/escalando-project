@@ -14,6 +14,7 @@ import Index from "./pages/Index";
 import Patients from "./pages/Patients";
 import PatientDetail from "./pages/PatientDetail";
 import PatientRegistration from "./pages/PatientRegistration";
+import PatientEdit from "./pages/PatientEdit";
 import ReportGenerator from "./pages/ReportGenerator";
 import SharedReport from "./pages/SharedReport";
 import SessionScheduler from "./pages/SessionScheduler";
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/patients" element={<ProtectedRoute><Patients /></ProtectedRoute>} />
               <Route path="/patients/:id" element={<ProtectedRoute><PatientDetail /></ProtectedRoute>} />
               <Route path="/patients/new" element={<ProtectedRoute><PatientRegistration /></ProtectedRoute>} />
+              <Route path="/patients/:id/edit" element={<ProtectedRoute><PatientEdit /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/sessions" element={<ProtectedRoute><SessionScheduler /></ProtectedRoute>} />
               <Route path="/sessions/:id" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />

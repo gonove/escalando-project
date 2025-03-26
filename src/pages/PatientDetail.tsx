@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -250,41 +251,6 @@ const PatientDetail = () => {
               </TabsList>
               
               <TabsContent value="overview" className="space-y-4 mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Plan de Tratamiento</CardTitle>
-                    <CardDescription>
-                      Objetivos y progreso terapéutico
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {patient.treatmentPlan ? (
-                      <>
-                        <div>
-                          <h4 className="font-medium mb-2">Objetivos Generales</h4>
-                          <p>{patient.treatmentPlan}</p>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-center py-6">
-                        <p className="text-muted-foreground mb-4">
-                          No hay un plan de tratamiento definido
-                        </p>
-                        <Button
-                          variant="outline"
-                          className="flex items-center gap-2"
-                          asChild
-                        >
-                          <Link to={`/patients/${id}/treatment`}>
-                            <Plus className="h-4 w-4" />
-                            Crear Plan de Tratamiento
-                          </Link>
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-                
                 {patientSessions.length > 0 && (
                   <Card>
                     <CardHeader>
