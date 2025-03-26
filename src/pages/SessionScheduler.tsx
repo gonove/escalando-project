@@ -134,8 +134,6 @@ const initialScheduledSessions = [
 
 const SessionScheduler = () => {
   const isMobile = useIsMobile();
-  const isTablet = useIsTablet();
-  const isMobileOrTablet = useIsMobileOrTablet();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [weekStart, setWeekStart] = useState(startOfWeek(currentDate, { weekStartsOn: 1 }));
@@ -597,7 +595,7 @@ const SessionScheduler = () => {
                   className="w-auto"
                 >
                   <TabsList className="grid w-[280px] grid-cols-3">
-                    <TabsTrigger value="time">Semanal con hora</TabsTrigger>
+                    <TabsTrigger value="time">Sem/Hr</TabsTrigger>
                     <TabsTrigger value="week">Semanal</TabsTrigger>
                     <TabsTrigger value="month">Mensual</TabsTrigger>
                   </TabsList>
@@ -724,6 +722,11 @@ const SessionScheduler = () => {
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
                 getSessionsForDate={getSessionsForDate}
+                getFilteredSessions={getFilteredSessions}
+                therapists={therapists}
+                viewAll={viewAll}
+                selectedTherapist={selectedTherapist}
+                patients={patients}
               />
             )}
           </CardContent>
