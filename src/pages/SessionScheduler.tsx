@@ -54,16 +54,17 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import WeeklyTimeView from "@/components/scheduler/WeeklyTimeView";
 import MonthlyView from "@/components/scheduler/MonthlyView";
 import RecurringSessionForm from "@/components/scheduler/RecurringSessionForm";
 import { RecurrencePattern } from "@/types/models";
+import { WeeklyTimeView } from "@/components/scheduler/WeeklyTimeView";
+import { WeeklyWithHours } from "@/components/scheduler/WeeklyWithHours";
 
 const therapists = [
-  { id: "th_1", name: "Ana García", specialty: "Terapeuta Ocupacional" },
-  { id: "th_2", name: "Carlos Rodríguez", specialty: "Psicólogo Infantil" },
-  { id: "th_3", name: "Laura Martínez", specialty: "Logopeda" },
-  { id: "th_4", name: "Sofía López", specialty: "Fisioterapeuta" },
+  { id: "prof1", name: "Ana García", specialty: "Terapeuta Ocupacional" },
+  { id: "prof2", name: "Carlos Rodríguez", specialty: "Psicólogo Infantil" },
+  { id: "prof3", name: "Laura Martínez", specialty: "Logopeda" },
+  { id: "prof4", name: "Sofía López", specialty: "Fisioterapeuta" },
 ];
 
 const centerHours = [
@@ -83,7 +84,7 @@ const initialScheduledSessions = [
   {
     id: "ses_1",
     patientId: patients[0].id,
-    therapistId: "th_1",
+    therapistId: "prof1",
     date: addDays(new Date(), 1),
     time: "09:00",
     duration: 60,
@@ -92,7 +93,7 @@ const initialScheduledSessions = [
   {
     id: "ses_2",
     patientId: patients[1].id,
-    therapistId: "th_2",
+    therapistId: "prof2",
     date: addDays(new Date(), 2),
     time: "11:30",
     duration: 45,
@@ -101,7 +102,7 @@ const initialScheduledSessions = [
   {
     id: "ses_3",
     patientId: patients[2].id,
-    therapistId: "th_3",
+    therapistId: "prof3",
     date: addDays(new Date(), 4),
     time: "16:00",
     duration: 60,
@@ -110,7 +111,7 @@ const initialScheduledSessions = [
   {
     id: "ses_4",
     patientId: patients[0].id,
-    therapistId: "th_1",
+    therapistId: "prof1",
     date: addDays(new Date(), 3),
     time: "10:00",
     duration: 45,
@@ -119,7 +120,7 @@ const initialScheduledSessions = [
   {
     id: "ses_5",
     patientId: patients[3].id,
-    therapistId: "th_4",
+    therapistId: "prof4",
     date: addDays(new Date(), 1),
     time: "15:30",
     duration: 60,
@@ -206,18 +207,27 @@ const SessionScheduler = () => {
   };
 
   const isTimeSlotAvailable = (date: Date, time: string) => {
+    // Check if the selected therapist is already booked at this time
     const isTherapistBooked = scheduledSessions.some(session =>
       session.therapistId === selectedTherapist &&
       isSameDay(session.date, date) &&
       session.time === time
     );
 
+    // Count total sessions at this time
     const sessionsAtTime = scheduledSessions.filter(session =>
       isSameDay(session.date, date) &&
       session.time === time
     );
 
-    return !isTherapistBooked && sessionsAtTime.length < 3;
+    // If viewing a specific therapist's schedule, they shouldn't double-book
+    if (!viewAll) {
+      return !isTherapistBooked && sessionsAtTime.length < 3;
+    }
+    // If viewing all therapists, only check the total session count
+    else {
+      return sessionsAtTime.length < 3;
+    }
   };
 
   const getSessionsCountAtTime = (date: Date, time: string) => {
@@ -548,7 +558,7 @@ const SessionScheduler = () => {
           </CardHeader>
           <CardContent>
             {calendarView === "time" && (
-              <WeeklyTimeView
+              <WeeklyWithHours
                 weekDays={weekDays}
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
@@ -569,89 +579,17 @@ const SessionScheduler = () => {
               />
             )}
             {calendarView === "week" && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-7 gap-1 mb-2">
-                  {weekDays.map((day, i) => (
-                    <div key={i} className="text-center">
-                      <p className="text-xs text-muted-foreground uppercase">
-                        {format(day, isMobile ? "EEE" : "EEEE", { locale: es })}
-                      </p>
-                      <Button
-                        variant={isSameDay(day, selectedDate || new Date()) ? "default" : "ghost"}
-                        className={cn(
-                          "w-full rounded-full font-normal",
-                          isSameDay(day, new Date()) && !isSameDay(day, selectedDate || new Date()) && "bg-escalando-100 text-escalando-900 hover:bg-escalando-200 hover:text-escalando-900"
-                        )}
-                        onClick={() => setSelectedDate(day)}
-                      >
-                        {format(day, "d")}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium">
-                      Sesiones programadas
-                      {selectedDate && (
-                        <span className="ml-2 text-muted-foreground">
-                          ({format(selectedDate, "d 'de' MMMM", { locale: es })})
-                        </span>
-                      )}
-                    </h3>
-                  </div>
-
-                  <div className="bg-muted/30 rounded-md p-4">
-                    <div className="text-sm font-medium mb-4">
-                      {viewAll ? "Horario: Todos los terapeutas" : `Horario: ${therapists.find(t => t.id === selectedTherapist)?.name}`}
-                    </div>
-                    <div className="space-y-2">
-                      {getFilteredSessions().length > 0 ? (
-                        getFilteredSessions().map((session, i) => {
-                          const patient = patients.find(p => p.id === session.patientId);
-                          const therapist = therapists.find(t => t.id === session.therapistId);
-
-                          return (
-                            <Card
-                              key={i}
-                              className="overflow-hidden border border-muted shadow-sm"
-                            >
-                              <div className="p-3 flex items-center gap-3">
-                                <div className="w-2 h-10 rounded-full bg-escalando-400" />
-                                <div className="flex-1">
-                                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
-                                    <div>
-                                      <p className="font-medium">{patient?.name}</p>
-                                      <div className="flex items-center text-sm text-muted-foreground flex-wrap">
-                                        <CalendarIcon className="h-3.5 w-3.5 mr-1" />
-                                        <span>{format(session.date, "EEEE d 'de' MMMM", { locale: es })}</span>
-                                      </div>
-                                      {viewAll && (
-                                        <div className="text-sm text-muted-foreground mt-1">
-                                          <span className="font-medium">Terapeuta:</span> {therapist?.name}
-                                        </div>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center text-sm font-medium mt-1 sm:mt-0">
-                                      <Clock className="h-3.5 w-3.5 mr-1" />
-                                      <span>{session.time} ({session.duration} min)</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </Card>
-                          );
-                        })
-                      ) : (
-                        <div className="text-center py-8">
-                          <p className="text-muted-foreground">No hay sesiones programadas{selectedDate ? ` para ${format(selectedDate, "d 'de' MMMM", { locale: es })}` : ""}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <WeeklyTimeView
+                weekDays={weekDays}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                isMobile={isMobile}
+                getFilteredSessions={getFilteredSessions}
+                therapists={therapists}
+                viewAll={viewAll}
+                selectedTherapist={selectedTherapist}
+                patients={patients}
+              />
             )}
             {calendarView === "month" && (
               <MonthlyView
@@ -686,7 +624,7 @@ const SessionScheduler = () => {
                   if (dateCompare !== 0) return dateCompare;
 
                   const timeA = parseInt(a.time.replace(':', ''));
-                  const timeB = parseInt(b.time.replace(':'));
+                  const timeB = parseInt(b.time.replace(':', ''));
                   return timeA - timeB;
                 })
                 .slice(0, 5)
@@ -833,21 +771,21 @@ const SessionScheduler = () => {
                       <SelectContent>
                         {centerHours.map((hour) => {
                           const selectedDate = parseISO(formData.date);
-                          const sessionsAtTime = scheduledSessions.filter(s => 
+                          const sessionsAtTime = scheduledSessions.filter(s =>
                             isSameDay(s.date, selectedDate) && s.time === hour
                           ).length;
-                          
-                          const isTherapistBooked = scheduledSessions.some(s => 
-                            isSameDay(s.date, selectedDate) && 
-                            s.time === hour && 
+
+                          const isTherapistBooked = scheduledSessions.some(s =>
+                            isSameDay(s.date, selectedDate) &&
+                            s.time === hour &&
                             s.therapistId === selectedTherapist
                           );
-                          
+
                           const isDisabled = sessionsAtTime >= 3 || isTherapistBooked;
-                          
+
                           return (
-                            <SelectItem 
-                              key={hour} 
+                            <SelectItem
+                              key={hour}
                               value={hour}
                               disabled={isDisabled}
                             >
@@ -911,7 +849,7 @@ const SessionScheduler = () => {
                     onChange={(e) => handleInputChange("notes", e.target.value)}
                   />
                 </div>
-                
+
                 <div className="flex items-center">
                   <Button
                     type="button"
@@ -946,12 +884,11 @@ const SessionScheduler = () => {
                 Configure las sesiones periódicas
               </DialogDescription>
             </DialogHeader>
-            
             <RecurringSessionForm
-              onSubmit={handleRecurringSession}
-              onCancel={() => setShowRecurringForm(false)}
-              selectedDate={selectedDateForRecurring}
-              selectedTime={selectedTimeForRecurring}
+              isOpen={showRecurringForm}
+              onClose={() => setShowRecurringForm(false)}
+              onConfirm={handleRecurringSession}
+              initialDate={selectedDateForRecurring}
             />
           </DialogContent>
         </Dialog>

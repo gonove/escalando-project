@@ -1,218 +1,122 @@
 
-import React from "react";
-import { motion } from "framer-motion";
-import { format, isSameDay, addDays } from "date-fns";
-import { es } from "date-fns/locale";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-import {
-  CalendarIcon,
-  Clock,
-  User,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { useIsMobile } from "@/hooks/use-mobile";
 
-interface WeeklyTimeViewProps {
-  weekDays: Date[];
-  selectedDate: Date | null;
-  setSelectedDate: (date: Date) => void;
-  centerHours: string[];
-  getSessionsForDateTime: (date: Date, time: string) => any[];
-  isTimeSlotAvailable: (date: Date, time: string) => boolean;
-  getSessionsCountAtTime: (date: Date, time: string) => number;
-  viewAll: boolean;
-  selectedTherapist: string;
-  therapists: any[];
-  onScheduleClick: (date: Date, time: string) => void;
+import React from 'react'
+import { Button } from '../ui/button'
+import { format, isSameDay, addDays } from "date-fns";
+import { cn } from '@/lib/utils';
+import { CalendarIcon, Clock } from 'lucide-react';
+import { Card } from '../ui/card';
+import { es } from 'date-fns/locale';
+
+
+interface WeeklyWithHoursProps {
+    weekDays: Date[]
+    selectedDate: Date | null
+    setSelectedDate: (date: Date) => void
+    isMobile: boolean
+    getFilteredSessions: () => any[]
+    therapists: any[]
+    viewAll: boolean
+    selectedTherapist: string
+    patients: any[]
+
 }
 
-const WeeklyTimeView: React.FC<WeeklyTimeViewProps> = ({
-  weekDays,
-  selectedDate,
-  setSelectedDate,
-  centerHours,
-  getSessionsForDateTime,
-  isTimeSlotAvailable,
-  getSessionsCountAtTime,
-  viewAll,
-  selectedTherapist,
-  therapists,
-  onScheduleClick,
+export const WeeklyTimeView: React.FC<WeeklyWithHoursProps> = ({
+    weekDays,
+    selectedDate,
+    setSelectedDate,
+    isMobile,
+    getFilteredSessions,
+    therapists,
+    viewAll,
+    selectedTherapist,
+    patients
+
 }) => {
-  const isMobile = useIsMobile();
-
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-8 gap-1 mb-2">
-        <div className="text-center pt-8 font-semibold text-xs text-muted-foreground uppercase">
-          Hora
-        </div>
-        {weekDays.map((day, i) => (
-          <div key={i} className="text-center">
-            <p className="text-xs text-muted-foreground uppercase">
-              {format(day, isMobile ? "EEE" : "EEEE", { locale: es })}
-            </p>
-            <Button 
-              variant={isSameDay(day, selectedDate || new Date()) ? "default" : "ghost"} 
-              className={cn(
-                "w-full rounded-full font-normal",
-                isSameDay(day, new Date()) && !isSameDay(day, selectedDate || new Date()) && "bg-escalando-100 text-escalando-900 hover:bg-escalando-200 hover:text-escalando-900"
-              )}
-              onClick={() => setSelectedDate(day)}
-            >
-              {format(day, "d")}
-            </Button>
-          </div>
-        ))}
-      </div>
-
-      <div className="border rounded-lg overflow-hidden bg-white">
-        <div className="grid grid-cols-8 divide-x divide-border">
-          {/* Time slots column */}
-          <div className="col-span-1 divide-y divide-border">
-            {centerHours.map((hour, hourIndex) => (
-              <div 
-                key={hourIndex} 
-                className="h-16 flex items-center justify-center p-1"
-              >
-                <span className="text-xs font-medium">{hour}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Days columns */}
-          {weekDays.map((day, dayIndex) => (
-            <div key={dayIndex} className="col-span-1 divide-y divide-border">
-              {centerHours.map((hour, hourIndex) => {
-                const sessions = getSessionsForDateTime(day, hour);
-                const sessionsCount = getSessionsCountAtTime(day, hour);
-                
-                // Check if this timeslot is available for the selected therapist
-                const isTherapistAvailable = !sessions.some(session => 
-                  session.therapistId === selectedTherapist
-                );
-                
-                // Time slot is available if it's not fully booked (less than 3 sessions)
-                // and if the therapist doesn't have a session at this time
-                const isAvailable = sessionsCount < 3 && (viewAll || isTherapistAvailable);
-                
-                return (
-                  <TooltipProvider key={hourIndex}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div 
-                          className={cn(
-                            "h-16 relative cursor-pointer",
-                            isSameDay(day, new Date()) && "bg-escalando-50",
-                            !isAvailable && "bg-gray-100"
-                          )}
-                          onClick={() => isAvailable && onScheduleClick(day, hour)}
+    return (
+        <div className="space-y-4">
+            <div className="grid grid-cols-7 gap-1 mb-2">
+                {weekDays.map((day, i) => (
+                    <div key={i} className="text-center">
+                        <p className="text-xs text-muted-foreground uppercase">
+                            {format(day, isMobile ? "EEE" : "EEEE", { locale: es })}
+                        </p>
+                        <Button
+                            variant={isSameDay(day, selectedDate || new Date()) ? "default" : "ghost"}
+                            className={cn(
+                                "w-full rounded-full font-normal",
+                                isSameDay(day, new Date()) && !isSameDay(day, selectedDate || new Date()) && "bg-escalando-100 text-escalando-900 hover:bg-escalando-200 hover:text-escalando-900"
+                            )}
+                            onClick={() => setSelectedDate(day)}
                         >
-                          {sessions.length > 0 ? (
-                            <div className="absolute inset-0 p-0.5 overflow-hidden">
-                              {sessions.slice(0, 2).map((session, idx) => {
-                                const therapist = therapists.find(t => t.id === session.therapistId);
-                                return (
-                                  <div 
-                                    key={idx}
-                                    className={cn(
-                                      "text-xs p-0.5 mb-0.5 rounded truncate",
-                                      "bg-escalando-100 text-escalando-800 border border-escalando-200"
-                                    )}
-                                    title={`${session.patientName} - ${therapist?.name}`}
-                                  >
-                                    <span className="font-medium">{session.patientName}</span>
-                                    {viewAll && (
-                                      <span className="text-xs text-escalando-600 ml-1">
-                                        ({therapist?.name.split(' ')[0]})
-                                      </span>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                              
-                              {sessions.length > 2 && (
-                                <div className="text-xs text-center bg-gray-100 rounded">
-                                  +{sessions.length - 2} más
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            isAvailable && (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-full h-full flex items-center justify-center">
-                                  {isSameDay(day, new Date()) || day > new Date() ? (
-                                    <div className="w-6 h-6 rounded-full border-2 border-dashed border-gray-300" />
-                                  ) : null}
-                                </div>
-                              </div>
-                            )
-                          )}
-                          
-                          {sessionsCount > 0 && (
-                            <div className="absolute top-1 right-1">
-                              <span className={cn(
-                                "text-xs rounded-full px-1.5 py-0.5 font-medium",
-                                sessionsCount === 3 ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-700"
-                              )}>
-                                {sessionsCount}/3
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        {sessions.length > 0 ? (
-                          <div className="space-y-1 p-1">
-                            <p className="font-medium text-xs">
-                              {format(day, "EEEE d 'de' MMMM", { locale: es })} - {hour}
-                            </p>
-                            <div className="space-y-1">
-                              {sessions.map((session, idx) => {
-                                const therapist = therapists.find(t => t.id === session.therapistId);
-                                return (
-                                  <div key={idx} className="flex items-center text-xs gap-1">
-                                    <User className="h-3 w-3" />
-                                    <span>{session.patientName}</span>
-                                    {viewAll && (
-                                      <>
-                                        <span>-</span>
-                                        <span className="text-muted-foreground">{therapist?.name}</span>
-                                      </>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ) : isAvailable ? (
-                          <div className="p-1">
-                            <p className="text-xs">Horario disponible</p>
-                            <p className="text-xs font-medium">
-                              {format(day, "EEEE d 'de' MMMM", { locale: es })} - {hour}
-                            </p>
-                          </div>
-                        ) : (
-                          <p className="text-xs p-1">
-                            {sessionsCount >= 3 ? "Horario lleno (3/3)" : "Horario no disponible para este terapeuta"}
-                          </p>
-                        )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                );
-              })}
+                            {format(day, "d")}
+                        </Button>
+                    </div>
+                ))}
             </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
 
-export default WeeklyTimeView;
+            <div className="mt-6 space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium">
+                        Sesiones programadas
+                        {selectedDate && (
+                            <span className="ml-2 text-muted-foreground">
+                                ({format(selectedDate, "d 'de' MMMM", { locale: es })})
+                            </span>
+                        )}
+                    </h3>
+                </div>
+
+                <div className="bg-muted/30 rounded-md p-4">
+                    <div className="text-sm font-medium mb-4">
+                        {viewAll ? "Horario: Todos los terapeutas" : `Horario: ${therapists.find(t => t.id === selectedTherapist)?.name}`}
+                    </div>
+                    <div className="space-y-2">
+                        {getFilteredSessions().length > 0 ? (
+                            getFilteredSessions().map((session, i) => {
+                                const patient = patients.find(p => p.id === session.patientId);
+                                const therapist = therapists.find(t => t.id === session.therapistId);
+
+                                return (
+                                    <Card
+                                        key={i}
+                                        className="overflow-hidden border border-muted shadow-sm"
+                                    >
+                                        <div className="p-3 flex items-center gap-3">
+                                            <div className="w-2 h-10 rounded-full bg-escalando-400" />
+                                            <div className="flex-1">
+                                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
+                                                    <div>
+                                                        <p className="font-medium">{patient?.name}</p>
+                                                        <div className="flex items-center text-sm text-muted-foreground flex-wrap">
+                                                            <CalendarIcon className="h-3.5 w-3.5 mr-1" />
+                                                            <span>{format(session.date, "EEEE d 'de' MMMM", { locale: es })}</span>
+                                                        </div>
+                                                        {viewAll && (
+                                                            <div className="text-sm text-muted-foreground mt-1">
+                                                                <span className="font-medium">Terapeuta:</span> {therapist?.name}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center text-sm font-medium mt-1 sm:mt-0">
+                                                        <Clock className="h-3.5 w-3.5 mr-1" />
+                                                        <span>{session.time} ({session.duration} min)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                );
+                            })
+                        ) : (
+                            <div className="text-center py-8">
+                                <p className="text-muted-foreground">No hay sesiones programadas{selectedDate ? ` para ${format(selectedDate, "d 'de' MMMM", { locale: es })}` : ""}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
