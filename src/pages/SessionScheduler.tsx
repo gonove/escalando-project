@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
@@ -42,7 +41,7 @@ import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobil
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "@/components/ui/calendar";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -222,7 +221,79 @@ const SessionScheduler = () => {
     }
   };
 
-  // Validate form before submission
+  // Update the checkTimeSlotAvailability function to correctly check if a slot has 3 sessions
+  const isTimeSlotAvailable = (date: Date, time: string) => {
+    // Check if the therapist is already booked at this time
+    const isTherapistBooked = scheduledSessions.some(session =>
+      session.therapistId === selectedTherapist &&
+      isSameDay(session.date, date) &&
+      session.time === time
+    );
+
+    // Check if the center already has 3 sessions at this time
+    const sessionsAtTime = scheduledSessions.filter(session =>
+      isSameDay(session.date, date) &&
+      session.time === time
+    );
+
+    // Only block if the therapist is already booked or if there are already 3 sessions
+    return !isTherapistBooked && sessionsAtTime.length < 3;
+  };
+
+  // Get the number of sessions at a specific time slot
+  const getSessionsCountAtTime = (date: Date, time: string) => {
+    return scheduledSessions.filter(session =>
+      isSameDay(session.date, date) &&
+      session.time === time
+    ).length;
+  };
+
+  // Filter sessions by therapist and date
+  const getFilteredSessions = () => {
+    return scheduledSessions.filter(session => {
+      // Si viewAll está activado, ignorar el filtro de terapeuta
+      const isForSelectedTherapist = viewAll || session.therapistId === selectedTherapist;
+
+      // If a date is selected, filter by that date too
+      if (selectedDate) {
+        return isForSelectedTherapist && isSameDay(session.date, selectedDate);
+      }
+
+      return isForSelectedTherapist;
+    });
+  };
+
+  // Get sessions for a specific date
+  const getSessionsForDate = (date: Date) => {
+    return scheduledSessions.filter(session => {
+      if (viewAll) {
+        return isSameDay(session.date, date);
+      }
+      return session.therapistId === selectedTherapist && isSameDay(session.date, date);
+    });
+  };
+
+  // Get sessions for a specific date and time
+  const getSessionsForDateTime = (date: Date, time: string) => {
+    const sessions = scheduledSessions.filter(session => {
+      const isDateMatch = isSameDay(session.date, date);
+      const isTimeMatch = session.time === time;
+      const isTherapistMatch = viewAll || session.therapistId === selectedTherapist;
+
+      return isDateMatch && isTimeMatch && isTherapistMatch;
+    });
+
+    // Add patient name to each session for display purposes
+    return sessions.map(session => {
+      const patient = patients.find(p => p.id === session.patientId);
+      return {
+        ...session,
+        patientName: patient ? patient.name : "Paciente desconocido"
+      };
+    });
+  };
+
+  // Update validateForm logic to correctly check the time slot availability
   const validateForm = () => {
     const errors: Record<string, string> = {};
 
@@ -236,15 +307,6 @@ const SessionScheduler = () => {
 
     if (!formData.time) {
       errors.time = "Debe seleccionar una hora";
-    }
-
-    // Check if the patient already has 3 scheduled sessions
-    const patientSessions = scheduledSessions.filter(
-      session => session.patientId === formData.patientId
-    );
-
-    if (patientSessions.length >= 3) {
-      errors.patientId = "Este paciente ya tiene 3 sesiones programadas";
     }
 
     // Check if the selected time slot already has 3 sessions booked (center limit)
@@ -381,77 +443,6 @@ const SessionScheduler = () => {
 
     setShowRecurringForm(false);
     setSelectedTimeForRecurring(null);
-  };
-
-  // Filter sessions by therapist and date
-  const getFilteredSessions = () => {
-    return scheduledSessions.filter(session => {
-      // Si viewAll está activado, ignorar el filtro de terapeuta
-      const isForSelectedTherapist = viewAll || session.therapistId === selectedTherapist;
-
-      // If a date is selected, filter by that date too
-      if (selectedDate) {
-        return isForSelectedTherapist && isSameDay(session.date, selectedDate);
-      }
-
-      return isForSelectedTherapist;
-    });
-  };
-
-  // Get sessions for a specific date
-  const getSessionsForDate = (date: Date) => {
-    return scheduledSessions.filter(session => {
-      if (viewAll) {
-        return isSameDay(session.date, date);
-      }
-      return session.therapistId === selectedTherapist && isSameDay(session.date, date);
-    });
-  };
-
-  // Get sessions for a specific date and time
-  const getSessionsForDateTime = (date: Date, time: string) => {
-    const sessions = scheduledSessions.filter(session => {
-      const isDateMatch = isSameDay(session.date, date);
-      const isTimeMatch = session.time === time;
-      const isTherapistMatch = viewAll || session.therapistId === selectedTherapist;
-
-      return isDateMatch && isTimeMatch && isTherapistMatch;
-    });
-
-    // Add patient name to each session for display purposes
-    return sessions.map(session => {
-      const patient = patients.find(p => p.id === session.patientId);
-      return {
-        ...session,
-        patientName: patient ? patient.name : "Paciente desconocido"
-      };
-    });
-  };
-
-  // Check if a time slot is available
-  const isTimeSlotAvailable = (date: Date, time: string) => {
-    // Check if the therapist is already booked at this time
-    const isTherapistBooked = scheduledSessions.some(session =>
-      session.therapistId === selectedTherapist &&
-      isSameDay(session.date, date) &&
-      session.time === time
-    );
-
-    // Check if the center already has 3 sessions at this time
-    const sessionsAtTime = scheduledSessions.filter(session =>
-      isSameDay(session.date, date) &&
-      session.time === time
-    );
-
-    return !isTherapistBooked && sessionsAtTime.length < 3;
-  };
-
-  // Get the number of sessions at a specific time slot
-  const getSessionsCountAtTime = (date: Date, time: string) => {
-    return scheduledSessions.filter(session =>
-      isSameDay(session.date, date) &&
-      session.time === time
-    ).length;
   };
 
   // Handle calendar view change
@@ -855,169 +846,4 @@ const SessionScheduler = () => {
                           session => session.patientId === patient.id
                         ).length;
 
-                        // Deshabilitar pacientes que ya tienen 3 sesiones
-                        const disabled = sessionCount >= 3;
-
-                        return (
-                          <SelectItem
-                            key={patient.id}
-                            value={patient.id}
-                            disabled={disabled}
-                          >
-                            <div className="flex items-center justify-between w-full">
-                              <span>{patient.name}</span>
-                              {sessionCount > 0 && (
-                                <span className="text-xs bg-muted rounded-full px-2 py-0.5">
-                                  {sessionCount} sesión{sessionCount > 1 ? "es" : ""}
-                                </span>
-                              )}
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                  {formErrors.patientId && (
-                    <p className="text-sm font-medium text-destructive">{formErrors.patientId}</p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="session-time" className={cn(formErrors.time && "text-destructive")}>
-                      Hora
-                    </Label>
-                    <Select
-                      value={formData.time}
-                      onValueChange={(value) => handleInputChange("time", value)}
-                    >
-                      <SelectTrigger
-                        id="session-time"
-                        className={cn(formErrors.time && "border-destructive")}
-                      >
-                        <SelectValue placeholder="Seleccionar hora" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {centerHours.map((time) => {
-                          const date = formData.date ? parseISO(formData.date) : new Date();
-                          const isAvailable = isTimeSlotAvailable(date, time);
-                          const sessionsCount = getSessionsCountAtTime(date, time);
-
-                          return (
-                            <SelectItem
-                              key={time}
-                              value={time}
-                              disabled={!isAvailable}
-                            >
-                              <div className="flex items-center justify-between w-full">
-                                <span>{time}</span>
-                                {sessionsCount > 0 ? (
-                                  <span className={cn(
-                                    "text-xs rounded-full px-2 py-0.5",
-                                    sessionsCount === 3 ? "bg-red-100 text-red-600" : "bg-muted"
-                                  )}>
-                                    {sessionsCount}/3
-                                  </span>
-                                ) : !isAvailable ? (
-                                  <span className="text-xs text-destructive">Ocupado</span>
-                                ) : null}
-                              </div>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                    {formErrors.time && (
-                      <p className="text-sm font-medium text-destructive">{formErrors.time}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="session-duration">Duración</Label>
-                    <Select
-                      value={formData.duration}
-                      onValueChange={(value) => handleInputChange("duration", value)}
-                    >
-                      <SelectTrigger id="session-duration">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="30">30 minutos</SelectItem>
-                        <SelectItem value="45">45 minutos</SelectItem>
-                        <SelectItem value="60">60 minutos</SelectItem>
-                        <SelectItem value="90">90 minutos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="session-type">Tipo de Sesión</Label>
-                  <Select
-                    value={formData.type}
-                    onValueChange={(value) => handleInputChange("type", value)}
-                  >
-                    <SelectTrigger id="session-type">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sessionTypes.map(type => (
-                        <SelectItem key={type.id} value={type.id}>
-                          {type.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notas</Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="Detalles adicionales sobre la sesión..."
-                    value={formData.notes}
-                    onChange={(e) => handleInputChange("notes", e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setIsRecurringSession(true);
-                        setShowRecurringForm(true);
-                      }}
-                    >
-                      Programar como sesión recurrente
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end flex-col sm:flex-row gap-2">
-                <Button type="button" variant="outline" className={isMobile ? "w-full" : "mr-2"} onClick={() => setShowNewSessionForm(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" className={isMobile ? "w-full" : ""}>
-                  Agendar Sesión
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* Recurring Session Form */}
-        <RecurringSessionForm
-          isOpen={showRecurringForm}
-          onClose={() => setShowRecurringForm(false)}
-          onConfirm={handleRecurringSession}
-          initialDate={selectedDateForRecurring || new Date()}
-        />
-      </motion.div>
-    </Layout>
-  );
-};
-
-export default SessionScheduler;
+                        // Deshabilitar

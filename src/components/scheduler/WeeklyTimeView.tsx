@@ -90,8 +90,16 @@ const WeeklyTimeView: React.FC<WeeklyTimeViewProps> = ({
             <div key={dayIndex} className="col-span-1 divide-y divide-border">
               {centerHours.map((hour, hourIndex) => {
                 const sessions = getSessionsForDateTime(day, hour);
-                const isAvailable = isTimeSlotAvailable(day, hour);
                 const sessionsCount = getSessionsCountAtTime(day, hour);
+                
+                // Check if this timeslot is available for the selected therapist
+                const isTherapistAvailable = !sessions.some(session => 
+                  session.therapistId === selectedTherapist
+                );
+                
+                // Time slot is available if it's not fully booked (less than 3 sessions)
+                // and if the therapist doesn't have a session at this time
+                const isAvailable = sessionsCount < 3 && (viewAll || isTherapistAvailable);
                 
                 return (
                   <TooltipProvider key={hourIndex}>
@@ -99,11 +107,11 @@ const WeeklyTimeView: React.FC<WeeklyTimeViewProps> = ({
                       <TooltipTrigger asChild>
                         <div 
                           className={cn(
-                            "h-16 relative",
+                            "h-16 relative cursor-pointer",
                             isSameDay(day, new Date()) && "bg-escalando-50",
                             !isAvailable && "bg-gray-100"
                           )}
-                          onClick={() => onScheduleClick(day, hour)}
+                          onClick={() => isAvailable && onScheduleClick(day, hour)}
                         >
                           {sessions.length > 0 ? (
                             <div className="absolute inset-0 p-0.5 overflow-hidden">
@@ -190,7 +198,9 @@ const WeeklyTimeView: React.FC<WeeklyTimeViewProps> = ({
                             </p>
                           </div>
                         ) : (
-                          <p className="text-xs p-1">Horario no disponible</p>
+                          <p className="text-xs p-1">
+                            {sessionsCount >= 3 ? "Horario lleno (3/3)" : "Horario no disponible para este terapeuta"}
+                          </p>
                         )}
                       </TooltipContent>
                     </Tooltip>
