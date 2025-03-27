@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -75,13 +76,13 @@
     --input: 217 33% 18%;
     --ring: 48 96% 53%;
     
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 240 5% 96%;
+    --sidebar-background: 222 47% 13%;
+    --sidebar-foreground: 210 40% 90%;
     --sidebar-primary: 48 96% 53%;
     --sidebar-primary-foreground: 0 0% 10%;
-    --sidebar-accent: 240 4% 16%;
-    --sidebar-accent-foreground: 240 5% 96%;
-    --sidebar-border: 240 4% 16%;
+    --sidebar-accent: 217 33% 20%;
+    --sidebar-accent-foreground: 210 40% 90%;
+    --sidebar-border: 217 33% 20%;
     --sidebar-ring: 48 96% 53%;
   }
 }
@@ -100,8 +101,15 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight;
   }
+  
+  /* Dark mode table styling */
+  .dark table, .dark td, .dark th {
+    @apply border-border;
+    @apply bg-card text-card-foreground;
+  }
 }
 
+/* Animation classes */
 .page-transition-enter {
   opacity: 0;
   transform: translateY(5px);
@@ -122,4 +130,23 @@
   opacity: 0;
   transform: translateY(-5px);
   transition: all 200ms;
+}
+
+/* Ensure weekly schedule table is properly styled in dark mode */
+.dark .time-slot {
+  @apply bg-secondary hover:bg-secondary/60;
+}
+
+.dark .session-card {
+  @apply bg-card text-card-foreground;
+}
+
+/* Improve sidebar navigation in dark mode */
+.dark .sidebar-link {
+  @apply text-sidebar-foreground hover:bg-sidebar-accent;
+}
+
+/* Fix for white backgrounds in dark mode */
+.dark .white-bg {
+  @apply bg-card;
 }

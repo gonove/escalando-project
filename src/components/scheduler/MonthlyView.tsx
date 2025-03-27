@@ -58,7 +58,7 @@ const MonthlyView: React.FC<MonthlyViewProps> = ({
             >
               <div className={cn(
                 "flex justify-center items-center w-6 h-6 rounded-full mx-auto",
-                isToday && "bg-escalando-100 text-escalando-900",
+                isToday && "bg-escalando-100 text-escalando-900 dark:bg-escalando-900/20 dark:text-escalando-300",
                 isSelected && "bg-primary text-primary-foreground"
               )}>
                 {format(day, "d")}
@@ -68,8 +68,8 @@ const MonthlyView: React.FC<MonthlyViewProps> = ({
                 <div className="mt-1">
                   <div className={cn(
                     "text-xs text-center w-full py-0.5 rounded",
-                    daySessionsCount >= 12 ? "bg-red-100 text-red-600" :
-                      daySessionsCount >= 8 ? "bg-amber-100 text-amber-600" :
+                    daySessionsCount >= 12 ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-300" :
+                      daySessionsCount >= 8 ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300" :
                         "bg-muted text-muted-foreground"
                   )}>
                     {daySessionsCount} {daySessionsCount === 1 ? "sesión" : "sesiones"}
@@ -93,7 +93,7 @@ const MonthlyView: React.FC<MonthlyViewProps> = ({
             </h3>
           </div>
 
-          <div className="bg-muted/30 rounded-md p-4">
+          <div className="bg-muted/30 rounded-md p-4 dark:bg-muted/10">
             <div className="text-sm font-medium mb-4">
               {viewAll ? "Horario: Todos los terapeutas" : `Horario: ${therapists.find(t => t.id === selectedTherapist)?.name}`}
             </div>
@@ -106,7 +106,7 @@ const MonthlyView: React.FC<MonthlyViewProps> = ({
                   return (
                     <Card
                       key={i}
-                      className="overflow-hidden border border-muted shadow-sm"
+                      className="overflow-hidden border border-muted shadow-sm dark:border-muted/50"
                     >
                       <div className="p-3 flex items-center gap-3">
                         <div className="w-2 h-10 rounded-full bg-escalando-400" />

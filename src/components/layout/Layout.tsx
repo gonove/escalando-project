@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -50,8 +51,8 @@ const SidebarLink = ({
       className={cn(
         "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
         active
-          ? "bg-escalando-400 text-black font-medium"
-          : "hover:bg-escalando-100 text-gray-700 hover:text-escalando-700",
+          ? "bg-escalando-400 text-black font-medium dark:text-black"
+          : "hover:bg-sidebar-accent text-sidebar-foreground hover:text-sidebar-accent-foreground",
         compact && "justify-center px-2"
       )}
     >
@@ -115,19 +116,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-card shadow-sm transition-transform duration-300",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar shadow-sm transition-transform duration-300",
           isMobileOrTablet && !sidebarOpen ? "-translate-x-full" : "translate-x-0",
           !isMobileOrTablet && !sidebarOpen ? "w-20" : "w-64"
         )}
       >
-        <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
           {(sidebarOpen || !isMobileOrTablet) && (
             <div className={cn("flex items-center gap-2", !sidebarOpen && !isMobileOrTablet && "justify-center w-full")}>
               <div className="h-8 w-8 rounded-lg bg-escalando-400 flex items-center justify-center">
                 <span className="text-black font-bold">E</span>
               </div>
               {(sidebarOpen || isMobileOrTablet) && (
-                <h1 className="text-lg font-display font-semibold">Escalando</h1>
+                <h1 className="text-lg font-display font-semibold text-sidebar-foreground">Escalando</h1>
               )}
             </div>
           )}
@@ -135,7 +136,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className={cn("ml-auto", !sidebarOpen && !isMobileOrTablet && "ml-0")}
+            className={cn("ml-auto text-sidebar-foreground", !sidebarOpen && !isMobileOrTablet && "ml-0")}
           >
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
@@ -154,7 +155,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           ))}
         </div>
 
-        <div className="border-t border-border p-4">
+        <div className="border-t border-sidebar-border p-4">
           {(sidebarOpen || isMobileOrTablet) ? (
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 border">
@@ -162,14 +163,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase() || "U"}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{user?.user_metadata?.name || user?.email}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.user_metadata?.specialty || "Profesional"}</p>
+                <p className="text-sm font-medium truncate text-sidebar-foreground">{user?.user_metadata?.name || user?.email}</p>
+                <p className="text-xs text-sidebar-foreground/70 truncate">{user?.user_metadata?.specialty || "Profesional"}</p>
               </div>
               <div className="flex items-center gap-1">
                 <ThemeToggle />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground">
+                    <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent">
                       <Settings className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -189,7 +190,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="mx-auto">
+                  <Button variant="ghost" size="icon" className="mx-auto text-sidebar-foreground hover:bg-sidebar-accent">
                     <UserCircle className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
