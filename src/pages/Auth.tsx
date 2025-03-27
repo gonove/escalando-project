@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -10,16 +9,15 @@ import { useAuth } from "@/context/AuthContext";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   
-  // Login form state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   
-  // Forgot password state
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
   
@@ -27,7 +25,6 @@ const Auth = () => {
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
   
-  // Redirect if already logged in
   useEffect(() => {
     if (user) {
       navigate("/");
@@ -94,7 +91,11 @@ const Auth = () => {
   };
   
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 transition-colors duration-300">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -113,7 +114,7 @@ const Auth = () => {
           <p className="text-muted-foreground mt-2">Centro de Neurodesarrollo Infantil</p>
         </div>
         
-        <Card>
+        <Card className="border-border">
           <CardHeader>
             <CardTitle className="text-center">
               {showForgotPassword ? "Recuperar Contraseña" : "Bienvenido"}
@@ -126,7 +127,6 @@ const Auth = () => {
           </CardHeader>
           <CardContent>
             {showForgotPassword ? (
-              // Forgot Password Form
               <form onSubmit={handleForgotPassword} className="space-y-4 mt-4">
                 <div className="space-y-2">
                   <Label htmlFor="forgot-email">Correo Electrónico</Label>
@@ -169,7 +169,6 @@ const Auth = () => {
                 </div>
               </form>
             ) : (
-              // Login Form
               <form onSubmit={handleLogin} className="space-y-4 mt-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Correo Electrónico</Label>

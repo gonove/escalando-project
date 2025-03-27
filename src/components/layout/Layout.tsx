@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -26,6 +25,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -71,7 +71,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobileOrTablet = useIsMobileOrTablet();
   const { user, signOut, isAdmin } = useAuth();
 
-  // Close sidebar on mobile when navigating to a new page
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false);
@@ -80,7 +79,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   }, [location.pathname, isMobile, isMobileOrTablet]);
 
-  // Initialize sidebar based on device
   useEffect(() => {
     setSidebarOpen(!isMobileOrTablet);
   }, [isMobileOrTablet]);
@@ -102,30 +100,27 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: "/reports", label: "Informes", icon: FileText },
   ];
 
-  // Only show admin link if user is admin
   if (isAdmin) {
     navigationLinks.push({ path: "/admin", label: "Administración", icon: Settings });
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Mobile overlay when sidebar is open */}
+    <div className="flex min-h-screen bg-background transition-colors duration-300">
       {isMobileOrTablet && sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/20 z-40"
+          className="fixed inset-0 bg-black/20 dark:bg-black/50 z-40"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-sm transition-transform duration-300",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-card shadow-sm transition-transform duration-300",
           isMobileOrTablet && !sidebarOpen ? "-translate-x-full" : "translate-x-0",
           !isMobileOrTablet && !sidebarOpen ? "w-20" : "w-64"
         )}
       >
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           {(sidebarOpen || !isMobileOrTablet) && (
             <div className={cn("flex items-center gap-2", !sidebarOpen && !isMobileOrTablet && "justify-center w-full")}>
               <div className="h-8 w-8 rounded-lg bg-escalando-400 flex items-center justify-center">
@@ -159,7 +154,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           ))}
         </div>
 
-        <div className="border-t p-4">
+        <div className="border-t border-border p-4">
           {(sidebarOpen || isMobileOrTablet) ? (
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 border">
@@ -168,47 +163,52 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{user?.user_metadata?.name || user?.email}</p>
-                <p className="text-xs text-gray-500 truncate">{user?.user_metadata?.specialty || "Profesional"}</p>
+                <p className="text-xs text-muted-foreground truncate">{user?.user_metadata?.specialty || "Profesional"}</p>
               </div>
+              <div className="flex items-center gap-1">
+                <ThemeToggle />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground">
+                      <Settings className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate('/profile')}>Mi Perfil</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-500 dark:text-red-400">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Cerrar Sesión
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-gray-500">
-                    <Settings className="h-5 w-5" />
+                  <Button variant="ghost" size="icon" className="mx-auto">
+                    <UserCircle className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => navigate('/profile')}>Mi Perfil</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-500 dark:text-red-400">
                     <LogOut className="mr-2 h-4 w-4" />
                     Cerrar Sesión
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-          ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="mx-auto">
-                  <UserCircle className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate('/profile')}>Mi Perfil</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-500">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Cerrar Sesión
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           )}
         </div>
       </div>
 
-      {/* Mobile header */}
       {isMobileOrTablet && (
-        <div className="fixed top-0 left-0 right-0 z-30 bg-white border-b p-4 flex items-center justify-between">
+        <div className="fixed top-0 left-0 right-0 z-30 bg-card border-b border-border p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -223,28 +223,30 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
             <h1 className="text-lg font-display font-semibold">Escalando</h1>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.user_metadata?.avatar_url} />
-                  <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase() || "U"}</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate('/profile')}>Mi Perfil</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-500">
-                <LogOut className="mr-2 h-4 w-4" />
-                Cerrar Sesión
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user?.user_metadata?.avatar_url} />
+                    <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase() || "U"}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate('/profile')}>Mi Perfil</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-500 dark:text-red-400">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Cerrar Sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       )}
 
-      {/* Main content */}
       <div
         className={cn(
           "flex-1 w-full transition-all duration-300",
@@ -266,7 +268,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 isMobileOrTablet && "px-3 py-3"
               )}
             >
-              {/* Mobile back button on patient detail pages */}
               {isMobileOrTablet && location.pathname.includes("/patients/") && (
                 <Button
                   variant="ghost"

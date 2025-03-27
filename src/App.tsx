@@ -7,6 +7,7 @@ import { LazyMotion, domAnimation } from "framer-motion";
 import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
+import { useEffect } from "react";
 
 // Pages
 import Index from "./pages/Index";
@@ -31,46 +32,64 @@ import SessionSummary from "./pages/sessions/SessionSummary";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <LazyMotion features={domAnimation}>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/auth/reset-password" element={<Auth />} />
-              
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/patients" element={<ProtectedRoute><Patients /></ProtectedRoute>} />
-              <Route path="/patients/:id" element={<ProtectedRoute><PatientDetail /></ProtectedRoute>} />
-              <Route path="/patients/new" element={<ProtectedRoute><PatientRegistration /></ProtectedRoute>} />
-              <Route path="/patients/:id/edit" element={<ProtectedRoute><PatientEdit /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/sessions" element={<ProtectedRoute><SessionScheduler /></ProtectedRoute>} />
-              <Route path="/billing" element={<ProtectedRoute><SessionBilling /></ProtectedRoute>} />
-              <Route path="/sessions/:id" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
-              <Route path="/sessions/new" element={<ProtectedRoute><SessionScheduler /></ProtectedRoute>} />
-              <Route path="/reports" element={<ProtectedRoute><ReportGenerator /></ProtectedRoute>} />
-              <Route path="/reports/shared/:reportId" element={<SharedReport />} />
-              <Route path="/patient-links/:patientId" element={<ProtectedRoute><PatientLinks /></ProtectedRoute>} />
-              <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-              
-              <Route path="/patients/:id/initial-evaluation" element={<ProtectedRoute><InitialEvaluation /></ProtectedRoute>} />
-              <Route path="/patients/:patientId/sessions/:sessionId/evaluation" element={<ProtectedRoute><SessionEvaluation /></ProtectedRoute>} />
-              <Route path="/patients/:patientId/sessions/:sessionId/summary" element={<ProtectedRoute><SessionSummary /></ProtectedRoute>} />
-              <Route path="/patients/:patientId/sessions/evaluation" element={<ProtectedRoute><SessionEvaluation /></ProtectedRoute>} />
-              <Route path="/patients/:patientId/sessions/summary" element={<ProtectedRoute><SessionSummary /></ProtectedRoute>} />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </LazyMotion>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("escalando-theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    
+    const root = document.documentElement;
+    if (storedTheme) {
+      root.classList.add(JSON.parse(storedTheme));
+    } else if (prefersDark) {
+      root.classList.add("dark");
+      localStorage.setItem("escalando-theme", JSON.stringify("dark"));
+    } else {
+      root.classList.add("light");
+      localStorage.setItem("escalando-theme", JSON.stringify("light"));
+    }
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <LazyMotion features={domAnimation}>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/auth/reset-password" element={<Auth />} />
+                
+                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                <Route path="/patients" element={<ProtectedRoute><Patients /></ProtectedRoute>} />
+                <Route path="/patients/:id" element={<ProtectedRoute><PatientDetail /></ProtectedRoute>} />
+                <Route path="/patients/new" element={<ProtectedRoute><PatientRegistration /></ProtectedRoute>} />
+                <Route path="/patients/:id/edit" element={<ProtectedRoute><PatientEdit /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/sessions" element={<ProtectedRoute><SessionScheduler /></ProtectedRoute>} />
+                <Route path="/billing" element={<ProtectedRoute><SessionBilling /></ProtectedRoute>} />
+                <Route path="/sessions/:id" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
+                <Route path="/sessions/new" element={<ProtectedRoute><SessionScheduler /></ProtectedRoute>} />
+                <Route path="/reports" element={<ProtectedRoute><ReportGenerator /></ProtectedRoute>} />
+                <Route path="/reports/shared/:reportId" element={<SharedReport />} />
+                <Route path="/patient-links/:patientId" element={<ProtectedRoute><PatientLinks /></ProtectedRoute>} />
+                <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+                
+                <Route path="/patients/:id/initial-evaluation" element={<ProtectedRoute><InitialEvaluation /></ProtectedRoute>} />
+                <Route path="/patients/:patientId/sessions/:sessionId/evaluation" element={<ProtectedRoute><SessionEvaluation /></ProtectedRoute>} />
+                <Route path="/patients/:patientId/sessions/:sessionId/summary" element={<ProtectedRoute><SessionSummary /></ProtectedRoute>} />
+                <Route path="/patients/:patientId/sessions/evaluation" element={<ProtectedRoute><SessionEvaluation /></ProtectedRoute>} />
+                <Route path="/patients/:patientId/sessions/summary" element={<ProtectedRoute><SessionSummary /></ProtectedRoute>} />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </LazyMotion>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
