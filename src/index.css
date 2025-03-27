@@ -150,3 +150,84 @@
 .dark .white-bg {
   @apply bg-card;
 }
+
+/* Dark mode fixes for calendar views */
+.dark .bg-white {
+  @apply bg-card;
+}
+
+.dark .bg-gray-50, 
+.dark .bg-gray-100,
+.dark .bg-gray-200 {
+  @apply bg-muted;
+}
+
+.dark .bg-escalando-50 {
+  @apply bg-escalando-900/20;
+}
+
+.dark .border-border\/40 {
+  @apply border-border;
+}
+
+.dark .bg-muted\/20 {
+  @apply bg-background;
+}
+
+.dark .bg-muted\/30 {
+  @apply bg-muted/20;
+}
+
+.dark .bg-muted\/50 {
+  @apply bg-muted/30;
+}
+
+/* Improve text contrast in dark mode */
+.dark .text-muted-foreground {
+  @apply text-muted-foreground/90;
+}
+
+/* Fix background colors for tabs and buttons */
+.dark [role="tablist"] {
+  @apply bg-muted/30;
+}
+
+.dark [role="tab"][data-state="active"] {
+  @apply bg-background;
+}
+
+/* Specific WeeklyWithHours dark mode improvements */
+.dark .bg-escalando-100 {
+  @apply bg-escalando-900/30 text-escalando-100;
+}
+
+.dark .border-escalando-200 {
+  @apply border-escalando-900/50;
+}
+
+.dark .text-escalando-600 {
+  @apply text-escalando-200;
+}
+
+.dark .text-escalando-800 {
+  @apply text-escalando-100;
+}
+
+.dark .bg-red-100 {
+  @apply bg-red-900/30 text-red-200;
+}
+
+.dark .bg-amber-100 {
+  @apply bg-amber-900/30 text-amber-200;
+}
+
+.dark .bg-escalando-100.text-escalando-900 {
+  @apply bg-escalando-500/30 text-escalando-100;
+}
+
+/* Transitions for dark mode */
+.dark *, .dark *:before, .dark *:after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+}

@@ -61,7 +61,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
               variant={isSameDay(day, selectedDate || new Date()) ? "default" : "ghost"}
               className={cn(
                 "w-full rounded-full font-normal",
-                isSameDay(day, new Date()) && !isSameDay(day, selectedDate || new Date()) && "bg-escalando-100 text-escalando-900 hover:bg-escalando-200 hover:text-escalando-900"
+                isSameDay(day, new Date()) && !isSameDay(day, selectedDate || new Date()) && "bg-escalando-100 text-escalando-900 hover:bg-escalando-200 hover:text-escalando-900 dark:bg-escalando-500/30 dark:text-escalando-100 dark:hover:bg-escalando-500/50"
               )}
               onClick={() => setSelectedDate(day)}
             >
@@ -71,7 +71,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
         ))}
       </div>
 
-      <div className="border rounded-lg overflow-hidden bg-white">
+      <div className="border rounded-lg overflow-hidden bg-white dark:bg-card">
         <div className="grid grid-cols-8 divide-x divide-border">
           {/* Time slots column */}
           <div className="col-span-1 divide-y divide-border">
@@ -108,8 +108,8 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                         <div
                           className={cn(
                             "h-16 relative cursor-pointer",
-                            isSameDay(day, new Date()) && "bg-escalando-50",
-                            !isAvailable && "bg-gray-100"
+                            isSameDay(day, new Date()) && "bg-escalando-50 dark:bg-escalando-900/10",
+                            !isAvailable && "bg-gray-100 dark:bg-muted/50"
                           )}
                           onClick={() => isAvailable && onScheduleClick(day, hour)}
                         >
@@ -122,13 +122,13 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                                     key={idx}
                                     className={cn(
                                       "text-xs p-0.5 mb-0.5 rounded truncate",
-                                      "bg-escalando-100 text-escalando-800 border border-escalando-200"
+                                      "bg-escalando-100 text-escalando-800 border border-escalando-200 dark:bg-escalando-900/30 dark:text-escalando-100 dark:border-escalando-900/50"
                                     )}
                                     title={`${session.patientName} - ${therapist?.name}`}
                                   >
                                     <span className="font-medium">{session.patientName}</span>
                                     {viewAll && (
-                                      <span className="text-xs text-escalando-600 ml-1">
+                                      <span className="text-xs text-escalando-600 dark:text-escalando-200 ml-1">
                                         ({therapist?.name.split(' ')[0]})
                                       </span>
                                     )}
@@ -137,7 +137,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                               })}
 
                               {sessions.length > 2 && (
-                                <div className="text-xs text-center bg-gray-100 rounded">
+                                <div className="text-xs text-center bg-gray-100 rounded dark:bg-muted/30">
                                   +{sessions.length - 2} más
                                 </div>
                               )}
@@ -147,7 +147,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                               <div className="absolute inset-0 flex items-center justify-center">
                                 <div className="w-full h-full flex items-center justify-center">
                                   {isSameDay(day, new Date()) || day > new Date() ? (
-                                    <div className="w-6 h-6 rounded-full border-2 border-dashed border-gray-300" />
+                                    <div className="w-6 h-6 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600" />
                                   ) : null}
                                 </div>
                               </div>
@@ -158,7 +158,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                             <div className="absolute top-1 right-1">
                               <span className={cn(
                                 "text-xs rounded-full px-1.5 py-0.5 font-medium",
-                                sessionsCount === 3 ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-700"
+                                sessionsCount === 3 ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-200" : "bg-gray-100 text-gray-700 dark:bg-muted/30 dark:text-muted-foreground"
                               )}>
                                 {sessionsCount}/3
                               </span>
@@ -166,7 +166,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                           )}
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent side="top">
+                      <TooltipContent side="top" className="dark:bg-popover dark:text-popover-foreground dark:border-border">
                         {sessions.length > 0 ? (
                           <div className="space-y-1 p-1">
                             <p className="font-medium text-xs">
