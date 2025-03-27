@@ -40,17 +40,9 @@ import { es } from "date-fns/locale";
 import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
@@ -135,7 +127,7 @@ const SessionScheduler = () => {
   const [weekStart, setWeekStart] = useState(startOfWeek(currentDate, { weekStartsOn: 1 }));
   const [monthStart, setMonthStart] = useState(startOfMonth(currentDate));
   const [selectedTherapist, setSelectedTherapist] = useState<string>("th_1");
-  const [viewAll, setViewAll] = useState<boolean>(false);
+  const [viewAll, setViewAll] = useState<boolean>(true);
   const [calendarView, setCalendarView] = useState<"week" | "month" | "time">("time");
   const [scheduledSessions, setScheduledSessions] = useState(initialScheduledSessions);
   const [formData, setFormData] = useState({
