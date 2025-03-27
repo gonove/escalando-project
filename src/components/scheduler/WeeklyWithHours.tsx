@@ -109,7 +109,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                           className={cn(
                             "h-16 relative cursor-pointer",
                             isSameDay(day, new Date()) && "bg-escalando-50 dark:bg-escalando-900/10",
-                            !isAvailable && "bg-gray-100 dark:bg-muted/50"
+                            !isAvailable && "bg-gray-100 dark:bg-muted/20"
                           )}
                           onClick={() => isAvailable && onScheduleClick(day, hour)}
                         >
@@ -137,7 +137,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                               })}
 
                               {sessions.length > 2 && (
-                                <div className="text-xs text-center bg-gray-100 rounded dark:bg-muted/30">
+                                <div className="text-xs text-center bg-gray-100 rounded dark:bg-muted/20">
                                   +{sessions.length - 2} más
                                 </div>
                               )}

@@ -170,16 +170,17 @@
   @apply border-border;
 }
 
+/* Fix the circular dependency by using direct HSL values instead of @apply */
 .dark .bg-muted\/20 {
-  @apply bg-background;
+  background-color: hsl(var(--background));
 }
 
 .dark .bg-muted\/30 {
-  @apply bg-muted/20;
+  background-color: hsla(var(--muted), 0.2);
 }
 
 .dark .bg-muted\/50 {
-  @apply bg-muted/30;
+  background-color: hsla(var(--muted), 0.3);
 }
 
 /* Improve text contrast in dark mode */
@@ -189,7 +190,7 @@
 
 /* Fix background colors for tabs and buttons */
 .dark [role="tablist"] {
-  @apply bg-muted/30;
+  background-color: hsla(var(--muted), 0.3);
 }
 
 .dark [role="tab"][data-state="active"] {
