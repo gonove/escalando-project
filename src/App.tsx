@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -42,6 +41,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/reset-password" element={<Auth />} />
               
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/patients" element={<ProtectedRoute><Patients /></ProtectedRoute>} />
@@ -58,7 +58,6 @@ const App = () => (
               <Route path="/patient-links/:patientId" element={<ProtectedRoute><PatientLinks /></ProtectedRoute>} />
               <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
               
-              {/* New routes */}
               <Route path="/patients/:id/initial-evaluation" element={<ProtectedRoute><InitialEvaluation /></ProtectedRoute>} />
               <Route path="/patients/:patientId/sessions/:sessionId/evaluation" element={<ProtectedRoute><SessionEvaluation /></ProtectedRoute>} />
               <Route path="/patients/:patientId/sessions/:sessionId/summary" element={<ProtectedRoute><SessionSummary /></ProtectedRoute>} />
