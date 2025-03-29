@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { format, isSameDay, addDays, isWeekend } from "date-fns";
 import { es } from "date-fns/locale";
@@ -35,6 +35,7 @@ interface WeeklyTimeWithHoursViewProps {
   onScheduleClick: (date: Date, time: string) => void;
   showWeekends: boolean;
   setShowWeekends: (show: boolean) => void;
+  onShowSessionDetails?: (sessions: any[]) => void;
 }
 
 export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
@@ -51,13 +52,70 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
   onScheduleClick,
   showWeekends,
   setShowWeekends,
+  onShowSessionDetails = () => {}
 }) => {
   const isMobile = useIsMobile();
+  const [clickTimer, setClickTimer] = useState<{
+    timerId: NodeJS.Timeout | null;
+    date: Date | null;
+    time: string | null;
+  }>({
+    timerId: null,
+    date: null,
+    time: null
+  });
   
   // Filter weekdays if weekends should be hidden
   const displayDays = showWeekends 
     ? weekDays 
     : weekDays.filter(day => !isWeekend(day));
+
+  const handleTimeSlotClick = (date: Date, time: string) => {
+    // Handle double-click detection
+    if (
+      clickTimer.timerId && 
+      clickTimer.date && 
+      clickTimer.time && 
+      isSameDay(clickTimer.date, date) && 
+      clickTimer.time === time
+    ) {
+      // Double click detected - show session details
+      clearTimeout(clickTimer.timerId);
+      setClickTimer({ timerId: null, date: null, time: null });
+      
+      const sessions = getSessionsForDateTime(date, time);
+      if (sessions.length > 0) {
+        // Enhance sessions with full therapist and patient info
+        const enhancedSessions = sessions.map(session => {
+          const therapist = therapists.find(t => t.id === session.therapistId);
+          return {
+            ...session,
+            therapist,
+            patient: session.patient // Already includes patient info from getSessionsForDateTime
+          };
+        });
+        
+        onShowSessionDetails(enhancedSessions);
+      }
+    } else {
+      // First click - set timer and prepare for potential second click
+      if (clickTimer.timerId) {
+        clearTimeout(clickTimer.timerId);
+      }
+      
+      const timerId = setTimeout(() => {
+        // Single click action - schedule new appointment
+        onScheduleClick(date, time);
+        setClickTimer({ timerId: null, date: null, time: null });
+      }, 300); // 300ms delay to detect double-click
+      
+      setClickTimer({ 
+        timerId: timerId,
+        date: date,
+        time: time
+      });
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -143,7 +201,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                             isSameDay(day, new Date()) && "bg-escalando-50 dark:bg-escalando-900/10",
                             !isAvailable && "bg-gray-100 dark:bg-muted/20"
                           )}
-                          onClick={() => isAvailable && onScheduleClick(day, hour)}
+                          onClick={() => handleTimeSlotClick(day, hour)}
                         >
                           {sessions.length > 0 ? (
                             <div className="absolute inset-0 p-0.5 overflow-hidden">
