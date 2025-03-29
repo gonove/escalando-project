@@ -1,531 +1,379 @@
 import React, { useState } from "react";
+import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useParams, useNavigate } from "react-router-dom";
+import { patients } from "@/data/mockData";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { 
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { 
-  FileText, 
-  Upload, 
-  Download, 
-  ChevronDown, 
-  Eye, 
-  XCircle, 
-  Check,
-  Calendar,
-  Clock,
-  User,
-  Search
-} from "lucide-react";
-import { format, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
-import { patients, therapists } from "@/data/mockData";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import FileUploader from "@/components/FileUploader";
+import { ChevronLeft, User, Calendar, Clock, CreditCard } from "lucide-react";
 
-const mockSessions = [
-  {
-    id: "ses_101",
-    patientId: patients[0].id,
-    professionalId: "th_1",
-    date: "2023-06-15",
-    time: "09:00",
-    duration: 60,
-    type: "regular",
-    billingStatus: "completed",
-    reportStatus: "completed",
-    billingDocuments: [
-      {
-        id: "doc_1",
-        sessionId: "ses_101",
-        fileName: "factura_junio_2023.pdf",
-        fileUrl: "#",
-        uploadDate: "2023-06-16",
-        type: "invoice"
-      }
-    ]
-  },
-  {
-    id: "ses_102",
-    patientId: patients[1].id,
-    professionalId: "th_2",
-    date: "2023-06-22",
-    time: "11:30",
-    duration: 45,
-    type: "follow-up",
-    billingStatus: "pending",
-    reportStatus: "completed",
-    billingDocuments: []
-  },
-  {
-    id: "ses_103",
-    patientId: patients[2].id,
-    professionalId: "th_3",
-    date: "2023-06-28",
-    time: "15:00",
-    duration: 60,
-    type: "regular",
-    billingStatus: "completed",
-    reportStatus: "pending",
-    billingDocuments: [
-      {
-        id: "doc_2",
-        sessionId: "ses_103",
-        fileName: "factura_junio_2023_2.pdf",
-        fileUrl: "#",
-        uploadDate: "2023-06-29",
-        type: "invoice"
-      }
-    ]
-  },
-  {
-    id: "ses_104",
-    patientId: patients[0].id,
-    professionalId: "th_1",
-    date: "2023-07-05",
-    time: "09:00",
-    duration: 60,
-    type: "regular",
-    billingStatus: "pending",
-    reportStatus: "pending",
-    billingDocuments: []
-  },
-  {
-    id: "ses_105",
-    patientId: patients[3].id,
-    professionalId: "th_4",
-    date: "2023-07-12",
-    time: "16:30",
-    duration: 45,
-    type: "evaluation",
-    billingStatus: "cancelled",
-    reportStatus: "cancelled",
-    billingDocuments: []
-  }
+const simulatedPatient = {
+  id: "simulated-patient",
+  name: "Paciente de Demostración",
+  age: 8,
+  gender: "Masculino",
+  diagnosis: "Diagnóstico de ejemplo",
+  phone: "+56 9 1234 5678",
+  email: "paciente@ejemplo.com",
+  status: "active",
+  location: "Santiago, Chile",
+};
+
+const simulatedSession = {
+  id: "simulated-session",
+  patientId: "simulated-patient",
+  professionalId: "prof1",
+  date: new Date().toISOString(),
+  time: "15:00",
+  type: "Sesión de terapia",
+  duration: 60,
+};
+
+const paymentMethods = [
+  { id: "cash", name: "Efectivo" },
+  { id: "credit_card", name: "Tarjeta de Crédito" },
+  { id: "debit_card", name: "Tarjeta de Débito" },
+  { id: "transfer", name: "Transferencia Bancaria" },
+  { id: "insurance", name: "Seguro Médico" }
 ];
 
 const SessionBilling = () => {
-  const isMobile = useIsMobile();
+  const { patientId, sessionId } = useParams<{ patientId: string, sessionId: string }>();
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const [selectedProfessional, setSelectedProfessional] = useState<string>("");
-  const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), "yyyy-MM"));
-  const [filter, setFilter] = useState<string>("all");
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [sessions, setSessions] = useState(mockSessions);
-
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [selectedSession, setSelectedSession] = useState<any>(null);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [uploadedFileName, setUploadedFileName] = useState<string>("");
-
-  const filteredSessions = sessions.filter(session => {
-    if (selectedProfessional && session.professionalId !== selectedProfessional) {
-      return false;
+  const isMobile = useIsMobile();
+  
+  const patient = patients.find(p => p.id === patientId) || simulatedPatient;
+  const session = simulatedSession;
+  
+  const [invoiceFiles, setInvoiceFiles] = useState<Record<string, File[]>>({});
+  const [receiptFiles, setReceiptFiles] = useState<Record<string, File[]>>({});
+  
+  const form = useForm({
+    defaultValues: {
+      amount: "",
+      paymentMethod: "",
+      paymentDate: "",
+      invoiceNumber: "",
+      insuranceCoverage: "0",
+      patientPayment: "",
+      notes: ""
     }
-
-    const sessionMonth = session.date.substring(0, 7);
-    if (selectedMonth && sessionMonth !== selectedMonth) {
-      return false;
-    }
-
-    if (filter === "pending" && session.billingStatus !== "pending") {
-      return false;
-    }
-    if (filter === "completed" && session.billingStatus !== "completed") {
-      return false;
-    }
-    if (filter === "pendingReports" && session.reportStatus !== "pending") {
-      return false;
-    }
-
-    if (searchTerm) {
-      const patient = patients.find(p => p.id === session.patientId);
-      if (!patient || !patient.name.toLowerCase().includes(searchTerm.toLowerCase())) {
-        return false;
-      }
-    }
-
-    return true;
   });
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setUploadedFile(file);
-      setUploadedFileName(file.name);
-    }
-  };
-
-  const handleUpload = () => {
-    if (!uploadedFile || !selectedSession) {
-      toast({
-        title: "Error",
-        description: "Por favor seleccione un archivo para subir",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newDocument = {
-      id: `doc_${Date.now()}`,
-      sessionId: selectedSession.id,
-      fileName: uploadedFileName,
-      fileUrl: "#",
-      uploadDate: format(new Date(), "yyyy-MM-dd"),
-      type: "invoice"
-    };
-
-    const updatedSessions = sessions.map(session => {
-      if (session.id === selectedSession.id) {
-        return {
-          ...session,
-          billingStatus: "completed",
-          billingDocuments: [...(session.billingDocuments || []), newDocument]
-        };
-      }
-      return session;
+  
+  const onSubmit = (data: any) => {
+    console.log({
+      ...data,
+      invoiceFiles,
+      receiptFiles,
+      patientId,
+      sessionId,
+      sessionDate: session.date,
+      sessionTime: session.time
     });
-
-    setSessions(updatedSessions);
-    setUploadDialogOpen(false);
-    setUploadedFile(null);
-    setUploadedFileName("");
-
+    
     toast({
-      title: "Documento subido",
-      description: "El documento ha sido subido correctamente",
+      title: "Facturación guardada",
+      description: "La información de facturación ha sido guardada correctamente",
     });
-  };
-
-  const openUploadDialog = (session: any) => {
-    setSelectedSession(session);
-    setUploadDialogOpen(true);
-  };
-
-  const generateMonthOptions = () => {
-    const months = [];
-    const currentDate = new Date();
     
-    for (let i = 0; i < 12; i++) {
-      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-      const value = format(date, "yyyy-MM");
-      const label = format(date, "MMMM yyyy", { locale: es });
-      months.push({ value, label });
-    }
-    
-    return months;
+    navigate(`/patients/${patientId}`);
   };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Completado</Badge>;
-      case "pending":
-        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Pendiente</Badge>;
-      case "cancelled":
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Cancelado</Badge>;
-      default:
-        return <Badge variant="outline">Desconocido</Badge>;
-    }
+  
+  const handleInvoiceFilesChange = (files: any[]) => {
+    setInvoiceFiles((prev) => ({
+      ...prev,
+      [sessionId]: files
+    }));
   };
-
+  
+  const handleReceiptFilesChange = (files: any[]) => {
+    setReceiptFiles((prev) => ({
+      ...prev,
+      [sessionId]: files
+    }));
+  };
+  
   return (
     <Layout>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="space-y-6 w-full"
+        className="space-y-6"
       >
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            asChild
+            className="h-8 w-8"
+          >
+            <div onClick={() => navigate(`/patients/${patientId}`)}>
+              <ChevronLeft className="h-4 w-4" />
+            </div>
+          </Button>
           <div>
-            <h1 className="text-2xl font-semibold">Facturación</h1>
-            <p className="text-muted-foreground">
-              Gestión de facturas y reportes de sesiones
-            </p>
+            <h1 className="text-2xl font-semibold">Facturación de Sesión</h1>
+            <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+              <User className="h-4 w-4" />
+              <span>{patient.name}</span>
+            </div>
           </div>
         </div>
-
+        
         <Card>
           <CardHeader>
-            <CardTitle>Filtros</CardTitle>
-            <CardDescription>Filtra las sesiones por profesional, mes o estado</CardDescription>
+            <CardTitle>Información de Facturación</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="professional">Profesional</Label>
-                <Select 
-                  value={selectedProfessional} 
-                  onValueChange={setSelectedProfessional}
-                >
-                  <SelectTrigger id="professional">
-                    <SelectValue placeholder="Todos los profesionales" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Todos los profesionales</SelectItem>
-                    {therapists.map((therapist) => (
-                      <SelectItem key={therapist.id} value={therapist.id}>
-                        {therapist.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="month">Mes</Label>
-                <Select 
-                  value={selectedMonth} 
-                  onValueChange={setSelectedMonth}
-                >
-                  <SelectTrigger id="month">
-                    <SelectValue placeholder="Seleccionar mes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {generateMonthOptions().map((month) => (
-                      <SelectItem key={month.value} value={month.value}>
-                        {month.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="filter">Estado</Label>
-                <Select 
-                  value={filter} 
-                  onValueChange={setFilter}
-                >
-                  <SelectTrigger id="filter">
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="pending">Facturas pendientes</SelectItem>
-                    <SelectItem value="completed">Facturas completadas</SelectItem>
-                    <SelectItem value="pendingReports">Informes pendientes</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="search">Buscar paciente</Label>
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="search"
-                    placeholder="Nombre del paciente"
-                    className="pl-8"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Sesiones</CardTitle>
-            <CardDescription>
-              {filteredSessions.length} {filteredSessions.length === 1 ? "sesión encontrada" : "sesiones encontradas"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {filteredSessions.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[180px]">Paciente</TableHead>
-                    <TableHead>Profesional</TableHead>
-                    <TableHead>Fecha y hora</TableHead>
-                    <TableHead>Estado de factura</TableHead>
-                    <TableHead>Estado de informe</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredSessions.map((session) => {
-                    const patient = patients.find(p => p.id === session.patientId);
-                    const therapist = therapists.find(t => t.id === session.professionalId);
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <CardContent className="space-y-4">
+                <div className="bg-muted/30 p-4 rounded-lg space-y-2 dark:bg-muted/10">
+                  <h3 className="font-medium">Detalles de la Sesión</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-start gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="font-medium">Fecha</p>
+                        <p className="text-muted-foreground">
+                          {new Date(session.date).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
                     
-                    return (
-                      <TableRow key={session.id}>
-                        <TableCell className="font-medium">{patient?.name || "Paciente desconocido"}</TableCell>
-                        <TableCell>{therapist?.name || "Profesional desconocido"}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-col">
-                            <div className="flex items-center">
-                              <Calendar className="h-3.5 w-3.5 mr-1" />
-                              <span>{format(parseISO(session.date), "d MMM yyyy", { locale: es })}</span>
-                            </div>
-                            <div className="flex items-center text-muted-foreground">
-                              <Clock className="h-3.5 w-3.5 mr-1" />
-                              <span>{session.time} ({session.duration} min)</span>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{getStatusBadge(session.billingStatus)}</TableCell>
-                        <TableCell>{getStatusBadge(session.reportStatus)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            {session.billingStatus === "pending" && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openUploadDialog(session)}
-                              >
-                                <Upload className="h-4 w-4 mr-1" />
-                                Subir factura
-                              </Button>
-                            )}
-                            
-                            {session.billingStatus === "completed" && session.billingDocuments && session.billingDocuments.length > 0 && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  toast({
-                                    title: "Descarga iniciada",
-                                    description: "El documento se está descargando",
-                                  });
-                                }}
-                              >
-                                <Download className="h-4 w-4 mr-1" />
-                                Descargar
-                              </Button>
-                            )}
-                            
-                            {session.reportStatus === "pending" && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  toast({
-                                    title: "Crear informe",
-                                    description: "Redirigiendo a la página de creación de informes",
-                                  });
-                                }}
-                              >
-                                <FileText className="h-4 w-4 mr-1" />
-                                Crear informe
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="py-8 text-center">
-                <p className="text-muted-foreground">No se encontraron sesiones con los filtros seleccionados</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Subir factura</DialogTitle>
-              <DialogDescription>
-                Sube la factura de la sesión para el paciente{" "}
-                {selectedSession && patients.find(p => p.id === selectedSession.patientId)?.name}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="document-type">Tipo de documento</Label>
-                <Select defaultValue="invoice">
-                  <SelectTrigger id="document-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="invoice">Factura</SelectItem>
-                    <SelectItem value="receipt">Recibo</SelectItem>
-                    <SelectItem value="other">Otro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="file">Documento</Label>
-                <div className="grid w-full items-center gap-1.5">
-                  <Label
-                    htmlFor="file"
-                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
-                  >
-                    {uploadedFile ? (
-                      <div className="flex flex-col items-center">
-                        <FileText className="w-8 h-8 text-muted-foreground mb-2" />
-                        <p className="text-sm font-medium">{uploadedFileName}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {(uploadedFile.size / 1024).toFixed(0)} KB
-                        </p>
+                    <div className="flex items-start gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="font-medium">Hora</p>
+                        <p className="text-muted-foreground">{session.time}</p>
                       </div>
-                    ) : (
-                      <div className="flex flex-col items-center">
-                        <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                        <p className="text-sm font-medium">Haz clic para seleccionar archivo</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          PDF, JPG o PNG (máx. 10MB)
-                        </p>
+                    </div>
+                    
+                    <div className="flex items-start gap-2">
+                      <User className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="font-medium">Paciente</p>
+                        <p className="text-muted-foreground">{patient.name}</p>
                       </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-2">
+                      <CreditCard className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="font-medium">Tipo de Sesión</p>
+                        <p className="text-muted-foreground">{session.type}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Monto Total</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
+                            <Input 
+                              {...field} 
+                              placeholder="0.00" 
+                              className="pl-7" 
+                              type="number"
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </Label>
-                  <Input
-                    id="file"
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    className="hidden"
-                    onChange={handleFileChange}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="paymentMethod"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Método de Pago</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Seleccionar método de pago" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {paymentMethods.map((method) => (
+                              <SelectItem key={method.id} value={method.id}>
+                                {method.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </div>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleUpload} disabled={!uploadedFile}>
-                Subir documento
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="paymentDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Fecha de Pago</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            type="date" 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="invoiceNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Número de Factura/Boleta</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            placeholder="Ej: F-123456" 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="insuranceCoverage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cobertura de Seguro</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2">%</span>
+                            <Input 
+                              {...field} 
+                              placeholder="0" 
+                              className="pr-7" 
+                              type="number"
+                              min="0"
+                              max="100"
+                            />
+                          </div>
+                        </FormControl>
+                        <FormDescription>
+                          Porcentaje cubierto por seguro médico
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="patientPayment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pago del Paciente</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
+                            <Input 
+                              {...field} 
+                              placeholder="0.00" 
+                              className="pl-7" 
+                              type="number"
+                            />
+                          </div>
+                        </FormControl>
+                        <FormDescription>
+                          Monto pagado directamente por el paciente
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notas Adicionales</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="Cualquier información adicional relevante" 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="space-y-4">
+                  <div>
+                    <FormLabel>Factura/Boleta (Imagen)</FormLabel>
+                    <FormDescription className="mb-2">
+                      Suba una imagen de la factura o boleta emitida
+                    </FormDescription>
+                    <FileUploader 
+                      onFilesChange={handleInvoiceFilesChange}
+                      maxFiles={1}
+                      accept="image/*"
+                      maxSize={5 * 1024 * 1024} // 5MB
+                    />
+                  </div>
+                  
+                  <div>
+                    <FormLabel>Comprobante de Pago (Opcional)</FormLabel>
+                    <FormDescription className="mb-2">
+                      Suba un comprobante de pago si está disponible
+                    </FormDescription>
+                    <FileUploader 
+                      onFilesChange={handleReceiptFilesChange}
+                      maxFiles={1}
+                      accept="image/*"
+                      maxSize={5 * 1024 * 1024} // 5MB
+                    />
+                  </div>
+                </div>
+              </CardContent>
+              
+              <CardFooter className="flex justify-between">
+                <Button variant="outline" type="button" onClick={() => navigate(`/patients/${patientId}`)}>
+                  Cancelar
+                </Button>
+                <Button type="submit">Guardar Información de Pago</Button>
+              </CardFooter>
+            </form>
+          </Form>
+        </Card>
       </motion.div>
     </Layout>
   );
