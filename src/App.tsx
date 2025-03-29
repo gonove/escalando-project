@@ -29,6 +29,7 @@ import Auth from "./pages/Auth";
 import InitialEvaluation from "./pages/evaluations/InitialEvaluation";
 import SessionEvaluation from "./pages/evaluations/SessionEvaluation";
 import SessionSummary from "./pages/sessions/SessionSummary";
+import PendingEvaluations from "./pages/evaluations/PendingEvaluations";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +82,8 @@ const App = () => {
                 <Route path="/patients/:patientId/sessions/:sessionId/summary" element={<ProtectedRoute><SessionSummary /></ProtectedRoute>} />
                 <Route path="/patients/:patientId/sessions/evaluation" element={<ProtectedRoute><SessionEvaluation /></ProtectedRoute>} />
                 <Route path="/patients/:patientId/sessions/summary" element={<ProtectedRoute><SessionSummary /></ProtectedRoute>} />
+                
+                <Route path="/evaluations/pending" element={<PendingEvaluations />} />
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>

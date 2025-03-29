@@ -9,7 +9,8 @@ import {
   Calendar,
   PlusCircle,
   ArrowUpRight,
-  Activity
+  Activity,
+  ClipboardCheck
 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,10 +26,26 @@ const currentProfessional = professionals[1];
 const myPatients = patients.filter(
   (patient) => patient.professionalId === currentProfessional.id
 );
+
+// Get recent sessions
 const recentSessions = sessions
   .filter((session) => session.professionalId === currentProfessional.id)
   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   .slice(0, 3);
+
+// Get pending evaluations (sessions that have already happened but need reports)
+const pendingEvaluations = sessions
+  .filter((session) => {
+    const sessionDateTime = new Date(session.date);
+    sessionDateTime.setHours(parseInt(session.time.split(':')[0]), parseInt(session.time.split(':')[1]));
+    
+    return (
+      session.professionalId === currentProfessional.id &&
+      sessionDateTime < new Date() && // Session already happened
+      (!session.reportStatus || session.reportStatus === 'pending') // Report is pending
+    );
+  })
+  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Oldest first
 
 const StatCard = ({
   icon: Icon,
@@ -112,9 +129,9 @@ const Index = () => {
       color: "bg-therapy-500",
     },
     {
-      title: "Evaluaciones Terapeuticas",
-      value: "2/3",
-      description: "Evaluaciones completadas",
+      title: "Evaluaciones Pendientes",
+      value: pendingEvaluations.length,
+      description: "Informes por completar",
       icon: Activity,
       color: "bg-therapy-400",
     },
@@ -300,6 +317,76 @@ const Index = () => {
               </Button>
             </Link>
           </div>
+        </section>
+
+        {/* Pending Evaluations Section */}
+        <section>
+          <motion.h2
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-xl font-medium mb-4"
+          >
+            Evaluaciones Pendientes
+          </motion.h2>
+          <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+            <div className="grid grid-cols-12 py-3 px-4 border-b text-sm font-medium text-gray-600">
+              <div className="col-span-3">Fecha</div>
+              <div className="col-span-3">Paciente</div>
+              <div className="col-span-4">Tipo de Sesión</div>
+              <div className="col-span-2 text-right">Acciones</div>
+            </div>
+            {pendingEvaluations.length > 0 ? (
+              pendingEvaluations.slice(0, 3).map((session, index) => {
+                const patient = patients.find(p => p.id === session.patientId);
+                return (
+                  <motion.div
+                    key={session.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 + index * 0.1 }}
+                    className="grid grid-cols-12 py-4 px-4 border-b last:border-0 items-center"
+                  >
+                    <div className="col-span-3 font-medium">
+                      {new Date(session.date).toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      })}
+                    </div>
+                    <div className="col-span-3">
+                      {patient?.name}
+                    </div>
+                    <div className="col-span-4 truncate text-sm">
+                      {session.type}
+                    </div>
+                    <div className="col-span-2 text-right">
+                      <Link to={`/sessions/summary/${patient?.id}/${session.id}`}>
+                        <Button variant="ghost" size="sm" className="text-therapy-600 hover:text-therapy-700 hover:bg-therapy-50">
+                          <ClipboardCheck className="h-4 w-4 mr-1" />
+                          Evaluar
+                        </Button>
+                      </Link>
+                    </div>
+                  </motion.div>
+                );
+              })
+            ) : (
+              <div className="py-6 text-center text-muted-foreground">
+                No hay evaluaciones pendientes
+              </div>
+            )}
+          </div>
+          {pendingEvaluations.length > 3 && (
+            <div className="mt-4 text-center">
+              <Link to="/evaluations/pending">
+                <Button variant="outline">
+                  Ver Todas las Evaluaciones Pendientes
+                  <ArrowUpRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          )}
         </section>
       </motion.div>
     </Layout>
