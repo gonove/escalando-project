@@ -122,7 +122,6 @@ const initialScheduledSessions = [
     duration: 60,
     type: "evaluation"
   },
-  // Add a past session
   {
     id: "ses_6",
     patientId: patients[0].id,
@@ -218,24 +217,20 @@ const SessionScheduler = () => {
   };
 
   const isTimeSlotAvailable = (date: Date, time: string) => {
-    // Check if the selected therapist is already booked at this time
     const isTherapistBooked = scheduledSessions.some(session =>
       session.therapistId === selectedTherapist &&
       isSameDay(session.date, date) &&
       session.time === time
     );
 
-    // Count total sessions at this time
     const sessionsAtTime = scheduledSessions.filter(session =>
       isSameDay(session.date, date) &&
       session.time === time
     );
 
-    // If viewing a specific therapist's schedule, they shouldn't double-book
     if (!viewAll) {
       return !isTherapistBooked && sessionsAtTime.length < 3;
     }
-    // If viewing all therapists, only check the total session count
     else {
       return sessionsAtTime.length < 3;
     }
@@ -608,16 +603,12 @@ const SessionScheduler = () => {
                 showWeekends={showWeekends}
                 setShowWeekends={setShowWeekends}
                 onScheduleClick={(date, time) => {
-                  // Check if there are sessions at this time
                   const sessionsAtTime = getSessionsForDateTime(date, time);
                   
                   if (sessionsAtTime.length > 0) {
-                    // If there's a session at this time and it's triggered by double-click,
-                    // show session details
                     setSelectedSession(sessionsAtTime[0]);
                     setShowSessionDetail(true);
                   } else {
-                    // If empty slot, prepare to create a new session
                     handleTimeSlotClick(date, time);
                     setSelectedDateForRecurring(date);
                     setSelectedTimeForRecurring(time);
@@ -956,7 +947,6 @@ const SessionScheduler = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Session Detail Dialog */}
         {selectedSession && (
           <SessionDetailDialog
             session={selectedSession}
@@ -969,7 +959,6 @@ const SessionScheduler = () => {
           />
         )}
 
-        {/* Reschedule Session Dialog */}
         {selectedSession && (
           <RescheduleSessionDialog
             session={selectedSession}
