@@ -1,6 +1,14 @@
 
 import { Professional, Patient, Session, Exercise } from "../types/models";
 
+// Session Types
+export const sessionTypes: Record<string, string> = {
+  'regular': 'Sesión Regular',
+  'evaluation': 'Evaluación',
+  'follow-up': 'Seguimiento',
+  'first-time': 'Primera Consulta'
+};
+
 export const professionals: Professional[] = [
   {
     id: "prof1",

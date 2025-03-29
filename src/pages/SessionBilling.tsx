@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
@@ -16,7 +15,6 @@ import { cn } from "@/lib/utils";
 import FileUploader from "@/components/FileUploader";
 import { ChevronLeft, User, Calendar, Clock, CreditCard } from "lucide-react";
 
-// Simulated data - For demonstration
 const simulatedPatient = {
   id: "simulated-patient",
   name: "Paciente de Demostración",
@@ -53,15 +51,12 @@ const SessionBilling = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
-  // Find patient data
   const patient = patients.find(p => p.id === patientId) || simulatedPatient;
-  const session = simulatedSession; // In a real app, you'd fetch the actual session
+  const session = simulatedSession;
   
-  // State for file uploads
-  const [invoiceFiles, setInvoiceFiles] = useState<any[]>([]);
-  const [receiptFiles, setReceiptFiles] = useState<any[]>([]);
+  const [invoiceFiles, setInvoiceFiles] = useState<Record<string, File[]>>({});
+  const [receiptFiles, setReceiptFiles] = useState<Record<string, File[]>>({});
   
-  // Form handling
   const form = useForm({
     defaultValues: {
       amount: "",
@@ -75,7 +70,6 @@ const SessionBilling = () => {
   });
   
   const onSubmit = (data: any) => {
-    // Here you would save the billing data to your backend
     console.log({
       ...data,
       invoiceFiles,
@@ -95,11 +89,17 @@ const SessionBilling = () => {
   };
   
   const handleInvoiceFilesChange = (files: any[]) => {
-    setInvoiceFiles(files);
+    setInvoiceFiles((prev) => ({
+      ...prev,
+      [sessionId]: files
+    }));
   };
   
   const handleReceiptFilesChange = (files: any[]) => {
-    setReceiptFiles(files);
+    setReceiptFiles((prev) => ({
+      ...prev,
+      [sessionId]: files
+    }));
   };
   
   return (
@@ -138,7 +138,6 @@ const SessionBilling = () => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <CardContent className="space-y-4">
-                {/* Session Information */}
                 <div className="bg-muted/30 p-4 rounded-lg space-y-2 dark:bg-muted/10">
                   <h3 className="font-medium">Detalles de la Sesión</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -178,7 +177,6 @@ const SessionBilling = () => {
                   </div>
                 </div>
                 
-                {/* Billing Information */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}

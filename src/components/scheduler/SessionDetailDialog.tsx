@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -23,6 +22,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
+import { sessionTypes } from '@/data/mockData';
 
 interface SessionDetailDialogProps {
   session: any;
@@ -48,13 +48,7 @@ const SessionDetailDialog: React.FC<SessionDetailDialogProps> = ({
   if (!session || !patient || !therapist) return null;
 
   const getSessionTypeLabel = (type: string) => {
-    const types: Record<string, string> = {
-      'regular': 'Sesión Regular',
-      'evaluation': 'Evaluación',
-      'follow-up': 'Seguimiento',
-      'first-time': 'Primera Consulta'
-    };
-    return types[type] || type;
+    return sessionTypes[type] || type;
   };
 
   const handleViewSummary = () => {
