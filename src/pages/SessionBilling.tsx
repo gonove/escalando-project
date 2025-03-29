@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { List, ListItem } from "@/components/ui/list";
 import { Separator } from "@/components/ui/separator";
 import { CalendarIcon, FileText, Receipt } from "lucide-react";
 import { format } from 'date-fns';
@@ -168,38 +167,40 @@ const SessionBilling = () => {
 
             <div>
               <Label>Códigos CPT</Label>
-              <List className="border rounded-md">
+              <ul className="border rounded-md">
                 {cptCodesData.map((code) => (
-                  <ListItem key={code.code} className="flex items-center justify-between p-2">
-                    <Label htmlFor={`cpt-${code.code}`} className="cursor-pointer">
+                  <li key={code.code} className="flex items-center justify-between p-2">
+                    <label htmlFor={`cpt-${code.code}`} className="cursor-pointer">
                       {code.code} - {code.description}
-                    </Label>
-                    <Checkbox
+                    </label>
+                    <input
+                      type="checkbox"
                       id={`cpt-${code.code}`}
                       checked={!!cptCodes[code.code]}
-                      onCheckedChange={(checked) => handleCptCodeChange(code.code, checked)}
+                      onChange={(e) => handleCptCodeChange(code.code, e.target.checked)}
                     />
-                  </ListItem>
+                  </li>
                 ))}
-              </List>
+              </ul>
             </div>
 
             <div>
               <Label>Códigos ICD</Label>
-              <List className="border rounded-md">
+              <ul className="border rounded-md">
                 {icdCodesData.map((code) => (
-                  <ListItem key={code.code} className="flex items-center justify-between p-2">
-                    <Label htmlFor={`icd-${code.code}`} className="cursor-pointer">
+                  <li key={code.code} className="flex items-center justify-between p-2">
+                    <label htmlFor={`icd-${code.code}`} className="cursor-pointer">
                       {code.code} - {code.description}
-                    </Label>
-                    <Checkbox
+                    </label>
+                    <input
+                      type="checkbox"
                       id={`icd-${code.code}`}
                       checked={!!icdCodes[code.code]}
-                      onCheckedChange={(checked) => handleIcdCodeChange(code.code, checked)}
+                      onChange={(e) => handleIcdCodeChange(code.code, e.target.checked)}
                     />
-                  </ListItem>
+                  </li>
                 ))}
-              </List>
+              </ul>
             </div>
 
             <div>
