@@ -1,380 +1,236 @@
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { motion } from "framer-motion";
-import Layout from "@/components/layout/Layout";
-import { useParams, useNavigate } from "react-router-dom";
-import { patients } from "@/data/mockData";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { List, ListItem } from "@/components/ui/list";
+import { Separator } from "@/components/ui/separator";
+import { CalendarIcon, FileText, Receipt } from "lucide-react";
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
-import FileUploader from "@/components/FileUploader";
-import { ChevronLeft, User, Calendar, Clock, CreditCard } from "lucide-react";
+import Layout from '@/components/layout/Layout';
 
-const simulatedPatient = {
-  id: "simulated-patient",
-  name: "Paciente de Demostración",
-  age: 8,
-  gender: "Masculino",
-  diagnosis: "Diagnóstico de ejemplo",
-  phone: "+56 9 1234 5678",
-  email: "paciente@ejemplo.com",
-  status: "active",
-  location: "Santiago, Chile",
-};
+const patients = [
+  { id: "pat1", name: "Juan Pérez", diagnosis: "TDAH" },
+  { id: "pat2", name: "María García", diagnosis: "Dislexia" },
+  { id: "pat3", name: "Carlos López", diagnosis: "Autismo" },
+  { id: "pat4", name: "Ana Martínez", diagnosis: "Retraso del lenguaje" },
+];
 
-const simulatedSession = {
-  id: "simulated-session",
-  patientId: "simulated-patient",
-  professionalId: "prof1",
-  date: new Date().toISOString(),
-  time: "15:00",
-  type: "Sesión de terapia",
-  duration: 60,
-};
+const therapists = [
+  { id: "prof1", name: "Ana García", specialty: "Terapeuta Ocupacional" },
+  { id: "prof2", name: "Carlos Rodríguez", specialty: "Psicólogo Infantil" },
+  { id: "prof3", name: "Laura Martínez", specialty: "Logopeda" },
+  { id: "prof4", name: "Sofía López", specialty: "Fisioterapeuta" },
+];
 
-const paymentMethods = [
-  { id: "cash", name: "Efectivo" },
-  { id: "credit_card", name: "Tarjeta de Crédito" },
-  { id: "debit_card", name: "Tarjeta de Débito" },
-  { id: "transfer", name: "Transferencia Bancaria" },
-  { id: "insurance", name: "Seguro Médico" }
+const cptCodesData = [
+  { code: "97110", description: "Terapia de ejercicios" },
+  { code: "97530", description: "Actividades terapéuticas" },
+  { code: "97112", description: "Reeducación neuromuscular" },
+  { code: "97150", description: "Terapia de grupo" },
+];
+
+const icdCodesData = [
+  { code: "F80.0", description: "Trastorno específico de la pronunciación" },
+  { code: "F80.1", description: "Trastorno expresivo del lenguaje" },
+  { code: "F80.2", description: "Trastorno mixto del lenguaje receptivo-expresivo" },
+  { code: "F80.81", description: "Trastorno de la comunicación social (pragmático)" },
 ];
 
 const SessionBilling = () => {
-  const { patientId, sessionId } = useParams<{ patientId: string, sessionId: string }>();
   const navigate = useNavigate();
+  const { patientId, sessionId } = useParams();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
-  
-  const patient = patients.find(p => p.id === patientId) || simulatedPatient;
-  const session = simulatedSession;
-  
-  const [invoiceFiles, setInvoiceFiles] = useState<Record<string, File[]>>({});
-  const [receiptFiles, setReceiptFiles] = useState<Record<string, File[]>>({});
-  
-  const form = useForm({
-    defaultValues: {
-      amount: "",
-      paymentMethod: "",
-      paymentDate: "",
-      invoiceNumber: "",
-      insuranceCoverage: "0",
-      patientPayment: "",
-      notes: ""
-    }
-  });
-  
-  const onSubmit = (data: any) => {
-    console.log({
-      ...data,
-      invoiceFiles,
-      receiptFiles,
+
+  const [patient, setPatient] = useState(null);
+  const [therapist, setTherapist] = useState(null);
+  const [session, setSession] = useState(null);
+  const [billingDate, setBillingDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [notes, setNotes] = useState("");
+  const [cptCodes, setCptCodes] = useState({} as Record<string, string[]>);
+  const [icdCodes, setIcdCodes] = useState({} as Record<string, string[]>);
+  const [amount, setAmount] = useState("50.00");
+
+  useEffect(() => {
+    // Mock data loading
+    const loadedPatient = patients.find(p => p.id === patientId);
+    const loadedTherapist = therapists.find(t => t.id === "prof1"); // Assuming a default therapist
+    const loadedSession = {
+      id: sessionId,
+      date: new Date(),
+      time: "10:00",
+      duration: 60,
+    };
+
+    setPatient(loadedPatient);
+    setTherapist(loadedTherapist);
+    setSession(loadedSession);
+  }, [patientId, sessionId]);
+
+  const handleCptCodeChange = (code: string, checked: boolean) => {
+    setCptCodes(prev => {
+      const newCodes = { ...prev };
+      if (checked) {
+        newCodes[code] = [cptCodesData.find(c => c.code === code)?.description || ""];
+      } else {
+        delete newCodes[code];
+      }
+      return newCodes;
+    });
+  };
+
+  const handleIcdCodeChange = (code: string, checked: boolean) => {
+    setIcdCodes(prev => {
+      const newCodes = { ...prev };
+      if (checked) {
+        newCodes[code] = [icdCodesData.find(i => i.code === code)?.description || ""];
+      } else {
+        delete newCodes[code];
+      }
+      return newCodes;
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const billingData = {
       patientId,
       sessionId,
-      sessionDate: session.date,
-      sessionTime: session.time
-    });
-    
+      billingDate,
+      cptCodes,
+      icdCodes,
+      amount,
+      notes,
+    };
+
+    console.log("Billing Data:", billingData);
+
     toast({
-      title: "Facturación guardada",
-      description: "La información de facturación ha sido guardada correctamente",
+      title: "Facturación Creada",
+      description: "La información de facturación ha sido guardada.",
     });
-    
-    navigate(`/patients/${patientId}`);
+
+    navigate(`/sessions/summary/${patientId}/${sessionId}`);
   };
-  
-  const handleInvoiceFilesChange = (files: any[]) => {
-    setInvoiceFiles((prev) => ({
-      ...prev,
-      [sessionId]: files
-    }));
-  };
-  
-  const handleReceiptFilesChange = (files: any[]) => {
-    setReceiptFiles((prev) => ({
-      ...prev,
-      [sessionId]: files
-    }));
-  };
-  
+
+  if (!patient || !therapist || !session) {
+    return <div>Cargando...</div>;
+  }
+
   return (
     <Layout>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="space-y-6"
-      >
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            asChild
-            className="h-8 w-8"
-          >
-            <div onClick={() => navigate(`/patients/${patientId}`)}>
-              <ChevronLeft className="h-4 w-4" />
-            </div>
-          </Button>
-          <div>
-            <h1 className="text-2xl font-semibold">Facturación de Sesión</h1>
-            <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-              <User className="h-4 w-4" />
-              <span>{patient.name}</span>
-            </div>
-          </div>
-        </div>
-        
+      <div className="container py-10">
         <Card>
           <CardHeader>
-            <CardTitle>Información de Facturación</CardTitle>
+            <CardTitle className="text-2xl">Crear Facturación</CardTitle>
+            <CardDescription>
+              Ingrese la información de facturación para la sesión.
+            </CardDescription>
           </CardHeader>
-          
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <CardContent className="space-y-4">
-                <div className="bg-muted/30 p-4 rounded-lg space-y-2 dark:bg-muted/10">
-                  <h3 className="font-medium">Detalles de la Sesión</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-start gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="font-medium">Fecha</p>
-                        <p className="text-muted-foreground">
-                          {new Date(session.date).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="font-medium">Hora</p>
-                        <p className="text-muted-foreground">{session.time}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-2">
-                      <User className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="font-medium">Paciente</p>
-                        <p className="text-muted-foreground">{patient.name}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-2">
-                      <CreditCard className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="font-medium">Tipo de Sesión</p>
-                        <p className="text-muted-foreground">{session.type}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Monto Total</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
-                            <Input 
-                              {...field} 
-                              placeholder="0.00" 
-                              className="pl-7" 
-                              type="number"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="paymentMethod"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Método de Pago</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Seleccionar método de pago" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {paymentMethods.map((method) => (
-                              <SelectItem key={method.id} value={method.id}>
-                                {method.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="paymentDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Fecha de Pago</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            type="date" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="invoiceNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Número de Factura/Boleta</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            placeholder="Ej: F-123456" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="insuranceCoverage"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cobertura de Seguro</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2">%</span>
-                            <Input 
-                              {...field} 
-                              placeholder="0" 
-                              className="pr-7" 
-                              type="number"
-                              min="0"
-                              max="100"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormDescription>
-                          Porcentaje cubierto por seguro médico
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="patientPayment"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Pago del Paciente</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
-                            <Input 
-                              {...field} 
-                              placeholder="0.00" 
-                              className="pl-7" 
-                              type="number"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormDescription>
-                          Monto pagado directamente por el paciente
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Notas Adicionales</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          placeholder="Cualquier información adicional relevante" 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="space-y-4">
-                  <div>
-                    <FormLabel>Factura/Boleta (Imagen)</FormLabel>
-                    <FormDescription className="mb-2">
-                      Suba una imagen de la factura o boleta emitida
-                    </FormDescription>
-                    <FileUploader 
-                      onFilesChange={handleInvoiceFilesChange}
-                      maxFiles={1}
-                      accept="image/*"
-                      maxSize={5 * 1024 * 1024} // 5MB
+          <CardContent className="grid gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Paciente</Label>
+                <Input type="text" value={patient.name} readOnly />
+              </div>
+              <div>
+                <Label>Terapeuta</Label>
+                <Input type="text" value={therapist.name} readOnly />
+              </div>
+              <div>
+                <Label>Fecha de la Sesión</Label>
+                <Input type="text" value={format(session.date, "EEEE d 'de' MMMM, yyyy", { locale: es })} readOnly />
+              </div>
+              <div>
+                <Label>Hora de la Sesión</Label>
+                <Input type="text" value={session.time} readOnly />
+              </div>
+            </div>
+
+            <Separator />
+
+            <div>
+              <Label htmlFor="billingDate">Fecha de Facturación</Label>
+              <Input
+                type="date"
+                id="billingDate"
+                value={billingDate}
+                onChange={(e) => setBillingDate(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label>Códigos CPT</Label>
+              <List className="border rounded-md">
+                {cptCodesData.map((code) => (
+                  <ListItem key={code.code} className="flex items-center justify-between p-2">
+                    <Label htmlFor={`cpt-${code.code}`} className="cursor-pointer">
+                      {code.code} - {code.description}
+                    </Label>
+                    <Checkbox
+                      id={`cpt-${code.code}`}
+                      checked={!!cptCodes[code.code]}
+                      onCheckedChange={(checked) => handleCptCodeChange(code.code, checked)}
                     />
-                  </div>
-                  
-                  <div>
-                    <FormLabel>Comprobante de Pago (Opcional)</FormLabel>
-                    <FormDescription className="mb-2">
-                      Suba un comprobante de pago si está disponible
-                    </FormDescription>
-                    <FileUploader 
-                      onFilesChange={handleReceiptFilesChange}
-                      maxFiles={1}
-                      accept="image/*"
-                      maxSize={5 * 1024 * 1024} // 5MB
+                  </ListItem>
+                ))}
+              </List>
+            </div>
+
+            <div>
+              <Label>Códigos ICD</Label>
+              <List className="border rounded-md">
+                {icdCodesData.map((code) => (
+                  <ListItem key={code.code} className="flex items-center justify-between p-2">
+                    <Label htmlFor={`icd-${code.code}`} className="cursor-pointer">
+                      {code.code} - {code.description}
+                    </Label>
+                    <Checkbox
+                      id={`icd-${code.code}`}
+                      checked={!!icdCodes[code.code]}
+                      onCheckedChange={(checked) => handleIcdCodeChange(code.code, checked)}
                     />
-                  </div>
-                </div>
-              </CardContent>
-              
-              <CardFooter className="flex justify-between">
-                <Button variant="outline" type="button" onClick={() => navigate(`/patients/${patientId}`)}>
-                  Cancelar
-                </Button>
-                <Button type="submit">Guardar Información de Pago</Button>
-              </CardFooter>
-            </form>
-          </Form>
+                  </ListItem>
+                ))}
+              </List>
+            </div>
+
+            <div>
+              <Label htmlFor="amount">Monto</Label>
+              <Input
+                type="number"
+                id="amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="notes">Notas</Label>
+              <Textarea
+                id="notes"
+                placeholder="Información adicional"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <Button onClick={handleSubmit}>
+                <Receipt className="h-4 w-4 mr-2" />
+                Generar Factura
+              </Button>
+            </div>
+          </CardContent>
         </Card>
-      </motion.div>
+      </div>
     </Layout>
   );
 };

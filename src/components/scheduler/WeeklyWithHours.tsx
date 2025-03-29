@@ -55,35 +55,36 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
   onShowSessionDetails = () => {}
 }) => {
   const isMobile = useIsMobile();
-  const [clickTimer, setClickTimer] = useState<{
-    timerId: NodeJS.Timeout | null;
-    date: Date | null;
-    time: string | null;
-  }>({
-    timerId: null,
-    date: null,
-    time: null
-  });
   
   // Filter weekdays if weekends should be hidden
   const displayDays = showWeekends 
     ? weekDays 
     : weekDays.filter(day => !isWeekend(day));
 
+  // Track click times for detecting single vs double clicks
+  const [lastClick, setLastClick] = useState<{
+    time: number,
+    date: Date | null,
+    timeSlot: string | null
+  }>({
+    time: 0,
+    date: null,
+    timeSlot: null
+  });
+
   const handleTimeSlotClick = (date: Date, time: string) => {
-    // Handle double-click detection
+    const now = new Date().getTime();
+    const sessions = getSessionsForDateTime(date, time);
+    
+    // Check if this is a double click (within 300ms of the last click on the same cell)
     if (
-      clickTimer.timerId && 
-      clickTimer.date && 
-      clickTimer.time && 
-      isSameDay(clickTimer.date, date) && 
-      clickTimer.time === time
+      lastClick.date && 
+      lastClick.timeSlot && 
+      isSameDay(lastClick.date, date) && 
+      lastClick.timeSlot === time && 
+      now - lastClick.time < 300
     ) {
-      // Double click detected - show session details
-      clearTimeout(clickTimer.timerId);
-      setClickTimer({ timerId: null, date: null, time: null });
-      
-      const sessions = getSessionsForDateTime(date, time);
+      // Double click - show session details if there are sessions
       if (sessions.length > 0) {
         // Enhance sessions with full therapist and patient info
         const enhancedSessions = sessions.map(session => {
@@ -91,28 +92,28 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
           return {
             ...session,
             therapist,
-            patient: session.patient // Already includes patient info from getSessionsForDateTime
+            patient: session.patient
           };
         });
         
         onShowSessionDetails(enhancedSessions);
       }
+      
+      // Reset click tracking
+      setLastClick({
+        time: 0,
+        date: null,
+        timeSlot: null
+      });
     } else {
-      // First click - set timer and prepare for potential second click
-      if (clickTimer.timerId) {
-        clearTimeout(clickTimer.timerId);
-      }
+      // Single click - schedule new appointment
+      onScheduleClick(date, time);
       
-      const timerId = setTimeout(() => {
-        // Single click action - schedule new appointment
-        onScheduleClick(date, time);
-        setClickTimer({ timerId: null, date: null, time: null });
-      }, 300); // 300ms delay to detect double-click
-      
-      setClickTimer({ 
-        timerId: timerId,
+      // Update last click information
+      setLastClick({
+        time: now,
         date: date,
-        time: time
+        timeSlot: time
       });
     }
   };
@@ -181,15 +182,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
               {centerHours.map((hour, hourIndex) => {
                 const sessions = getSessionsForDateTime(day, hour);
                 const sessionsCount = getSessionsCountAtTime(day, hour);
-
-                // Check if this timeslot is available for the selected therapist
-                const isTherapistAvailable = !sessions.some(session =>
-                  session.therapistId === selectedTherapist
-                );
-
-                // Time slot is available if it's not fully booked (less than 3 sessions)
-                // and if the therapist doesn't have a session at this time
-                const isAvailable = sessionsCount < 3 && (viewAll || isTherapistAvailable);
+                const hasCapacity = sessionsCount < 3;
 
                 return (
                   <TooltipProvider key={hourIndex}>
@@ -199,7 +192,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                           className={cn(
                             "h-16 relative cursor-pointer",
                             isSameDay(day, new Date()) && "bg-escalando-50 dark:bg-escalando-900/10",
-                            !isAvailable && "bg-gray-100 dark:bg-muted/20"
+                            !hasCapacity && "bg-gray-100 dark:bg-muted/20"
                           )}
                           onClick={() => handleTimeSlotClick(day, hour)}
                         >
@@ -233,15 +226,13 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                               )}
                             </div>
                           ) : (
-                            isAvailable && (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-full h-full flex items-center justify-center">
-                                  {isSameDay(day, new Date()) || day > new Date() ? (
-                                    <div className="w-6 h-6 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600" />
-                                  ) : null}
-                                </div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-full h-full flex items-center justify-center">
+                                {isSameDay(day, new Date()) || day > new Date() ? (
+                                  <div className="w-6 h-6 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600" />
+                                ) : null}
                               </div>
-                            )
+                            </div>
                           )}
 
                           {sessionsCount > 0 && (
@@ -279,18 +270,19 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                                 );
                               })}
                             </div>
+                            <p className="text-xs mt-1">
+                              {hasCapacity ? 
+                                `${3 - sessionsCount} horarios disponibles` : 
+                                "Horario completo (3/3)"}
+                            </p>
                           </div>
-                        ) : isAvailable ? (
+                        ) : (
                           <div className="p-1">
                             <p className="text-xs">Horario disponible</p>
                             <p className="text-xs font-medium">
                               {format(day, "EEEE d 'de' MMMM", { locale: es })} - {hour}
                             </p>
                           </div>
-                        ) : (
-                          <p className="text-xs p-1">
-                            {sessionsCount >= 3 ? "Horario lleno (3/3)" : "Horario no disponible para este terapeuta"}
-                          </p>
                         )}
                       </TooltipContent>
                     </Tooltip>

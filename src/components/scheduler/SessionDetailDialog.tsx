@@ -33,7 +33,7 @@ interface SessionDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   onReschedule: () => void;
   isPast: boolean;
-  sessions?: any[]; // Add support for multiple sessions
+  sessions?: any[]; // Support for multiple sessions (up to 3 per time slot)
 }
 
 const SessionDetailDialog: React.FC<SessionDetailDialogProps> = ({
@@ -52,8 +52,8 @@ const SessionDetailDialog: React.FC<SessionDetailDialogProps> = ({
   
   if (!currentSession) return null;
   
-  const currentPatient = patient || (multipleSessions && sessions[0].patientId);
-  const currentTherapist = therapist || (multipleSessions && sessions[0].therapistId);
+  const currentPatient = patient || (multipleSessions && sessions[0].patient);
+  const currentTherapist = therapist || (multipleSessions && sessions[0].therapist);
 
   if (!currentPatient || !currentTherapist) return null;
 

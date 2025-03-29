@@ -145,7 +145,7 @@ const RescheduleSessionDialog: React.FC<RescheduleSessionDialogProps> = ({
                       s.therapistId === therapist.id && s.id !== session.id
                     );
                     
-                    // Check if center is at full capacity
+                    // Check if center is at full capacity (3 sessions)
                     const isFullCapacity = sessionsAtTime.length >= 3 && 
                       !sessionsAtTime.some(s => s.id === session.id);
                     
