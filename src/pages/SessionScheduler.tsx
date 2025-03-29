@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
@@ -613,7 +612,8 @@ const SessionScheduler = () => {
                   const sessionsAtTime = getSessionsForDateTime(date, time);
                   
                   if (sessionsAtTime.length > 0) {
-                    // If there's a session at this time, show session details
+                    // If there's a session at this time and it's triggered by double-click,
+                    // show session details
                     setSelectedSession(sessionsAtTime[0]);
                     setShowSessionDetail(true);
                   } else {

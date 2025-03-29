@@ -54,10 +54,41 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
 }) => {
   const isMobile = useIsMobile();
   
+  // Track click timing for detecting double clicks
+  const [lastClickTime, setLastClickTime] = React.useState<Record<string, number>>({});
+  const doubleClickTimeout = 300; // milliseconds
+  
   // Filter weekdays if weekends should be hidden
   const displayDays = showWeekends 
     ? weekDays 
     : weekDays.filter(day => !isWeekend(day));
+
+  // Handle time slot click with double-click detection
+  const handleTimeSlotClick = (date: Date, time: string, sessions: any[]) => {
+    const slotKey = `${date.toISOString()}_${time}`;
+    const now = new Date().getTime();
+    const lastClick = lastClickTime[slotKey] || 0;
+    
+    // Update the last click time for this slot
+    setLastClickTime(prev => ({
+      ...prev,
+      [slotKey]: now
+    }));
+    
+    // Check if this is a double click (two clicks within doubleClickTimeout ms)
+    if (now - lastClick < doubleClickTimeout) {
+      // Double click - show session details if there are sessions
+      if (sessions.length > 0) {
+        // Show details for the first session (or you could show a list if multiple)
+        onScheduleClick(date, time);
+      }
+    } else {
+      // Single click - only schedule if the slot is empty
+      if (sessions.length === 0 && isTimeSlotAvailable(date, time)) {
+        onScheduleClick(date, time);
+      }
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -143,7 +174,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                             isSameDay(day, new Date()) && "bg-escalando-50 dark:bg-escalando-900/10",
                             !isAvailable && "bg-gray-100 dark:bg-muted/20"
                           )}
-                          onClick={() => isAvailable && onScheduleClick(day, hour)}
+                          onClick={() => handleTimeSlotClick(day, hour, sessions)}
                         >
                           {sessions.length > 0 ? (
                             <div className="absolute inset-0 p-0.5 overflow-hidden">
@@ -221,12 +252,18 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                                 );
                               })}
                             </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Doble clic para ver detalles
+                            </p>
                           </div>
                         ) : isAvailable ? (
                           <div className="p-1">
                             <p className="text-xs">Horario disponible</p>
                             <p className="text-xs font-medium">
                               {format(day, "EEEE d 'de' MMMM", { locale: es })} - {hour}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Clic para programar una sesión
                             </p>
                           </div>
                         ) : (

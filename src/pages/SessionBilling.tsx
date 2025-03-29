@@ -54,8 +54,8 @@ const SessionBilling = () => {
   const patient = patients.find(p => p.id === patientId) || simulatedPatient;
   const session = simulatedSession;
   
-  const [invoiceFiles, setInvoiceFiles] = useState<Record<string, File[]>>({});
-  const [receiptFiles, setReceiptFiles] = useState<Record<string, File[]>>({});
+  const [invoiceFiles, setInvoiceFiles] = useState<File[]>([]);
+  const [receiptFiles, setReceiptFiles] = useState<File[]>([]);
   
   const form = useForm({
     defaultValues: {
@@ -88,18 +88,12 @@ const SessionBilling = () => {
     navigate(`/patients/${patientId}`);
   };
   
-  const handleInvoiceFilesChange = (files: any[]) => {
-    setInvoiceFiles((prev) => ({
-      ...prev,
-      [sessionId]: files
-    }));
+  const handleInvoiceFilesChange = (files: File[]) => {
+    setInvoiceFiles(files);
   };
   
-  const handleReceiptFilesChange = (files: any[]) => {
-    setReceiptFiles((prev) => ({
-      ...prev,
-      [sessionId]: files
-    }));
+  const handleReceiptFilesChange = (files: File[]) => {
+    setReceiptFiles(files);
   };
   
   return (
