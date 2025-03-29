@@ -14,11 +14,7 @@ import {
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  professionals, 
-  patients, 
-  sessions 
-} from "@/data/mockData";
+import { professionals, patients, sessions } from "@/data/mockData";
 
 // Get the first professional for demo purposes
 const currentProfessional = professionals[1];

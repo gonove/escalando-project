@@ -1,193 +1,169 @@
-import React from 'react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+
+import React from "react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogDescription,
-  DialogFooter 
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  CalendarIcon,
-  Clock,
-  User,
-  FileText,
-  CalendarCheck,
-  FileEdit,
-  Receipt
-} from "lucide-react";
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { useNavigate } from 'react-router-dom';
-import { sessionTypes } from '@/data/mockData';
+import { Calendar, Clock, User, FileText, Clipboard, Tag } from "lucide-react";
+import { sessionTypes, patients, therapists } from "@/data/mockData";
+import { Badge } from "@/components/ui/badge";
 
 interface SessionDetailDialogProps {
   session: any;
-  patient: any;
-  therapist: any;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onReschedule: () => void;
-  isPast: boolean;
+  isOpen: boolean;
+  onClose: () => void;
+  onReschedule?: () => void;
+  onGenerateReport?: () => void;
+  onGenerateInvoice?: () => void;
 }
 
 const SessionDetailDialog: React.FC<SessionDetailDialogProps> = ({
   session,
-  patient,
-  therapist,
-  open,
-  onOpenChange,
+  isOpen,
+  onClose,
   onReschedule,
-  isPast
+  onGenerateReport,
+  onGenerateInvoice
 }) => {
-  const navigate = useNavigate();
+  if (!session) return null;
 
-  if (!session || !patient || !therapist) return null;
-
-  const getSessionTypeLabel = (type: string) => {
-    return sessionTypes[type] || type;
-  };
-
-  const handleViewSummary = () => {
-    navigate(`/sessions/summary/${patient.id}/${session.id}`);
-    onOpenChange(false);
-  };
-
-  const handleCreateBilling = () => {
-    navigate(`/sessions/billing/${patient.id}/${session.id}`);
-    onOpenChange(false);
-  };
+  const patient = patients.find(p => p.id === session.patientId);
+  const therapist = therapists.find(t => t.id === session.therapistId);
+  const sessionType = sessionTypes.find(t => t.id === session.type);
+  const isPast = new Date(session.date) < new Date();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Detalles de la Sesión</DialogTitle>
+          <DialogTitle>Detalle de Sesión</DialogTitle>
           <DialogDescription>
-            Información completa de la sesión programada
+            Información de la sesión programada
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 space-y-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-primary/20 text-primary p-2 rounded-full">
-                      <User className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Paciente</h3>
-                      <p>{patient.name}</p>
-                      <p className="text-sm text-muted-foreground">{patient.diagnosis}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-primary/20 text-primary p-2 rounded-full">
-                      <User className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Terapeuta</h3>
-                      <p>{therapist.name}</p>
-                      <p className="text-sm text-muted-foreground">{therapist.specialty}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+        <div className="space-y-4 py-2">
+          <div className="border rounded-lg p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-escalando-100 p-2 dark:bg-escalando-900/30">
+                <User className="h-4 w-4 text-escalando-800 dark:text-escalando-100" />
+              </div>
+              <div>
+                <p className="font-medium">{patient?.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {patient?.age} años • {patient?.diagnosis}
+                </p>
+              </div>
             </div>
 
-            <div className="flex-1 space-y-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-primary/20 text-primary p-2 rounded-full">
-                      <Clock className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Fecha y Hora</h3>
-                      <p>{format(new Date(session.date), "EEEE d 'de' MMMM, yyyy", { locale: es })}</p>
-                      <p className="text-sm text-muted-foreground">{session.time} ({session.duration} minutos)</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-primary/20 text-primary p-2 rounded-full">
-                      <FileText className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">Detalles</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline">{getSessionTypeLabel(session.type)}</Badge>
-                        {session.isRecurring && <Badge variant="outline">Recurrente</Badge>}
-                      </div>
-                      {session.notes && (
-                        <p className="text-sm text-muted-foreground mt-2">{session.notes}</p>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {isPast && session.progress && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="bg-primary/20 text-primary p-2 rounded-full">
-                    <CalendarCheck className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Progreso</h3>
-                    <p className="text-sm mt-1">{session.progress}</p>
-                  </div>
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-escalando-100 p-2 dark:bg-escalando-900/30">
+                <Calendar className="h-4 w-4 text-escalando-800 dark:text-escalando-100" />
+              </div>
+              <div>
+                <p className="font-medium">
+                  {session.date instanceof Date 
+                    ? format(session.date, "EEEE d 'de' MMMM 'de' yyyy", { locale: es })
+                    : format(new Date(session.date), "EEEE d 'de' MMMM 'de' yyyy", { locale: es })}
+                </p>
+                <div className="flex items-center">
+                  <Clock className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    {session.time} ({session.duration} minutos)
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-escalando-100 p-2 dark:bg-escalando-900/30">
+                <User className="h-4 w-4 text-escalando-800 dark:text-escalando-100" />
+              </div>
+              <div>
+                <p className="font-medium">{therapist?.name}</p>
+                <p className="text-sm text-muted-foreground">{therapist?.specialty}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-escalando-100 p-2 dark:bg-escalando-900/30">
+                <Tag className="h-4 w-4 text-escalando-800 dark:text-escalando-100" />
+              </div>
+              <div>
+                <p className="font-medium">Tipo de sesión</p>
+                <p className="text-sm text-muted-foreground">{sessionType?.name}</p>
+              </div>
+            </div>
+
+            {session.notes && (
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-escalando-100 p-2 dark:bg-escalando-900/30">
+                  <Clipboard className="h-4 w-4 text-escalando-800 dark:text-escalando-100" />
+                </div>
+                <div>
+                  <p className="font-medium">Notas</p>
+                  <p className="text-sm text-muted-foreground">{session.notes}</p>
+                </div>
+              </div>
+            )}
+
+            {session.billingStatus && (
+              <div className="flex items-center mt-2">
+                <p className="text-sm mr-2">Estado factura:</p>
+                <Badge variant="outline" className={
+                  session.billingStatus === "completed" 
+                    ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-100" 
+                    : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-100"
+                }>
+                  {session.billingStatus === "completed" ? "Completada" : "Pendiente"}
+                </Badge>
+              </div>
+            )}
+
+            {session.reportStatus && (
+              <div className="flex items-center mt-2">
+                <p className="text-sm mr-2">Estado informe:</p>
+                <Badge variant="outline" className={
+                  session.reportStatus === "completed" 
+                    ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-100" 
+                    : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-100"
+                }>
+                  {session.reportStatus === "completed" ? "Completado" : "Pendiente"}
+                </Badge>
+              </div>
+            )}
+          </div>
         </div>
 
-        <DialogFooter className="gap-2 flex-wrap">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={onClose}>
             Cerrar
           </Button>
-
-          {!isPast && (
-            <Button variant="outline" onClick={onReschedule}>
-              <CalendarIcon className="h-4 w-4 mr-2" />
+          
+          {!isPast && onReschedule && (
+            <Button onClick={onReschedule}>
               Reprogramar
             </Button>
           )}
-
-          {isPast ? (
-            <>
-              <Button onClick={handleViewSummary}>
-                <FileEdit className="h-4 w-4 mr-2" />
-                Ver Resumen
-              </Button>
-
-              <Button variant="secondary" onClick={handleCreateBilling}>
-                <Receipt className="h-4 w-4 mr-2" />
-                Facturación
-              </Button>
-            </>
-          ) : (
-            <Button onClick={handleViewSummary}>
-              <FileEdit className="h-4 w-4 mr-2" />
-              Añadir Notas
+          
+          {isPast && session.reportStatus !== "completed" && onGenerateReport && (
+            <Button onClick={onGenerateReport}>
+              <FileText className="h-4 w-4 mr-1" />
+              Crear Informe
+            </Button>
+          )}
+          
+          {isPast && session.billingStatus !== "completed" && onGenerateInvoice && (
+            <Button onClick={onGenerateInvoice}>
+              <FileText className="h-4 w-4 mr-1" />
+              Generar Factura
             </Button>
           )}
         </DialogFooter>

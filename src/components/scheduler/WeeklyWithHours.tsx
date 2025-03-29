@@ -1,27 +1,19 @@
 
-import React from "react";
-import { motion } from "framer-motion";
-import { format, isSameDay, addDays, isWeekend } from "date-fns";
+import React, { useState } from "react";
+import { format, getDay, isBefore, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-import {
-  CalendarIcon,
-  Clock,
-  User,
-  Eye,
-  EyeOff,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
+import { Calendar, Clock } from "lucide-react";
 
-interface WeeklyTimeWithHoursViewProps {
+interface WeeklyWithHoursProps {
   weekDays: Date[];
   selectedDate: Date | null;
   setSelectedDate: (date: Date) => void;
@@ -33,11 +25,11 @@ interface WeeklyTimeWithHoursViewProps {
   selectedTherapist: string;
   therapists: any[];
   onScheduleClick: (date: Date, time: string) => void;
-  showWeekends: boolean;
-  setShowWeekends: (show: boolean) => void;
+  onRescheduleClick?: (session: any) => void;
+  onViewDetailClick?: (session: any) => void;
 }
 
-export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
+export const WeeklyWithHours: React.FC<WeeklyWithHoursProps> = ({
   weekDays,
   selectedDate,
   setSelectedDate,
@@ -49,234 +41,182 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
   selectedTherapist,
   therapists,
   onScheduleClick,
-  showWeekends,
-  setShowWeekends,
+  onRescheduleClick,
+  onViewDetailClick
 }) => {
-  const isMobile = useIsMobile();
+  const [showWeekends, setShowWeekends] = useState(false);
   
-  // Track click timing for detecting double clicks
-  const [lastClickTime, setLastClickTime] = React.useState<Record<string, number>>({});
-  const doubleClickTimeout = 300; // milliseconds
-  
-  // Filter weekdays if weekends should be hidden
-  const displayDays = showWeekends 
+  // Filter out weekends if not showing them
+  const displayedDays = showWeekends 
     ? weekDays 
-    : weekDays.filter(day => !isWeekend(day));
-
-  // Handle time slot click with double-click detection
-  const handleTimeSlotClick = (date: Date, time: string, sessions: any[]) => {
-    const slotKey = `${date.toISOString()}_${time}`;
-    const now = new Date().getTime();
-    const lastClick = lastClickTime[slotKey] || 0;
-    
-    // Update the last click time for this slot
-    setLastClickTime(prev => ({
-      ...prev,
-      [slotKey]: now
-    }));
-    
-    // Check if this is a double click (two clicks within doubleClickTimeout ms)
-    if (now - lastClick < doubleClickTimeout) {
-      // Double click - show session details if there are sessions
-      if (sessions.length > 0) {
-        // Show details for the first session (or you could show a list if multiple)
-        onScheduleClick(date, time);
-      }
-    } else {
-      // Single click - schedule if the slot is available for scheduling
-      if (isTimeSlotAvailable(date, time)) {
-        onScheduleClick(date, time);
-      }
-    }
-  };
+    : weekDays.filter(day => {
+        const dayOfWeek = getDay(day);
+        return dayOfWeek !== 0 && dayOfWeek !== 6; // 0 is Sunday, 6 is Saturday
+      });
+  
+  const now = new Date();
+  const isDateInPast = (date: Date) => isBefore(date, now) && !isSameDay(date, now);
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end mb-2">
+      <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Switch 
             id="show-weekends" 
-            checked={showWeekends}
-            onCheckedChange={setShowWeekends}
+            checked={showWeekends} 
+            onCheckedChange={setShowWeekends} 
           />
-          <Label htmlFor="show-weekends" className="text-sm">
-            {showWeekends ? "Ocultar fines de semana" : "Mostrar fines de semana"}
-          </Label>
+          <Label htmlFor="show-weekends">Mostrar fines de semana</Label>
         </div>
       </div>
       
-      <div className={cn(
-        "grid gap-1 mb-2",
-        showWeekends ? "grid-cols-8" : "grid-cols-6"
-      )}>
-        <div className="text-center pt-8 font-semibold text-xs text-muted-foreground uppercase">
-          Hora
-        </div>
-        {displayDays.map((day, i) => (
-          <div key={i} className="text-center">
-            <p className="text-xs text-muted-foreground uppercase">
-              {format(day, isMobile ? "EEE" : "EEEE", { locale: es })}
-            </p>
-            <Button
-              variant={isSameDay(day, selectedDate || new Date()) ? "default" : "ghost"}
-              className={cn(
-                "w-full rounded-full font-normal",
-                isSameDay(day, new Date()) && !isSameDay(day, selectedDate || new Date()) && "bg-escalando-100 text-escalando-900 hover:bg-escalando-200 hover:text-escalando-900 dark:bg-escalando-500/30 dark:text-escalando-100 dark:hover:bg-escalando-500/50"
-              )}
-              onClick={() => setSelectedDate(day)}
-            >
-              {format(day, "d")}
-            </Button>
+      <div className="border rounded-md overflow-hidden">
+        <div className="grid grid-cols-[80px_repeat(auto-fill,minmax(150px,1fr))]">
+          {/* Header row with days */}
+          <div className="bg-muted/30 p-2 border-b border-r flex items-center justify-center">
+            <span className="text-xs font-medium">Horas</span>
           </div>
-        ))}
-      </div>
-
-      <div className="border rounded-lg overflow-hidden bg-white dark:bg-card">
-        <div className={cn(
-          "grid divide-x divide-border",
-          showWeekends ? "grid-cols-8" : "grid-cols-6"
-        )}>
-          {/* Time slots column */}
-          <div className="col-span-1 divide-y divide-border">
-            {centerHours.map((hour, hourIndex) => (
+          
+          {displayedDays.map((day, i) => {
+            const isToday = isSameDay(day, new Date());
+            const isPast = isDateInPast(day);
+            const dayOfWeek = getDay(day);
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            
+            return (
               <div
-                key={hourIndex}
-                className="h-16 flex items-center justify-center p-1"
+                key={i}
+                className={cn(
+                  "p-2 text-center border-b border-r",
+                  isToday ? "bg-escalando-50 dark:bg-escalando-900/10" : "",
+                  isPast ? "bg-gray-50 dark:bg-muted/10" : "",
+                  isWeekend ? "bg-gray-100 dark:bg-muted/30" : ""
+                )}
+                onClick={() => setSelectedDate(day)}
               >
-                <span className="text-xs font-medium">{hour}</span>
+                <div className="text-xs uppercase text-muted-foreground">
+                  {format(day, "EEEE", { locale: es })}
+                </div>
+                <div className={cn(
+                  "font-medium",
+                  isToday ? "text-escalando-800 dark:text-escalando-100" : ""
+                )}>
+                  {format(day, "d")}
+                </div>
               </div>
-            ))}
-          </div>
-
-          {/* Days columns */}
-          {displayDays.map((day, dayIndex) => (
-            <div key={dayIndex} className="col-span-1 divide-y divide-border">
-              {centerHours.map((hour, hourIndex) => {
+            );
+          })}
+          
+          {/* Time slots with sessions */}
+          {centerHours.map((hour, hourIndex) => (
+            <React.Fragment key={hourIndex}>
+              <div
+                className={cn(
+                  "p-2 border-b border-r flex items-center justify-center bg-muted/10 dark:bg-muted/5",
+                  hourIndex % 2 !== 0 ? "bg-muted/20 dark:bg-muted/10" : ""
+                )}
+              >
+                <span className="text-xs">{hour}</span>
+              </div>
+              
+              {displayedDays.map((day, dayIndex) => {
                 const sessions = getSessionsForDateTime(day, hour);
-                const sessionsCount = getSessionsCountAtTime(day, hour);
-
-                // Check if this timeslot is available for the selected therapist
-                const isTherapistAvailable = !sessions.some(session =>
-                  session.therapistId === selectedTherapist
-                );
-
-                // Time slot is available if it's not fully booked (less than 3 sessions)
-                // and if the therapist doesn't have a session at this time
-                const isAvailable = sessionsCount < 3 && (viewAll || isTherapistAvailable);
-
+                const isAvailable = isTimeSlotAvailable(day, hour);
+                const sessionCount = getSessionsCountAtTime(day, hour);
+                const isPast = isDateInPast(day);
+                
                 return (
-                  <TooltipProvider key={hourIndex}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div
-                          className={cn(
-                            "h-16 relative cursor-pointer",
-                            isSameDay(day, new Date()) && "bg-escalando-50 dark:bg-escalando-900/10",
-                            !isAvailable && "bg-gray-100 dark:bg-muted/20"
-                          )}
-                          onClick={() => handleTimeSlotClick(day, hour, sessions)}
-                        >
-                          {sessions.length > 0 ? (
-                            <div className="absolute inset-0 p-0.5 overflow-hidden">
-                              {sessions.slice(0, 2).map((session, idx) => {
-                                const therapist = therapists.find(t => t.id === session.therapistId);
-                                return (
-                                  <div
-                                    key={idx}
-                                    className={cn(
-                                      "text-xs p-0.5 mb-0.5 rounded truncate",
-                                      "bg-escalando-100 text-escalando-800 border border-escalando-200 dark:bg-escalando-900/30 dark:text-escalando-100 dark:border-escalando-900/50"
-                                    )}
-                                    title={`${session.patientName} - ${therapist?.name}`}
-                                  >
-                                    <span className="font-medium">{session.patientName}</span>
-                                    {viewAll && (
-                                      <span className="text-xs text-escalando-600 dark:text-escalando-200 ml-1">
-                                        ({therapist?.name.split(' ')[0]})
-                                      </span>
-                                    )}
-                                  </div>
-                                );
-                              })}
+                  <div
+                    key={`${hourIndex}-${dayIndex}`}
+                    className={cn(
+                      "h-16 relative cursor-pointer",
+                      isSameDay(day, new Date()) && "bg-escalando-50 dark:bg-escalando-900/10",
+                      !isAvailable && "bg-gray-100 dark:bg-muted/20",
+                      isPast && "bg-gray-50 dark:bg-muted/10",
+                      getDay(day) === 0 || getDay(day) === 6 ? "bg-gray-100 dark:bg-muted/30" : ""
+                    )}
+                    onClick={() => !isPast && isAvailable && onScheduleClick(day, hour)}
+                  >
+                    <div className="p-1 h-full overflow-hidden">
+                      {sessions.length > 0 ? (
+                        <div className="space-y-1">
+                          {sessions.slice(0, 2).map((session, i) => {
+                            const therapist = therapists.find(t => t.id === session.therapistId);
+                            return (
+                              <TooltipProvider key={i}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div 
+                                      className={cn(
+                                        "text-xs p-1 rounded truncate flex items-center justify-between",
+                                        "bg-escalando-100 text-escalando-800 border border-escalando-200 dark:bg-escalando-900/30 dark:text-escalando-100"
+                                      )}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        // If past session, view detail, otherwise offer to reschedule
+                                        if (isPast && onViewDetailClick) {
+                                          onViewDetailClick(session);
+                                        } else if (onRescheduleClick) {
+                                          onRescheduleClick(session);
+                                        }
+                                      }}
+                                    >
+                                      <span className="truncate">{session.patientName}</span>
+                                      <div 
+                                        className="w-2 h-2 rounded-full ml-1 flex-shrink-0" 
+                                        style={{ backgroundColor: therapist?.color || '#888' }}
+                                      />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <div className="text-xs space-y-1">
+                                      <p className="font-medium">{session.patientName}</p>
+                                      <p className="flex items-center">
+                                        <Calendar className="h-3 w-3 mr-1" />
+                                        {format(day, "d MMM yyyy", { locale: es })}
+                                      </p>
+                                      <p className="flex items-center">
+                                        <Clock className="h-3 w-3 mr-1" />
+                                        {hour} ({session.duration} min)
+                                      </p>
+                                      <p>{therapist?.name}</p>
+                                      <p className="italic">{isPast ? "Clic para ver detalle" : "Clic para reprogramar"}</p>
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            );
+                          })}
 
-                              {sessions.length > 2 && (
-                                <div className="text-xs text-center bg-gray-100 rounded dark:bg-muted/20">
-                                  +{sessions.length - 2} más
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            isAvailable && (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-full h-full flex items-center justify-center">
-                                  {isSameDay(day, new Date()) || day > new Date() ? (
-                                    <div className="w-6 h-6 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600" />
-                                  ) : null}
-                                </div>
-                              </div>
-                            )
-                          )}
-
-                          {sessionsCount > 0 && (
-                            <div className="absolute top-1 right-1">
-                              <span className={cn(
-                                "text-xs rounded-full px-1.5 py-0.5 font-medium",
-                                sessionsCount === 3 ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-200" : "bg-gray-100 text-gray-700 dark:bg-muted/30 dark:text-muted-foreground"
-                              )}>
-                                {sessionsCount}/3
-                              </span>
+                          {sessions.length > 2 && (
+                            <div className="text-xs text-center bg-gray-100 rounded dark:bg-muted/20">
+                              +{sessions.length - 2} más
                             </div>
                           )}
                         </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="dark:bg-popover dark:text-popover-foreground dark:border-border">
-                        {sessions.length > 0 ? (
-                          <div className="space-y-1 p-1">
-                            <p className="font-medium text-xs">
-                              {format(day, "EEEE d 'de' MMMM", { locale: es })} - {hour}
-                            </p>
-                            <div className="space-y-1">
-                              {sessions.map((session, idx) => {
-                                const therapist = therapists.find(t => t.id === session.therapistId);
-                                return (
-                                  <div key={idx} className="flex items-center text-xs gap-1">
-                                    <User className="h-3 w-3" />
-                                    <span>{session.patientName}</span>
-                                    {viewAll && (
-                                      <>
-                                        <span>-</span>
-                                        <span className="text-muted-foreground">{therapist?.name}</span>
-                                      </>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Doble clic para ver detalles
-                            </p>
-                          </div>
-                        ) : isAvailable ? (
-                          <div className="p-1">
-                            <p className="text-xs">Horario disponible</p>
-                            <p className="text-xs font-medium">
-                              {format(day, "EEEE d 'de' MMMM", { locale: es })} - {hour}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Clic para programar una sesión
-                            </p>
-                          </div>
-                        ) : (
-                          <p className="text-xs p-1">
-                            {sessionsCount >= 3 ? "Horario lleno (3/3)" : "Horario no disponible para este terapeuta"}
-                          </p>
-                        )}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center">
+                          {!isPast && isAvailable && (
+                            <div className="w-2 h-2 bg-gray-200 dark:bg-gray-600 rounded-full" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {sessionCount > 0 && (
+                      <div className={cn(
+                        "absolute top-0 right-0 text-[9px] font-medium px-1",
+                        sessionCount >= 3 ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200" : 
+                        sessionCount >= 2 ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200" : 
+                        "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                      )}>
+                        {sessionCount}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
-            </div>
+            </React.Fragment>
           ))}
         </div>
       </div>
