@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { format, isSameDay, addDays, isWeekend } from "date-fns";
@@ -7,6 +6,12 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   CalendarIcon,
   Clock,
@@ -20,6 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
+import SessionsDataTable from "./SessionsDataTable";
 
 interface WeeklyTimeWithHoursViewProps {
   weekDays: Date[];
@@ -72,6 +78,18 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
     timeSlot: null
   });
 
+  // State for session details dialog
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<{
+    date: Date | null,
+    time: string | null,
+    sessions: any[]
+  }>({
+    date: null,
+    time: null,
+    sessions: []
+  });
+
   const handleTimeSlotClick = (date: Date, time: string) => {
     const now = new Date().getTime();
     const sessions = getSessionsForDateTime(date, time);
@@ -96,7 +114,12 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
           };
         });
         
-        onShowSessionDetails(enhancedSessions);
+        setSelectedTimeSlot({
+          date,
+          time,
+          sessions: enhancedSessions
+        });
+        setShowDetailsDialog(true);
       }
       
       // Reset click tracking
@@ -293,6 +316,28 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Session Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Detalles de las Sesiones</DialogTitle>
+          </DialogHeader>
+          
+          {selectedTimeSlot.date && selectedTimeSlot.time && (
+            <SessionsDataTable 
+              sessions={selectedTimeSlot.sessions}
+              therapists={therapists}
+              date={selectedTimeSlot.date}
+              time={selectedTimeSlot.time}
+              onViewDetails={(session) => {
+                setShowDetailsDialog(false);
+                onShowSessionDetails([session]);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { motion } from "framer-motion";
 import { 
@@ -6,7 +5,6 @@ import {
   Mail, 
   Phone, 
   Briefcase, 
-  FileEdit, 
   Calendar, 
   Users,
   ClipboardList,
@@ -19,6 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import EditProfileDialog from "@/components/profile/EditProfileDialog";
 import { professionals, patients, sessions } from "@/data/mockData";
 import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -56,13 +55,7 @@ const Profile = () => {
               Gestiona tu información profesional
             </p>
           </div>
-          <Button className={cn(
-            "flex items-center gap-2",
-            isMobile && "w-full"
-          )}>
-            <FileEdit className="h-4 w-4" />
-            Editar Perfil
-          </Button>
+          <EditProfileDialog professionalId={professional.id} />
         </div>
         
         <div className={cn(
