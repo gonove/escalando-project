@@ -1,7 +1,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { format, isSameDay, addDays } from "date-fns";
+import { format, isSameDay, addDays, isWeekend } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   Card,
@@ -11,9 +11,13 @@ import {
   CalendarIcon,
   Clock,
   User,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -29,6 +33,8 @@ interface WeeklyTimeWithHoursViewProps {
   selectedTherapist: string;
   therapists: any[];
   onScheduleClick: (date: Date, time: string) => void;
+  showWeekends: boolean;
+  setShowWeekends: (show: boolean) => void;
 }
 
 export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
@@ -43,16 +49,39 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
   selectedTherapist,
   therapists,
   onScheduleClick,
+  showWeekends,
+  setShowWeekends,
 }) => {
   const isMobile = useIsMobile();
+  
+  // Filter weekdays if weekends should be hidden
+  const displayDays = showWeekends 
+    ? weekDays 
+    : weekDays.filter(day => !isWeekend(day));
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-8 gap-1 mb-2">
+      <div className="flex justify-end mb-2">
+        <div className="flex items-center space-x-2">
+          <Switch 
+            id="show-weekends" 
+            checked={showWeekends}
+            onCheckedChange={setShowWeekends}
+          />
+          <Label htmlFor="show-weekends" className="text-sm">
+            {showWeekends ? "Ocultar fines de semana" : "Mostrar fines de semana"}
+          </Label>
+        </div>
+      </div>
+      
+      <div className={cn(
+        "grid gap-1 mb-2",
+        showWeekends ? "grid-cols-8" : "grid-cols-6"
+      )}>
         <div className="text-center pt-8 font-semibold text-xs text-muted-foreground uppercase">
           Hora
         </div>
-        {weekDays.map((day, i) => (
+        {displayDays.map((day, i) => (
           <div key={i} className="text-center">
             <p className="text-xs text-muted-foreground uppercase">
               {format(day, isMobile ? "EEE" : "EEEE", { locale: es })}
@@ -72,7 +101,10 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
       </div>
 
       <div className="border rounded-lg overflow-hidden bg-white dark:bg-card">
-        <div className="grid grid-cols-8 divide-x divide-border">
+        <div className={cn(
+          "grid divide-x divide-border",
+          showWeekends ? "grid-cols-8" : "grid-cols-6"
+        )}>
           {/* Time slots column */}
           <div className="col-span-1 divide-y divide-border">
             {centerHours.map((hour, hourIndex) => (
@@ -86,7 +118,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
           </div>
 
           {/* Days columns */}
-          {weekDays.map((day, dayIndex) => (
+          {displayDays.map((day, dayIndex) => (
             <div key={dayIndex} className="col-span-1 divide-y divide-border">
               {centerHours.map((hour, hourIndex) => {
                 const sessions = getSessionsForDateTime(day, hour);

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
@@ -34,7 +35,9 @@ import {
   isBefore,
   getDate,
   getDay,
-  eachDayOfInterval
+  eachDayOfInterval,
+  isPast,
+  isToday
 } from "date-fns";
 import { es } from "date-fns/locale";
 import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
@@ -51,6 +54,8 @@ import RecurringSessionForm from "@/components/scheduler/RecurringSessionForm";
 import { RecurrencePattern } from "@/types/models";
 import { WeeklyTimeView } from "@/components/scheduler/WeeklyTimeView";
 import { WeeklyWithHours } from "@/components/scheduler/WeeklyWithHours";
+import SessionDetailDialog from "@/components/scheduler/SessionDetailDialog";
+import RescheduleSessionDialog from "@/components/scheduler/RescheduleSessionDialog";
 
 const therapists = [
   { id: "prof1", name: "Ana García", specialty: "Terapeuta Ocupacional" },
@@ -117,6 +122,17 @@ const initialScheduledSessions = [
     time: "15:30",
     duration: 60,
     type: "evaluation"
+  },
+  // Add a past session
+  {
+    id: "ses_6",
+    patientId: patients[0].id,
+    therapistId: "prof1",
+    date: addDays(new Date(), -3),
+    time: "14:00",
+    duration: 60,
+    type: "follow-up",
+    progress: "Se observó una mejora significativa en la capacidad de atención. El paciente completó todos los ejercicios programados."
   }
 ];
 
@@ -126,7 +142,7 @@ const SessionScheduler = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [weekStart, setWeekStart] = useState(startOfWeek(currentDate, { weekStartsOn: 1 }));
   const [monthStart, setMonthStart] = useState(startOfMonth(currentDate));
-  const [selectedTherapist, setSelectedTherapist] = useState<string>("th_1");
+  const [selectedTherapist, setSelectedTherapist] = useState<string>("prof1");
   const [viewAll, setViewAll] = useState<boolean>(true);
   const [calendarView, setCalendarView] = useState<"week" | "month" | "time">("time");
   const [scheduledSessions, setScheduledSessions] = useState(initialScheduledSessions);
@@ -144,6 +160,10 @@ const SessionScheduler = () => {
   const [showRecurringForm, setShowRecurringForm] = useState(false);
   const [selectedTimeForRecurring, setSelectedTimeForRecurring] = useState<string | null>(null);
   const [selectedDateForRecurring, setSelectedDateForRecurring] = useState<Date | null>(null);
+  const [showWeekends, setShowWeekends] = useState<boolean>(true);
+  const [selectedSession, setSelectedSession] = useState<any | null>(null);
+  const [showSessionDetail, setShowSessionDetail] = useState<boolean>(false);
+  const [showRescheduleDialog, setShowRescheduleDialog] = useState<boolean>(false);
   const { toast } = useToast();
 
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
@@ -451,6 +471,31 @@ const SessionScheduler = () => {
     setShowRecurringForm(true);
   };
 
+  const handleSessionClick = (session: any) => {
+    setSelectedSession(session);
+    setShowSessionDetail(true);
+  };
+
+  const handleRescheduleClick = () => {
+    setShowSessionDetail(false);
+    setShowRescheduleDialog(true);
+  };
+
+  const handleRescheduleSession = (sessionId: string, newDate: Date, newTime: string) => {
+    setScheduledSessions(prevSessions => 
+      prevSessions.map(session => {
+        if (session.id === sessionId) {
+          return {
+            ...session,
+            date: newDate,
+            time: newTime
+          };
+        }
+        return session;
+      })
+    );
+  };
+
   return (
     <Layout>
       <motion.div
@@ -561,12 +606,23 @@ const SessionScheduler = () => {
                 viewAll={viewAll}
                 selectedTherapist={selectedTherapist}
                 therapists={therapists}
+                showWeekends={showWeekends}
+                setShowWeekends={setShowWeekends}
                 onScheduleClick={(date, time) => {
-                  handleTimeSlotClick(date, time);
-
-                  setSelectedDateForRecurring(date);
-                  setSelectedTimeForRecurring(time);
-                  setIsRecurringSession(false);
+                  // Check if there are sessions at this time
+                  const sessionsAtTime = getSessionsForDateTime(date, time);
+                  
+                  if (sessionsAtTime.length > 0) {
+                    // If there's a session at this time, show session details
+                    setSelectedSession(sessionsAtTime[0]);
+                    setShowSessionDetail(true);
+                  } else {
+                    // If empty slot, prepare to create a new session
+                    handleTimeSlotClick(date, time);
+                    setSelectedDateForRecurring(date);
+                    setSelectedTimeForRecurring(time);
+                    setIsRecurringSession(false);
+                  }
                 }}
               />
             )}
@@ -626,8 +682,8 @@ const SessionScheduler = () => {
 
                   return (
                     <Card key={i} className="overflow-hidden border-0 shadow-sm w-full">
-                      <div className="flex flex-col sm:flex-row items-start p-4 bg-white hover:bg-gray-50 transition-colors w-full">
-                        <div className="bg-escalando-100 text-escalando-700 p-3 rounded-full mr-4 mb-3 sm:mb-0">
+                      <div className="flex flex-col sm:flex-row items-start p-4 bg-white hover:bg-gray-50 transition-colors w-full dark:bg-card dark:hover:bg-muted/10">
+                        <div className="bg-escalando-100 text-escalando-700 p-3 rounded-full mr-4 mb-3 sm:mb-0 dark:bg-escalando-900/20 dark:text-escalando-100">
                           <CalendarCheck className="h-5 w-5" />
                         </div>
                         <div className="flex-1 min-w-0 w-full">
@@ -648,10 +704,25 @@ const SessionScheduler = () => {
                               </div>
                             </div>
                             <div className="flex items-center mt-3 sm:mt-0 gap-2 w-full sm:w-auto">
-                              <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full sm:w-auto"
+                                onClick={() => {
+                                  setSelectedSession(session);
+                                  setShowRescheduleDialog(true);
+                                }}
+                              >
                                 Reprogramar
                               </Button>
-                              <Button size="sm" className="w-full sm:w-auto">
+                              <Button 
+                                size="sm" 
+                                className="w-full sm:w-auto"
+                                onClick={() => {
+                                  setSelectedSession(session);
+                                  setShowSessionDetail(true);
+                                }}
+                              >
                                 Ver Detalles
                               </Button>
                             </div>
@@ -662,7 +733,7 @@ const SessionScheduler = () => {
                   );
                 })}
 
-              {scheduledSessions.filter(session => isAfter(session.date, new Date())).length === 0 && (
+              {scheduledSessions.filter(session => isAfter(session.date, new Date()) || isSameDay(session.date, new Date())).length === 0 && (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">No hay sesiones programadas para los próximos días</p>
                 </div>
@@ -884,6 +955,33 @@ const SessionScheduler = () => {
             />
           </DialogContent>
         </Dialog>
+
+        {/* Session Detail Dialog */}
+        {selectedSession && (
+          <SessionDetailDialog
+            session={selectedSession}
+            patient={patients.find(p => p.id === selectedSession.patientId)}
+            therapist={therapists.find(t => t.id === selectedSession.therapistId)}
+            open={showSessionDetail}
+            onOpenChange={setShowSessionDetail}
+            onReschedule={handleRescheduleClick}
+            isPast={isPast(new Date(selectedSession.date)) && !isToday(new Date(selectedSession.date))}
+          />
+        )}
+
+        {/* Reschedule Session Dialog */}
+        {selectedSession && (
+          <RescheduleSessionDialog
+            session={selectedSession}
+            patient={patients.find(p => p.id === selectedSession.patientId)}
+            therapist={therapists.find(t => t.id === selectedSession.therapistId)}
+            centerHours={centerHours}
+            open={showRescheduleDialog}
+            onOpenChange={setShowRescheduleDialog}
+            onReschedule={handleRescheduleSession}
+            getSessionsAtDateTime={getSessionsForDateTime}
+          />
+        )}
       </motion.div>
     </Layout>
   );
