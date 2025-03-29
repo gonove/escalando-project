@@ -226,13 +226,13 @@ const SessionScheduler = () => {
     const sessionsAtTime = scheduledSessions.filter(session =>
       isSameDay(session.date, date) &&
       session.time === time
-    );
+    ).length;
 
     if (!viewAll) {
-      return !isTherapistBooked && sessionsAtTime.length < 3;
+      return !isTherapistBooked && sessionsAtTime < 3;
     }
     else {
-      return sessionsAtTime.length < 3;
+      return sessionsAtTime < 3;
     }
   };
 
@@ -605,7 +605,7 @@ const SessionScheduler = () => {
                 onScheduleClick={(date, time) => {
                   const sessionsAtTime = getSessionsForDateTime(date, time);
                   
-                  if (sessionsAtTime.length > 0) {
+                  if (sessionsAtTime.length > 0 && lastClickTime[`${date.toISOString()}_${time}`]) {
                     setSelectedSession(sessionsAtTime[0]);
                     setShowSessionDetail(true);
                   } else {

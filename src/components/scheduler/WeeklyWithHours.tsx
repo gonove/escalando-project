@@ -1,3 +1,4 @@
+
 import React from "react";
 import { motion } from "framer-motion";
 import { format, isSameDay, addDays, isWeekend } from "date-fns";
@@ -82,8 +83,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
         onScheduleClick(date, time);
       }
     } else {
-      // Single click - schedule if the slot is available for this therapist
-      // Regardless of whether there are other sessions on that day
+      // Single click - schedule if the slot is available for scheduling
       if (isTimeSlotAvailable(date, time)) {
         onScheduleClick(date, time);
       }
