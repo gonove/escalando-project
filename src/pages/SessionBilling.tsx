@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
@@ -39,7 +40,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { patients, therapists } from "@/data/mockData";
+import { patients } from "@/data/mockData";
 import {
   Dialog,
   DialogContent,
@@ -49,6 +50,15 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+// Lista de terapeutas (misma que en SessionScheduler)
+const therapists = [
+  { id: "th_1", name: "Ana García", specialty: "Terapeuta Ocupacional" },
+  { id: "th_2", name: "Carlos Rodríguez", specialty: "Psicólogo Infantil" },
+  { id: "th_3", name: "Laura Martínez", specialty: "Logopeda" },
+  { id: "th_4", name: "Sofía López", specialty: "Fisioterapeuta" },
+];
+
+// Ejemplo de sesiones con estados de facturación
 const mockSessions = [
   {
     id: "ses_101",
@@ -139,21 +149,26 @@ const SessionBilling = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [sessions, setSessions] = useState(mockSessions);
 
+  // Dialog states
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string>("");
 
+  // Filter sessions based on filters
   const filteredSessions = sessions.filter(session => {
+    // Professional filter
     if (selectedProfessional && session.professionalId !== selectedProfessional) {
       return false;
     }
 
-    const sessionMonth = session.date.substring(0, 7);
+    // Month filter
+    const sessionMonth = session.date.substring(0, 7); // Get YYYY-MM format
     if (selectedMonth && sessionMonth !== selectedMonth) {
       return false;
     }
 
+    // Status filter
     if (filter === "pending" && session.billingStatus !== "pending") {
       return false;
     }
@@ -164,6 +179,7 @@ const SessionBilling = () => {
       return false;
     }
 
+    // Search by patient name
     if (searchTerm) {
       const patient = patients.find(p => p.id === session.patientId);
       if (!patient || !patient.name.toLowerCase().includes(searchTerm.toLowerCase())) {
@@ -174,6 +190,7 @@ const SessionBilling = () => {
     return true;
   });
 
+  // Handle document upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -192,11 +209,14 @@ const SessionBilling = () => {
       return;
     }
 
+    // In a real app, here we would upload the file to a server
+    // For now, let's just update our local state to simulate this
+
     const newDocument = {
       id: `doc_${Date.now()}`,
       sessionId: selectedSession.id,
       fileName: uploadedFileName,
-      fileUrl: "#",
+      fileUrl: "#", // In a real app, this would be the URL to the uploaded file
       uploadDate: format(new Date(), "yyyy-MM-dd"),
       type: "invoice"
     };
@@ -223,11 +243,13 @@ const SessionBilling = () => {
     });
   };
 
+  // Open upload dialog for a session
   const openUploadDialog = (session: any) => {
     setSelectedSession(session);
     setUploadDialogOpen(true);
   };
 
+  // Generate months for the select
   const generateMonthOptions = () => {
     const months = [];
     const currentDate = new Date();
@@ -242,6 +264,7 @@ const SessionBilling = () => {
     return months;
   };
 
+  // Get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
@@ -430,6 +453,7 @@ const SessionBilling = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => {
+                                  // Here we would navigate to a report creation page
                                   toast({
                                     title: "Crear informe",
                                     description: "Redirigiendo a la página de creación de informes",
@@ -455,6 +479,7 @@ const SessionBilling = () => {
           </CardContent>
         </Card>
 
+        {/* Upload Document Dialog */}
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
