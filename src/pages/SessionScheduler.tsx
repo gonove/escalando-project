@@ -163,6 +163,7 @@ const SessionScheduler = () => {
   const [showSessionDetail, setShowSessionDetail] = useState<boolean>(false);
   const [showRescheduleDialog, setShowRescheduleDialog] = useState<boolean>(false);
   const { toast } = useToast();
+  const [lastClickTimeTracker, setLastClickTimeTracker] = useState<Record<string, number>>({});
 
   const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i));
 
@@ -605,7 +606,7 @@ const SessionScheduler = () => {
                 onScheduleClick={(date, time) => {
                   const sessionsAtTime = getSessionsForDateTime(date, time);
                   
-                  if (sessionsAtTime.length > 0 && lastClickTime[`${date.toISOString()}_${time}`]) {
+                  if (sessionsAtTime.length > 0) {
                     setSelectedSession(sessionsAtTime[0]);
                     setShowSessionDetail(true);
                   } else {
