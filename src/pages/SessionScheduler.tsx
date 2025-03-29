@@ -158,7 +158,7 @@ const SessionScheduler = () => {
   const [showRecurringForm, setShowRecurringForm] = useState(false);
   const [selectedTimeForRecurring, setSelectedTimeForRecurring] = useState<string | null>(null);
   const [selectedDateForRecurring, setSelectedDateForRecurring] = useState<Date | null>(null);
-  const [showWeekends, setShowWeekends] = useState<boolean>(true);
+  const [showWeekends, setShowWeekends] = useState<boolean>(false);
   const [selectedSession, setSelectedSession] = useState<any | null>(null);
   const [showSessionDetail, setShowSessionDetail] = useState<boolean>(false);
   const [showRescheduleDialog, setShowRescheduleDialog] = useState<boolean>(false);
@@ -588,9 +588,8 @@ const SessionScheduler = () => {
                   onValueChange={(value) => handleCalendarViewChange(value as "week" | "month" | "time")}
                   className="w-auto"
                 >
-                  <TabsList className="grid w-[280px] grid-cols-3">
-                    <TabsTrigger value="time">Sem/Hr</TabsTrigger>
-                    <TabsTrigger value="week">Semanal</TabsTrigger>
+                  <TabsList className="grid w-[280px] grid-cols-2">
+                    <TabsTrigger value="time">Semanal</TabsTrigger>
                     <TabsTrigger value="month">Mensual</TabsTrigger>
                   </TabsList>
                 </Tabs>
@@ -614,19 +613,6 @@ const SessionScheduler = () => {
                 setShowWeekends={setShowWeekends}
                 onScheduleClick={handleTimeSlotClick}
                 onShowSessionDetails={handleShowSessionDetails}
-              />
-            )}
-            {calendarView === "week" && (
-              <WeeklyTimeView
-                weekDays={weekDays}
-                selectedDate={selectedDate}
-                setSelectedDate={setSelectedDate}
-                isMobile={isMobile}
-                getFilteredSessions={getFilteredSessions}
-                therapists={therapists}
-                viewAll={viewAll}
-                selectedTherapist={selectedTherapist}
-                patients={patients}
               />
             )}
             {calendarView === "month" && (
@@ -694,9 +680,9 @@ const SessionScheduler = () => {
                               </div>
                             </div>
                             <div className="flex items-center mt-3 sm:mt-0 gap-2 w-full sm:w-auto">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
+                              <Button
+                                variant="outline"
+                                size="sm"
                                 className="w-full sm:w-auto"
                                 onClick={() => {
                                   setSelectedSession(session);
