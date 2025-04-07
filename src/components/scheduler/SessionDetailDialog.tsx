@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -74,7 +75,7 @@ const SessionDetailDialog: React.FC<SessionDetailDialogProps> = ({
   };
   
   const handleAddNotes = (patientId: string, sessionId: string) => {
-    navigate(`/sessions/summary/${patientId}/${sessionId}`);
+    navigate(`/sessions/post/${patientId}/${sessionId}`);
     onOpenChange(false);
   };
 
@@ -256,7 +257,7 @@ const SessionDetailDialog: React.FC<SessionDetailDialogProps> = ({
                                 <div>
                                   <h3 className="font-medium">Fecha y Hora</h3>
                                   <p>{format(new Date(ses.date), "EEEE d 'de' MMMM, yyyy", { locale: es })}</p>
-                                  <p className="text-sm text-muted-foreground">{ses.time} ({ses.duration} minutos)</p>
+                                  <p className="text-sm text-muted-foreground">{ses.time} (45 minutos)</p>
                                 </div>
                               </div>
                             </CardContent>
@@ -379,7 +380,7 @@ const SessionDetailDialog: React.FC<SessionDetailDialogProps> = ({
                       <div>
                         <h3 className="font-medium">Fecha y Hora</h3>
                         <p>{format(new Date(currentSession.date), "EEEE d 'de' MMMM, yyyy", { locale: es })}</p>
-                        <p className="text-sm text-muted-foreground">{currentSession.time} ({currentSession.duration} minutos)</p>
+                        <p className="text-sm text-muted-foreground">{currentSession.time} (45 minutos)</p>
                       </div>
                     </div>
                   </CardContent>

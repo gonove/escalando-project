@@ -1,5 +1,4 @@
 
-
 import React from 'react'
 import { Button } from '../ui/button'
 import { format, isSameDay, addDays } from "date-fns";
@@ -101,7 +100,7 @@ export const WeeklyTimeView: React.FC<WeeklyWithHoursProps> = ({
                                                     </div>
                                                     <div className="flex items-center text-sm font-medium mt-1 sm:mt-0">
                                                         <Clock className="h-3.5 w-3.5 mr-1" />
-                                                        <span>{session.time} ({session.duration} min)</span>
+                                                        <span>{session.time} (45 min)</span>
                                                     </div>
                                                 </div>
                                             </div>

@@ -151,7 +151,7 @@ const PendingEvaluations = () => {
                                 {patient?.name}
                               </span>
                               <span className="hidden xs:inline">•</span>
-                              <span>{session.time} ({session.duration} min)</span>
+                              <span>{session.time} (45 min)</span>
                               <span className="hidden xs:inline">•</span>
                               <span>{session.type}</span>
                             </div>
