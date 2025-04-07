@@ -1,5 +1,4 @@
 
-import axios from "axios";
 import { getPatientById, patients, getSessionsByPatient } from "../data/mockData";
 import { Patient, Session } from "../types/models";
 
@@ -25,7 +24,7 @@ export const getPatientSessions = async (patientId: string): Promise<Session[]> 
   return getSessionsByPatient(patientId);
 };
 
-// In the future, these functions will connect to your real backend
+// Future Axios implementation (commented out)
 // export const getPatients = async () => {
 //   try {
 //     const response = await axios.get("http://localhost:3000/api/patient");
