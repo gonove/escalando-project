@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import FileUploader from "@/components/FileUploader";
-import { Calendar, ChevronLeft, User, Clock } from "lucide-react";
+import { Calendar, ChevronLeft, User, Clock, FileText, ReceiptIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -46,6 +46,7 @@ const simulatedSession = {
   patientId: "simulated-patient",
   date: new Date().toISOString(),
   time: "15:00",
+  duration: 45, // Updated to 45 minutes
   type: "Sesión de terapia",
   progress: "Progreso satisfactorio en las actividades realizadas."
 };
@@ -61,11 +62,12 @@ const SessionEvaluation = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [files, setFiles] = useState<any[]>([]);
+  const [billingSwitchEnabled, setBillingSwitchEnabled] = useState<boolean>(false);
 
   const form = useForm({
     defaultValues: {
       sessionDate: new Date().toISOString().slice(0, 10),
-      duration: "60",
+      duration: "45", // Updated to 45 minutes default
       developmentArea: "",
       objectives: "",
       activities: "",
@@ -74,6 +76,11 @@ const SessionEvaluation = () => {
       achievedMilestones: "",
       nextSteps: "",
       recommendations: "",
+      // Billing information
+      billingStatus: "pending",
+      invoiceNumber: "",
+      paymentMethod: "",
+      paymentAmount: "",
     },
   });
 
@@ -127,6 +134,11 @@ const SessionEvaluation = () => {
                     <Calendar className="h-4 w-4 mr-1" />
                     <span>{format(new Date(session.date), "d 'de' MMMM, yyyy", { locale: es })}</span>
                   </div>
+                  <span className="hidden sm:inline">•</span>
+                  <div className="flex items-center">
+                    <Clock className="h-4 w-4 mr-1" />
+                    <span>{session.time} • 45 min</span>
+                  </div>
                 </>
               )}
             </div>
@@ -138,15 +150,16 @@ const SessionEvaluation = () => {
             <Card>
               <Tabs defaultValue="session" className="w-full">
                 <CardHeader>
-                  <CardTitle>Detalles de la Sesión</CardTitle>
+                  <CardTitle className="text-lg">Detalles de la Sesión</CardTitle>
                   <CardDescription>
                     Registra la información sobre esta sesión de terapia
                   </CardDescription>
-                  <TabsList className="grid grid-cols-2 sm:grid-cols-4 mt-6">
+                  <TabsList className="grid grid-cols-2 sm:grid-cols-5 mt-6">
                     <TabsTrigger value="session">Sesión</TabsTrigger>
                     <TabsTrigger value="evaluation">Evaluación</TabsTrigger>
                     <TabsTrigger value="progress">Avances</TabsTrigger>
                     <TabsTrigger value="attachments">Archivos</TabsTrigger>
+                    <TabsTrigger value="billing">Facturación</TabsTrigger>
                   </TabsList>
                 </CardHeader>
                 <CardContent>
@@ -370,6 +383,113 @@ const SessionEvaluation = () => {
                         maxFiles={10}
                         maxSize={20 * 1024 * 1024} // 20MB
                       />
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="billing">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        <ReceiptIcon className="h-5 w-5 text-muted-foreground" />
+                        <h3 className="text-sm font-medium">Información de facturación</h3>
+                      </div>
+                      
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <FormField
+                          control={form.control}
+                          name="billingStatus"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Estado de pago</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Estado de pago" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pendiente</SelectItem>
+                                  <SelectItem value="completed">Completado</SelectItem>
+                                  <SelectItem value="cancelled">Cancelado</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="invoiceNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Número de factura/boleta</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ej. 001234" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      
+                        <FormField
+                          control={form.control}
+                          name="paymentMethod"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Método de pago</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona el método de pago" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="cash">Efectivo</SelectItem>
+                                  <SelectItem value="transfer">Transferencia</SelectItem>
+                                  <SelectItem value="credit_card">Tarjeta de crédito</SelectItem>
+                                  <SelectItem value="debit_card">Tarjeta de débito</SelectItem>
+                                  <SelectItem value="insurance">Seguro médico</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="paymentAmount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Monto pagado</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ej. 45000" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      
+                      <div className="mt-4 border-t pt-4">
+                        <p className="text-sm font-medium mb-2">Documentos de facturación</p>
+                        <div className="flex flex-col gap-2">
+                          <Button variant="outline" size="sm" className="gap-2 w-full sm:w-fit">
+                            <FileText className="h-4 w-4" />
+                            Subir factura o boleta
+                          </Button>
+                          <Button variant="outline" size="sm" className="gap-2 w-full sm:w-fit">
+                            <FileText className="h-4 w-4" />
+                            Subir comprobante de pago
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </TabsContent>
                 </CardContent>

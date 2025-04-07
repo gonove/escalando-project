@@ -54,6 +54,9 @@ export interface Session {
   billingStatus?: 'pending' | 'completed' | 'cancelled';
   billingDocuments?: BillingDocument[];
   reportStatus?: 'pending' | 'completed';
+  mediaFiles?: MediaFile[];  // Added for session media files
+  evaluation?: SessionEvaluation;  // Added for detailed session evaluation
+  collaboratorNotes?: CollaboratorNote[];  // Added for notes from other professionals
 }
 
 export interface RecurrencePattern {
@@ -83,4 +86,40 @@ export interface Exercise {
   duration?: string;
   frequency?: string;
   instructions?: string;
+}
+
+// New interfaces for session documentation
+
+export interface MediaFile {
+  id: string;
+  sessionId: string;
+  fileName: string;
+  fileUrl: string;
+  type: 'image' | 'video' | 'audio' | 'document';
+  uploadDate: string;
+  notes?: string;
+}
+
+export interface SessionEvaluation {
+  id: string;
+  sessionId: string;
+  developmentArea: string;
+  objectives: string;
+  activities: string;
+  patientResponse: string;
+  observations: string;
+  achievedMilestones: string;
+  nextSteps: string;
+  recommendations: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CollaboratorNote {
+  id: string;
+  sessionId: string;
+  professionalId: string;
+  content: string;
+  createdAt: string;
+  isPrivate: boolean;
 }

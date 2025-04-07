@@ -10,9 +10,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, User, Pencil, Eye } from "lucide-react";
+import { Calendar, Clock, User, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Session } from "@/types/models";
 
 interface SessionsDataTableProps {
   sessions: any[];
@@ -46,7 +47,7 @@ const SessionsDataTable: React.FC<SessionsDataTableProps> = ({
             <Calendar className="h-4 w-4" />
             <span>{format(date, "EEEE d 'de' MMMM", { locale: es })}</span>
             <Clock className="h-4 w-4 ml-2" />
-            <span>{time}</span>
+            <span>{time} (45 min)</span>
           </p>
         </div>
         <div className="text-sm font-medium">
@@ -75,11 +76,11 @@ const SessionsDataTable: React.FC<SessionsDataTableProps> = ({
                 <TableCell>{therapist?.name}</TableCell>
                 <TableCell>
                   <span className={
-                    session.type === "Evaluación" 
+                    session.type === "Evaluación" || session.type === "evaluation"
                       ? "text-orange-600 dark:text-orange-400" 
                       : "text-blue-600 dark:text-blue-400"
                   }>
-                    {session.type || "Sesión Regular"}
+                    {session.type === "regular" ? "Sesión Regular" : session.type || "Sesión Regular"}
                   </span>
                 </TableCell>
                 <TableCell className="text-right">

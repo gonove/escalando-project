@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { format, isSameDay, addDays, isWeekend } from "date-fns";
@@ -206,6 +207,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                 const sessions = getSessionsForDateTime(day, hour);
                 const sessionsCount = getSessionsCountAtTime(day, hour);
                 const hasCapacity = sessionsCount < 3;
+                const isPastSession = day < new Date() || (isSameDay(day, new Date()) && hour < format(new Date(), 'HH:mm'));
 
                 return (
                   <TooltipProvider key={hourIndex}>
@@ -215,7 +217,8 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                           className={cn(
                             "h-16 relative cursor-pointer",
                             isSameDay(day, new Date()) && "bg-escalando-50 dark:bg-escalando-900/10",
-                            !hasCapacity && "bg-gray-100 dark:bg-muted/20"
+                            !hasCapacity && "bg-gray-100 dark:bg-muted/20",
+                            isPastSession && sessions.length > 0 && "bg-amber-50 dark:bg-amber-900/10" // Highlight past sessions that need evaluation
                           )}
                           onClick={() => handleTimeSlotClick(day, hour)}
                         >
@@ -228,7 +231,9 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                                     key={idx}
                                     className={cn(
                                       "text-xs p-0.5 mb-0.5 rounded truncate",
-                                      "bg-escalando-100 text-escalando-800 border border-escalando-200 dark:bg-escalando-900/30 dark:text-escalando-100 dark:border-escalando-900/50"
+                                      isPastSession && (!session.reportStatus || session.reportStatus === 'pending')
+                                        ? "bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-100 dark:border-amber-900/50"
+                                        : "bg-escalando-100 text-escalando-800 border border-escalando-200 dark:bg-escalando-900/30 dark:text-escalando-100 dark:border-escalando-900/50"
                                     )}
                                     title={`${session.patientName} - ${therapist?.name}`}
                                   >
@@ -262,9 +267,22 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                             <div className="absolute top-1 right-1">
                               <span className={cn(
                                 "text-xs rounded-full px-1.5 py-0.5 font-medium",
-                                sessionsCount === 3 ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-200" : "bg-gray-100 text-gray-700 dark:bg-muted/30 dark:text-muted-foreground"
+                                sessionsCount === 3 
+                                  ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-200" 
+                                  : isPastSession && sessions.some(s => !s.reportStatus || s.reportStatus === 'pending')
+                                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200"
+                                    : "bg-gray-100 text-gray-700 dark:bg-muted/30 dark:text-muted-foreground"
                               )}>
                                 {sessionsCount}/3
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Add indicator for past sessions that need evaluation */}
+                          {isPastSession && sessions.some(s => !s.reportStatus || s.reportStatus === 'pending') && (
+                            <div className="absolute bottom-1 right-1">
+                              <span className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200 rounded-full px-1.5 py-0.5 font-medium">
+                                Pendiente
                               </span>
                             </div>
                           )}
@@ -279,6 +297,8 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                             <div className="space-y-1">
                               {sessions.map((session, idx) => {
                                 const therapist = therapists.find(t => t.id === session.therapistId);
+                                const needsEvaluation = isPastSession && (!session.reportStatus || session.reportStatus === 'pending');
+                                
                                 return (
                                   <div key={idx} className="flex items-center text-xs gap-1">
                                     <User className="h-3 w-3" />
@@ -289,6 +309,9 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                                         <span className="text-muted-foreground">{therapist?.name}</span>
                                       </>
                                     )}
+                                    {needsEvaluation && (
+                                      <span className="ml-1 text-amber-600 dark:text-amber-400">(Evaluación pendiente)</span>
+                                    )}
                                   </div>
                                 );
                               })}
@@ -298,12 +321,20 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                                 `${3 - sessionsCount} horarios disponibles` : 
                                 "Horario completo (3/3)"}
                             </p>
+                            {isPastSession && sessions.some(s => !s.reportStatus || s.reportStatus === 'pending') && (
+                              <p className="text-xs text-amber-600 dark:text-amber-400 font-medium mt-1">
+                                Doble clic para ver sesiones que necesitan evaluación
+                              </p>
+                            )}
                           </div>
                         ) : (
                           <div className="p-1">
                             <p className="text-xs">Horario disponible</p>
                             <p className="text-xs font-medium">
                               {format(day, "EEEE d 'de' MMMM", { locale: es })} - {hour}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Duración: 45 minutos
                             </p>
                           </div>
                         )}
