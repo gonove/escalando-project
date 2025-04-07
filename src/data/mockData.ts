@@ -1,5 +1,5 @@
 
-import { 
+import {
   Professional, Patient, Session, Exercise, SessionEvaluation,
   MediaFile, BillingDocument, CollaboratorNote, DevelopmentalMilestone
 } from "../types/models";
@@ -419,8 +419,8 @@ export const sessionEvaluations: SessionEvaluation[] = [
     achievedMilestones: "Se identifican habilidades básicas de agarre",
     nextSteps: "Iniciar tratamiento enfocado en coordinación bilateral y equilibrio",
     recommendations: "Continuar con sesiones semanales y realizar ejercicios en casa",
-    createdAt: "2023-06-15T10:00:00Z",
-    updatedAt: "2023-06-15T10:00:00Z"
+    createdAt: "2025-06-15T10:00:00Z",
+    updatedAt: "2025-06-15T10:00:00Z"
   },
   {
     id: "eval2",
@@ -433,8 +433,8 @@ export const sessionEvaluations: SessionEvaluation[] = [
     achievedMilestones: "Logra mantenerse sentada con apoyo mínimo",
     nextSteps: "Establecer plan de tratamiento para reducir espasticidad",
     recommendations: "Realizar estiramientos suaves diariamente",
-    createdAt: "2023-07-03T12:00:00Z",
-    updatedAt: "2023-07-03T12:00:00Z"
+    createdAt: "2025-07-03T12:00:00Z",
+    updatedAt: "2025-07-03T12:00:00Z"
   },
   {
     id: "eval3",
@@ -447,8 +447,8 @@ export const sessionEvaluations: SessionEvaluation[] = [
     achievedMilestones: "Acepta progresivamente algunas texturas suaves",
     nextSteps: "Implementar programa de integración sensorial gradual",
     recommendations: "Introducir gradualmente diferentes texturas en actividades diarias",
-    createdAt: "2023-07-05T16:00:00Z",
-    updatedAt: "2023-07-05T16:00:00Z"
+    createdAt: "2025-07-05T16:00:00Z",
+    updatedAt: "2025-07-05T16:00:00Z"
   }
 ];
 
@@ -460,7 +460,7 @@ export const mediaFiles: MediaFile[] = [
     fileName: "evaluacion_inicial_martin.jpg",
     fileUrl: "https://example.com/files/evaluacion_inicial_martin.jpg",
     type: "image",
-    uploadDate: "2023-06-15T10:30:00Z",
+    uploadDate: "2025-06-15T10:30:00Z",
     notes: "Foto documentando postura durante evaluación inicial"
   },
   {
@@ -469,7 +469,7 @@ export const mediaFiles: MediaFile[] = [
     fileName: "progreso_agarre_martin.mp4",
     fileUrl: "https://example.com/files/progreso_agarre_martin.mp4",
     type: "video",
-    uploadDate: "2023-06-22T09:45:00Z",
+    uploadDate: "2025-06-22T09:45:00Z",
     notes: "Video mostrando mejora en ejercicio de agarre"
   },
   {
@@ -478,7 +478,7 @@ export const mediaFiles: MediaFile[] = [
     fileName: "evaluacion_lucia.jpg",
     fileUrl: "https://example.com/files/evaluacion_lucia.jpg",
     type: "image",
-    uploadDate: "2023-07-03T11:30:00Z",
+    uploadDate: "2025-07-03T11:30:00Z",
     notes: "Documentación de espasticidad en extremidades inferiores"
   },
   {
@@ -487,7 +487,7 @@ export const mediaFiles: MediaFile[] = [
     fileName: "respuestas_sensoriales_tomas.mp4",
     fileUrl: "https://example.com/files/respuestas_sensoriales_tomas.mp4",
     type: "video",
-    uploadDate: "2023-07-05T15:45:00Z",
+    uploadDate: "2025-07-05T15:45:00Z",
     notes: "Registro de respuestas ante diferentes estímulos táctiles"
   }
 ];
@@ -499,7 +499,7 @@ export const billingDocuments: BillingDocument[] = [
     sessionId: "ses1",
     fileName: "factura_martin_evaluacion_inicial.pdf",
     fileUrl: "https://example.com/bills/factura_martin_evaluacion_inicial.pdf",
-    uploadDate: "2023-06-15T11:00:00Z",
+    uploadDate: "2025-06-15T11:00:00Z",
     type: "invoice"
   },
   {
@@ -507,7 +507,7 @@ export const billingDocuments: BillingDocument[] = [
     sessionId: "ses2",
     fileName: "recibo_martin_seguimiento.pdf",
     fileUrl: "https://example.com/bills/recibo_martin_seguimiento.pdf",
-    uploadDate: "2023-06-22T10:00:00Z",
+    uploadDate: "2025-06-22T10:00:00Z",
     type: "receipt"
   },
   {
@@ -515,7 +515,7 @@ export const billingDocuments: BillingDocument[] = [
     sessionId: "ses4",
     fileName: "factura_lucia_evaluacion.pdf",
     fileUrl: "https://example.com/bills/factura_lucia_evaluacion.pdf",
-    uploadDate: "2023-07-03T12:30:00Z",
+    uploadDate: "2025-07-03T12:30:00Z",
     type: "invoice"
   },
   {
@@ -523,7 +523,7 @@ export const billingDocuments: BillingDocument[] = [
     sessionId: "ses5",
     fileName: "factura_tomas_evaluacion_sensorial.pdf",
     fileUrl: "https://example.com/bills/factura_tomas_evaluacion_sensorial.pdf",
-    uploadDate: "2023-07-05T16:30:00Z",
+    uploadDate: "2025-07-05T16:30:00Z",
     type: "invoice"
   }
 ];
@@ -535,7 +535,7 @@ export const collaboratorNotes: CollaboratorNote[] = [
     sessionId: "ses1",
     professionalId: "prof2",
     content: "Recomiendo complementar con evaluación de integración sensorial en próximas sesiones.",
-    createdAt: "2023-06-16T09:00:00Z",
+    createdAt: "2025-06-16T09:00:00Z",
     isPrivate: false
   },
   {
@@ -543,7 +543,7 @@ export const collaboratorNotes: CollaboratorNote[] = [
     sessionId: "ses5",
     professionalId: "prof1",
     content: "Considero importante evaluar componente motor en relación con hipersensibilidad táctil.",
-    createdAt: "2023-07-06T14:00:00Z",
+    createdAt: "2025-07-06T14:00:00Z",
     isPrivate: false
   },
   {
@@ -551,7 +551,7 @@ export const collaboratorNotes: CollaboratorNote[] = [
     sessionId: "ses7",
     professionalId: "prof2",
     content: "Podría beneficiarse de terapia ocupacional complementaria para abordar hipotonía.",
-    createdAt: "2023-07-13T10:00:00Z",
+    createdAt: "2025-07-13T10:00:00Z",
     isPrivate: false
   }
 ];
@@ -560,7 +560,7 @@ export const collaboratorNotes: CollaboratorNote[] = [
 export const sessions: Session[] = [
   {
     id: "ses1",
-    date: "2023-06-15",
+    date: "2025-06-15",
     patientId: "pat1",
     professionalId: "prof1",
     notes: "Primera evaluación. Presenta retraso en coordinación y equilibrio.",
@@ -570,7 +570,7 @@ export const sessions: Session[] = [
     type: "Evaluación inicial",
     time: "09:00",
     duration: 60,
-    evaluation: sessionEvaluations.find(eval => eval.sessionId === "ses1"),
+    evaluation: sessionEvaluations.find(evaluation => evaluation.sessionId === "ses1"),
     mediaFiles: mediaFiles.filter(media => media.sessionId === "ses1"),
     billingDocuments: billingDocuments.filter(bill => bill.sessionId === "ses1"),
     collaboratorNotes: collaboratorNotes.filter(note => note.sessionId === "ses1"),
@@ -578,7 +578,7 @@ export const sessions: Session[] = [
   },
   {
     id: "ses2",
-    date: "2023-06-22",
+    date: "2025-06-22",
     patientId: "pat1",
     professionalId: "prof1",
     notes: "Se observa mejor respuesta en ejercicios de agarre.",
@@ -594,7 +594,7 @@ export const sessions: Session[] = [
   },
   {
     id: "ses3",
-    date: "2023-06-29",
+    date: "2025-06-29",
     patientId: "pat1",
     professionalId: "prof1",
     notes: "Continúa progreso en motricidad fina, comienza trabajo de equilibrio.",
@@ -608,7 +608,7 @@ export const sessions: Session[] = [
   },
   {
     id: "ses4",
-    date: "2023-07-03",
+    date: "2025-07-03",
     patientId: "pat2",
     professionalId: "prof1",
     notes: "Evaluación inicial. Presenta espasticidad en extremidades inferiores.",
@@ -618,14 +618,14 @@ export const sessions: Session[] = [
     type: "Evaluación inicial",
     time: "11:00",
     duration: 60,
-    evaluation: sessionEvaluations.find(eval => eval.sessionId === "ses4"),
+    evaluation: sessionEvaluations.find(evaluation => evaluation.sessionId === "ses4"),
     mediaFiles: mediaFiles.filter(media => media.sessionId === "ses4"),
     billingDocuments: billingDocuments.filter(bill => bill.sessionId === "ses4"),
     reportStatus: "completed"
   },
   {
     id: "ses5",
-    date: "2023-07-05",
+    date: "2025-07-05",
     patientId: "pat3",
     professionalId: "prof2",
     notes: "Evaluación sensorial. Muestra hipersensibilidad táctil.",
@@ -635,7 +635,7 @@ export const sessions: Session[] = [
     type: "Evaluación sensorial",
     time: "15:00",
     duration: 45,
-    evaluation: sessionEvaluations.find(eval => eval.sessionId === "ses5"),
+    evaluation: sessionEvaluations.find(evaluation => evaluation.sessionId === "ses5"),
     mediaFiles: mediaFiles.filter(media => media.sessionId === "ses5"),
     billingDocuments: billingDocuments.filter(bill => bill.sessionId === "ses5"),
     collaboratorNotes: collaboratorNotes.filter(note => note.sessionId === "ses5"),
@@ -643,7 +643,7 @@ export const sessions: Session[] = [
   },
   {
     id: "ses6",
-    date: "2023-07-10",
+    date: "2025-07-10",
     patientId: "pat4",
     professionalId: "prof2",
     notes: "Sesión preventiva. Desarrollo típico observado.",
@@ -657,7 +657,7 @@ export const sessions: Session[] = [
   },
   {
     id: "ses7",
-    date: "2023-07-12",
+    date: "2025-07-12",
     patientId: "pat5",
     professionalId: "prof3",
     notes: "Primera sesión. Hipotonía muscular evidente.",
@@ -672,7 +672,7 @@ export const sessions: Session[] = [
   },
   {
     id: "ses8",
-    date: "2023-07-15",
+    date: "2025-07-15",
     patientId: "pat6",
     professionalId: "prof2",
     notes: "Dificultades de lenguaje trabajadas con ejercicios básicos.",
@@ -686,7 +686,7 @@ export const sessions: Session[] = [
   },
   {
     id: "ses9",
-    date: "2023-07-18",
+    date: "2025-07-18",
     patientId: "pat7",
     professionalId: "prof3",
     notes: "Déficit de atención trabajado con actividades estructuradas.",
@@ -700,7 +700,7 @@ export const sessions: Session[] = [
   },
   {
     id: "ses10",
-    date: "2023-07-20",
+    date: "2025-07-20",
     patientId: "pat8",
     professionalId: "prof1",
     notes: "Retraso en el desarrollo del habla. Se trabaja en vocabulario básico.",
@@ -739,7 +739,7 @@ export const getPendingEvaluations = (professionalId: string): Session[] => {
   return sessions.filter(session => {
     const sessionDateTime = new Date(session.date);
     sessionDateTime.setHours(parseInt(session.time.split(':')[0]), parseInt(session.time.split(':')[1]));
-    
+
     return (
       session.professionalId === professionalId &&
       sessionDateTime < new Date() && // Session already happened

@@ -1,8 +1,8 @@
 
-import { 
-  sessions, 
-  getSessionById, 
-  getPendingEvaluations, 
+import {
+  sessions,
+  getSessionById,
+  getPendingEvaluations,
   getCompletedEvaluations,
   sessionEvaluations
 } from "../data/mockData";
@@ -41,7 +41,7 @@ export const getCompletedEvaluationsForProfessional = async (professionalId: str
 export const getSessionEvaluation = async (sessionId: string): Promise<SessionEvaluation | null> => {
   // Simulating API delay
   await new Promise(resolve => setTimeout(resolve, 300));
-  const evaluation = sessionEvaluations.find(eval => eval.sessionId === sessionId);
+  const evaluation = sessionEvaluations.find(evaluation => evaluation.sessionId === sessionId);
   return evaluation || null;
 };
 
@@ -49,7 +49,7 @@ export const getSessionEvaluation = async (sessionId: string): Promise<SessionEv
 export const saveSessionEvaluation = async (evaluation: SessionEvaluation): Promise<SessionEvaluation> => {
   // Simulating API delay
   await new Promise(resolve => setTimeout(resolve, 600));
-  
+
   // In a real API, this would create or update the evaluation in the database
   // For now, we'll just return the evaluation as if it was saved
   return {
