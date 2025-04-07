@@ -52,6 +52,7 @@ function App() {
             <Route path="/evaluations/pending" element={<PendingEvaluations />} />
             <Route path="/patients/:patientId/sessions/:sessionId/evaluation" element={<SessionEvaluation />} />
             <Route path="/patients/:patientId/sessions/:sessionId/summary" element={<SessionSummary />} />
+            <Route path="/reports" element={<ReportGenerator />} />
             <Route path="/reports/new/:patientId" element={<ReportGenerator />} />
           </Route>
 
