@@ -18,7 +18,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/useAuth";
 
 const PatientEdit = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +27,7 @@ const PatientEdit = () => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
-  
+
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -48,14 +48,14 @@ const PatientEdit = () => {
 
   const handleSubmit = () => {
     if (!patient) return;
-    
+
     // In a real app, this would save to a database
     // For now, we'll just show a success message
     toast({
       title: "Paciente actualizado",
       description: "Los datos del paciente han sido actualizados exitosamente",
     });
-    
+
     // Navigate back to patient details
     navigate(`/patients/${id}`);
   };
@@ -134,7 +134,7 @@ const PatientEdit = () => {
                 </Select>
               </div>
             )}
-            <Button 
+            <Button
               onClick={handleSubmit}
               className="flex items-center gap-2"
             >
@@ -154,14 +154,14 @@ const PatientEdit = () => {
             {!isMobile && <TabsTrigger value="contact">Contacto</TabsTrigger>}
             {!isMobile && <TabsTrigger value="notes">Notas</TabsTrigger>}
           </TabsList>
-          
+
           {isMobile && (
             <TabsList className="grid grid-cols-2 w-full mt-2">
               <TabsTrigger value="contact">Contacto</TabsTrigger>
               <TabsTrigger value="notes">Notas</TabsTrigger>
             </TabsList>
           )}
-          
+
           <TabsContent value="personal" className="mt-6">
             <Card>
               <CardHeader>
@@ -174,27 +174,27 @@ const PatientEdit = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Nombre Completo</Label>
-                    <Input 
-                      id="name" 
-                      value={patient.name} 
+                    <Input
+                      id="name"
+                      value={patient.name}
                       onChange={(e) => handleChange("name", e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="age">Edad</Label>
-                    <Input 
-                      id="age" 
-                      type="number" 
-                      value={patient.age} 
+                    <Input
+                      id="age"
+                      type="number"
+                      value={patient.age}
                       onChange={(e) => handleChange("age", parseInt(e.target.value))}
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="gender">Género</Label>
-                    <Select 
+                    <Select
                       value={patient.gender}
                       onValueChange={(value) => handleChange("gender", value)}
                     >
@@ -210,10 +210,10 @@ const PatientEdit = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="dateOfBirth">Fecha de Nacimiento</Label>
-                    <Input 
-                      id="dateOfBirth" 
+                    <Input
+                      id="dateOfBirth"
                       type="date"
-                      value={patient.dateOfBirth} 
+                      value={patient.dateOfBirth}
                       onChange={(e) => handleChange("dateOfBirth", e.target.value)}
                     />
                   </div>
@@ -221,7 +221,7 @@ const PatientEdit = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="medical" className="mt-6">
             <Card>
               <CardHeader>
@@ -233,26 +233,26 @@ const PatientEdit = () => {
               <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="diagnosis">Diagnóstico</Label>
-                  <Input 
-                    id="diagnosis" 
-                    value={patient.diagnosis} 
+                  <Input
+                    id="diagnosis"
+                    value={patient.diagnosis}
                     onChange={(e) => handleChange("diagnosis", e.target.value)}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="notes">Notas Médicas</Label>
-                  <Textarea 
-                    id="notes" 
-                    className="min-h-[100px]" 
+                  <Textarea
+                    id="notes"
+                    className="min-h-[100px]"
                     value={patient.notes}
                     onChange={(e) => handleChange("notes", e.target.value)}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="status">Estado</Label>
-                  <Select 
+                  <Select
                     value={patient.status}
                     onValueChange={(value) => handleChange("status", value)}
                   >
@@ -269,7 +269,7 @@ const PatientEdit = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="contact" className="mt-6">
             <Card>
               <CardHeader>
@@ -282,45 +282,45 @@ const PatientEdit = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Correo Electrónico</Label>
-                    <Input 
-                      id="email" 
+                    <Input
+                      id="email"
                       type="email"
-                      value={patient.email} 
+                      value={patient.email}
                       onChange={(e) => handleChange("email", e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Teléfono</Label>
-                    <Input 
-                      id="phone" 
-                      value={patient.phone} 
+                    <Input
+                      id="phone"
+                      value={patient.phone}
                       onChange={(e) => handleChange("phone", e.target.value)}
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="location">Dirección</Label>
-                  <Textarea 
-                    id="location" 
+                  <Textarea
+                    id="location"
                     value={patient.location}
                     onChange={(e) => handleChange("location", e.target.value)}
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="parentName">Nombre del Responsable</Label>
-                    <Input 
-                      id="parentName" 
+                    <Input
+                      id="parentName"
                       value={patient.parentName || ""}
                       onChange={(e) => handleChange("parentName", e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="contactNumber">Número de Contacto Alternativo</Label>
-                    <Input 
-                      id="contactNumber" 
+                    <Input
+                      id="contactNumber"
                       value={patient.contactNumber || ""}
                       onChange={(e) => handleChange("contactNumber", e.target.value)}
                     />
@@ -329,7 +329,7 @@ const PatientEdit = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="notes" className="mt-6">
             <Card>
               <CardHeader>
@@ -341,9 +341,9 @@ const PatientEdit = () => {
               <CardContent>
                 <div className="space-y-2">
                   <Label htmlFor="additionalNotes">Notas</Label>
-                  <Textarea 
-                    id="additionalNotes" 
-                    className="min-h-[200px]" 
+                  <Textarea
+                    id="additionalNotes"
+                    className="min-h-[200px]"
                     value={patient.notes}
                     onChange={(e) => handleChange("notes", e.target.value)}
                   />
