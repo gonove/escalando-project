@@ -1,5 +1,8 @@
 
-import { Professional, Patient, Session, Exercise } from "../types/models";
+import { 
+  Professional, Patient, Session, Exercise, SessionEvaluation,
+  MediaFile, BillingDocument, CollaboratorNote, DevelopmentalMilestone
+} from "../types/models";
 
 // Session Types
 export const sessionTypes: Record<string, string> = {
@@ -9,6 +12,7 @@ export const sessionTypes: Record<string, string> = {
   'first-time': 'Primera Consulta'
 };
 
+// Professionals
 export const professionals: Professional[] = [
   {
     id: "prof1",
@@ -39,6 +43,139 @@ export const professionals: Professional[] = [
   }
 ];
 
+// Developmental Milestones
+export const developmentalMilestones: DevelopmentalMilestone[] = [
+  {
+    id: "milestone1",
+    patientId: "pat1",
+    ageMonths: 3,
+    date: "2020-01-01",
+    milestone: "Comienza a caminar",
+    category: "motor"
+  },
+  {
+    id: "milestone2",
+    patientId: "pat1",
+    ageMonths: 6,
+    date: "2020-06-01",
+    milestone: "Comienza a hablar",
+    category: "cognitive"
+  },
+  {
+    id: "milestone3",
+    patientId: "pat2",
+    ageMonths: 4,
+    date: "2020-06-24",
+    milestone: "Comienza a sostener la cabeza",
+    category: "motor"
+  },
+  {
+    id: "milestone4",
+    patientId: "pat2",
+    ageMonths: 10,
+    date: "2021-01-24",
+    milestone: "Comienza a gatear",
+    category: "motor"
+  },
+  {
+    id: "milestone5",
+    patientId: "pat3",
+    ageMonths: 8,
+    date: "2019-07-30",
+    milestone: "Reconoce su nombre",
+    category: "cognitive"
+  },
+  {
+    id: "milestone6",
+    patientId: "pat3",
+    ageMonths: 18,
+    date: "2020-05-30",
+    milestone: "Comienza a formar frases simples",
+    category: "language"
+  },
+  {
+    id: "milestone7",
+    patientId: "pat4",
+    ageMonths: 6,
+    date: "2022-02-15",
+    milestone: "Comienza a sentarse sin apoyo",
+    category: "motor"
+  },
+  {
+    id: "milestone8",
+    patientId: "pat4",
+    ageMonths: 12,
+    date: "2022-08-15",
+    milestone: "Comienza a caminar",
+    category: "motor"
+  },
+  {
+    id: "milestone9",
+    patientId: "pat5",
+    ageMonths: 5,
+    date: "2019-08-07",
+    milestone: "Comienza a rodar",
+    category: "motor"
+  },
+  {
+    id: "milestone10",
+    patientId: "pat5",
+    ageMonths: 15,
+    date: "2020-06-07",
+    milestone: "Comienza a caminar con apoyo",
+    category: "motor"
+  },
+  {
+    id: "milestone11",
+    patientId: "pat6",
+    ageMonths: 9,
+    date: "2021-07-10",
+    milestone: "Balbucea palabras simples",
+    category: "language"
+  },
+  {
+    id: "milestone12",
+    patientId: "pat6",
+    ageMonths: 24,
+    date: "2022-10-10",
+    milestone: "Comienza a formar frases simples",
+    category: "language"
+  },
+  {
+    id: "milestone13",
+    patientId: "pat7",
+    ageMonths: 12,
+    date: "2018-07-22",
+    milestone: "Comienza a caminar",
+    category: "motor"
+  },
+  {
+    id: "milestone14",
+    patientId: "pat7",
+    ageMonths: 24,
+    date: "2019-07-22",
+    milestone: "Comienza a hablar frases simples",
+    category: "language"
+  },
+  {
+    id: "milestone15",
+    patientId: "pat8",
+    ageMonths: 10,
+    date: "2020-10-05",
+    milestone: "Balbucea palabras simples",
+    category: "language"
+  },
+  {
+    id: "milestone16",
+    patientId: "pat8",
+    ageMonths: 20,
+    date: "2021-08-05",
+    milestone: "Comienza a formar frases simples",
+    category: "language"
+  }
+];
+
+// Pacientes
 export const patients: Patient[] = [
   {
     id: "pat1",
@@ -55,24 +192,7 @@ export const patients: Patient[] = [
     gender: "Masculino",
     status: "active",
     location: "Asuncion",
-    developmentalMilestones: [
-      {
-        id: "milestone1",
-        patientId: "pat1",
-        ageMonths: 3,
-        date: "2020-01-01",
-        milestone: "Comienza a caminar",
-        category: "motor"
-      },
-      {
-        id: "milestone2",
-        patientId: "pat1",
-        ageMonths: 6,
-        date: "2020-06-01",
-        milestone: "Comienza a hablar",
-        category: "cognitive"
-      }
-    ]
+    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat1")
   },
   {
     id: "pat2",
@@ -89,24 +209,7 @@ export const patients: Patient[] = [
     gender: "Femenino",
     status: "active",
     location: "Asuncion",
-    developmentalMilestones: [
-      {
-        id: "milestone3",
-        patientId: "pat2",
-        ageMonths: 4,
-        date: "2020-06-24",
-        milestone: "Comienza a sostener la cabeza",
-        category: "motor"
-      },
-      {
-        id: "milestone4",
-        patientId: "pat2",
-        ageMonths: 10,
-        date: "2021-01-24",
-        milestone: "Comienza a gatear",
-        category: "motor"
-      }
-    ]
+    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat2")
   },
   {
     id: "pat3",
@@ -123,24 +226,7 @@ export const patients: Patient[] = [
     gender: "Masculino",
     status: "active",
     location: "Lambaré",
-    developmentalMilestones: [
-      {
-        id: "milestone5",
-        patientId: "pat3",
-        ageMonths: 8,
-        date: "2019-07-30",
-        milestone: "Reconoce su nombre",
-        category: "cognitive"
-      },
-      {
-        id: "milestone6",
-        patientId: "pat3",
-        ageMonths: 18,
-        date: "2020-05-30",
-        milestone: "Comienza a formar frases simples",
-        category: "language"
-      }
-    ]
+    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat3")
   },
   {
     id: "pat4",
@@ -157,24 +243,7 @@ export const patients: Patient[] = [
     gender: "Femenino",
     status: "active",
     location: "Asuncion",
-    developmentalMilestones: [
-      {
-        id: "milestone7",
-        patientId: "pat4",
-        ageMonths: 6,
-        date: "2022-02-15",
-        milestone: "Comienza a sentarse sin apoyo",
-        category: "motor"
-      },
-      {
-        id: "milestone8",
-        patientId: "pat4",
-        ageMonths: 12,
-        date: "2022-08-15",
-        milestone: "Comienza a caminar",
-        category: "motor"
-      }
-    ]
+    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat4")
   },
   {
     id: "pat5",
@@ -191,24 +260,7 @@ export const patients: Patient[] = [
     gender: "Masculino",
     status: "active",
     location: "Rosario",
-    developmentalMilestones: [
-      {
-        id: "milestone9",
-        patientId: "pat5",
-        ageMonths: 5,
-        date: "2019-08-07",
-        milestone: "Comienza a rodar",
-        category: "motor"
-      },
-      {
-        id: "milestone10",
-        patientId: "pat5",
-        ageMonths: 15,
-        date: "2020-06-07",
-        milestone: "Comienza a caminar con apoyo",
-        category: "motor"
-      }
-    ]
+    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat5")
   },
   {
     id: "pat6",
@@ -225,24 +277,7 @@ export const patients: Patient[] = [
     gender: "Femenino",
     status: "active",
     location: "San Lorenzo",
-    developmentalMilestones: [
-      {
-        id: "milestone11",
-        patientId: "pat6",
-        ageMonths: 9,
-        date: "2021-07-10",
-        milestone: "Balbucea palabras simples",
-        category: "language"
-      },
-      {
-        id: "milestone12",
-        patientId: "pat6",
-        ageMonths: 24,
-        date: "2022-10-10",
-        milestone: "Comienza a formar frases simples",
-        category: "language"
-      }
-    ]
+    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat6")
   },
   {
     id: "pat7",
@@ -259,24 +294,7 @@ export const patients: Patient[] = [
     gender: "Masculino",
     status: "active",
     location: "Fernando de la Mora",
-    developmentalMilestones: [
-      {
-        id: "milestone13",
-        patientId: "pat7",
-        ageMonths: 12,
-        date: "2018-07-22",
-        milestone: "Comienza a caminar",
-        category: "motor"
-      },
-      {
-        id: "milestone14",
-        patientId: "pat7",
-        ageMonths: 24,
-        date: "2019-07-22",
-        milestone: "Comienza a hablar frases simples",
-        category: "language"
-      }
-    ]
+    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat7")
   },
   {
     id: "pat8",
@@ -293,24 +311,7 @@ export const patients: Patient[] = [
     gender: "Femenino",
     status: "active",
     location: "Luque",
-    developmentalMilestones: [
-      {
-        id: "milestone15",
-        patientId: "pat8",
-        ageMonths: 10,
-        date: "2020-10-05",
-        milestone: "Balbucea palabras simples",
-        category: "language"
-      },
-      {
-        id: "milestone16",
-        patientId: "pat8",
-        ageMonths: 20,
-        date: "2021-08-05",
-        milestone: "Comienza a formar frases simples",
-        category: "language"
-      }
-    ]
+    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat8")
   },
   {
     id: "pat9",
@@ -346,6 +347,7 @@ export const patients: Patient[] = [
   }
 ];
 
+// Exercises data
 export const exercises: Exercise[] = [
   {
     id: "ex1",
@@ -404,6 +406,157 @@ export const exercises: Exercise[] = [
   }
 ];
 
+// Session evaluations
+export const sessionEvaluations: SessionEvaluation[] = [
+  {
+    id: "eval1",
+    sessionId: "ses1",
+    developmentArea: "Motricidad fina y gruesa",
+    objectives: "Establecer línea base para el tratamiento de coordinación y equilibrio",
+    activities: "Evaluación de agarre, coordinación bilateral y equilibrio estático",
+    patientResponse: "Muestra dificultades en coordinación de mano derecha y equilibrio sobre un pie",
+    observations: "Presenta retraso en coordinación y equilibrio acorde a su edad",
+    achievedMilestones: "Se identifican habilidades básicas de agarre",
+    nextSteps: "Iniciar tratamiento enfocado en coordinación bilateral y equilibrio",
+    recommendations: "Continuar con sesiones semanales y realizar ejercicios en casa",
+    createdAt: "2023-06-15T10:00:00Z",
+    updatedAt: "2023-06-15T10:00:00Z"
+  },
+  {
+    id: "eval2",
+    sessionId: "ses4",
+    developmentArea: "Control postural y movilidad",
+    objectives: "Evaluar nivel de espasticidad en extremidades inferiores",
+    activities: "Valoración de rango de movimiento y patrones posturales",
+    patientResponse: "Presenta resistencia moderada al estiramiento de extremidades inferiores",
+    observations: "Espasticidad más marcada en miembros inferiores, especialmente en flexores de rodilla",
+    achievedMilestones: "Logra mantenerse sentada con apoyo mínimo",
+    nextSteps: "Establecer plan de tratamiento para reducir espasticidad",
+    recommendations: "Realizar estiramientos suaves diariamente",
+    createdAt: "2023-07-03T12:00:00Z",
+    updatedAt: "2023-07-03T12:00:00Z"
+  },
+  {
+    id: "eval3",
+    sessionId: "ses5",
+    developmentArea: "Integración sensorial",
+    objectives: "Evaluar respuesta a estímulos sensoriales",
+    activities: "Exposición a diferentes texturas, sonidos y estímulos visuales",
+    patientResponse: "Muestra hipersensibilidad táctil, especialmente en manos y pies",
+    observations: "Se identifican patrones de respuesta defensiva ante texturas rugosas",
+    achievedMilestones: "Acepta progresivamente algunas texturas suaves",
+    nextSteps: "Implementar programa de integración sensorial gradual",
+    recommendations: "Introducir gradualmente diferentes texturas en actividades diarias",
+    createdAt: "2023-07-05T16:00:00Z",
+    updatedAt: "2023-07-05T16:00:00Z"
+  }
+];
+
+// Media files
+export const mediaFiles: MediaFile[] = [
+  {
+    id: "media1",
+    sessionId: "ses1",
+    fileName: "evaluacion_inicial_martin.jpg",
+    fileUrl: "https://example.com/files/evaluacion_inicial_martin.jpg",
+    type: "image",
+    uploadDate: "2023-06-15T10:30:00Z",
+    notes: "Foto documentando postura durante evaluación inicial"
+  },
+  {
+    id: "media2",
+    sessionId: "ses2",
+    fileName: "progreso_agarre_martin.mp4",
+    fileUrl: "https://example.com/files/progreso_agarre_martin.mp4",
+    type: "video",
+    uploadDate: "2023-06-22T09:45:00Z",
+    notes: "Video mostrando mejora en ejercicio de agarre"
+  },
+  {
+    id: "media3",
+    sessionId: "ses4",
+    fileName: "evaluacion_lucia.jpg",
+    fileUrl: "https://example.com/files/evaluacion_lucia.jpg",
+    type: "image",
+    uploadDate: "2023-07-03T11:30:00Z",
+    notes: "Documentación de espasticidad en extremidades inferiores"
+  },
+  {
+    id: "media4",
+    sessionId: "ses5",
+    fileName: "respuestas_sensoriales_tomas.mp4",
+    fileUrl: "https://example.com/files/respuestas_sensoriales_tomas.mp4",
+    type: "video",
+    uploadDate: "2023-07-05T15:45:00Z",
+    notes: "Registro de respuestas ante diferentes estímulos táctiles"
+  }
+];
+
+// Billing documents
+export const billingDocuments: BillingDocument[] = [
+  {
+    id: "bill1",
+    sessionId: "ses1",
+    fileName: "factura_martin_evaluacion_inicial.pdf",
+    fileUrl: "https://example.com/bills/factura_martin_evaluacion_inicial.pdf",
+    uploadDate: "2023-06-15T11:00:00Z",
+    type: "invoice"
+  },
+  {
+    id: "bill2",
+    sessionId: "ses2",
+    fileName: "recibo_martin_seguimiento.pdf",
+    fileUrl: "https://example.com/bills/recibo_martin_seguimiento.pdf",
+    uploadDate: "2023-06-22T10:00:00Z",
+    type: "receipt"
+  },
+  {
+    id: "bill3",
+    sessionId: "ses4",
+    fileName: "factura_lucia_evaluacion.pdf",
+    fileUrl: "https://example.com/bills/factura_lucia_evaluacion.pdf",
+    uploadDate: "2023-07-03T12:30:00Z",
+    type: "invoice"
+  },
+  {
+    id: "bill4",
+    sessionId: "ses5",
+    fileName: "factura_tomas_evaluacion_sensorial.pdf",
+    fileUrl: "https://example.com/bills/factura_tomas_evaluacion_sensorial.pdf",
+    uploadDate: "2023-07-05T16:30:00Z",
+    type: "invoice"
+  }
+];
+
+// Collaborator notes
+export const collaboratorNotes: CollaboratorNote[] = [
+  {
+    id: "note1",
+    sessionId: "ses1",
+    professionalId: "prof2",
+    content: "Recomiendo complementar con evaluación de integración sensorial en próximas sesiones.",
+    createdAt: "2023-06-16T09:00:00Z",
+    isPrivate: false
+  },
+  {
+    id: "note2",
+    sessionId: "ses5",
+    professionalId: "prof1",
+    content: "Considero importante evaluar componente motor en relación con hipersensibilidad táctil.",
+    createdAt: "2023-07-06T14:00:00Z",
+    isPrivate: false
+  },
+  {
+    id: "note3",
+    sessionId: "ses7",
+    professionalId: "prof2",
+    content: "Podría beneficiarse de terapia ocupacional complementaria para abordar hipotonía.",
+    createdAt: "2023-07-13T10:00:00Z",
+    isPrivate: false
+  }
+];
+
+// Sessions
 export const sessions: Session[] = [
   {
     id: "ses1",
@@ -416,7 +569,12 @@ export const sessions: Session[] = [
     recommendations: "Continuar con sesiones semanales y realizar ejercicios en casa.",
     type: "Evaluación inicial",
     time: "09:00",
-    duration: 60
+    duration: 60,
+    evaluation: sessionEvaluations.find(eval => eval.sessionId === "ses1"),
+    mediaFiles: mediaFiles.filter(media => media.sessionId === "ses1"),
+    billingDocuments: billingDocuments.filter(bill => bill.sessionId === "ses1"),
+    collaboratorNotes: collaboratorNotes.filter(note => note.sessionId === "ses1"),
+    reportStatus: "completed"
   },
   {
     id: "ses2",
@@ -429,7 +587,10 @@ export const sessions: Session[] = [
     recommendations: "Reforzar ejercicios de agarre con objetos de diferentes tamaños.",
     type: "Seguimiento",
     time: "09:00",
-    duration: 45
+    duration: 45,
+    mediaFiles: mediaFiles.filter(media => media.sessionId === "ses2"),
+    billingDocuments: billingDocuments.filter(bill => bill.sessionId === "ses2"),
+    reportStatus: "completed"
   },
   {
     id: "ses3",
@@ -442,7 +603,8 @@ export const sessions: Session[] = [
     recommendations: "Incrementar dificultad de ejercicios de equilibrio gradualmente.",
     type: "Seguimiento",
     time: "09:00",
-    duration: 60
+    duration: 45,
+    reportStatus: "completed"
   },
   {
     id: "ses4",
@@ -455,7 +617,11 @@ export const sessions: Session[] = [
     recommendations: "Realizar estiramientos suaves diariamente.",
     type: "Evaluación inicial",
     time: "11:00",
-    duration: 60
+    duration: 60,
+    evaluation: sessionEvaluations.find(eval => eval.sessionId === "ses4"),
+    mediaFiles: mediaFiles.filter(media => media.sessionId === "ses4"),
+    billingDocuments: billingDocuments.filter(bill => bill.sessionId === "ses4"),
+    reportStatus: "completed"
   },
   {
     id: "ses5",
@@ -468,7 +634,12 @@ export const sessions: Session[] = [
     recommendations: "Introducir gradualmente diferentes texturas en actividades diarias.",
     type: "Evaluación sensorial",
     time: "15:00",
-    duration: 45
+    duration: 45,
+    evaluation: sessionEvaluations.find(eval => eval.sessionId === "ses5"),
+    mediaFiles: mediaFiles.filter(media => media.sessionId === "ses5"),
+    billingDocuments: billingDocuments.filter(bill => bill.sessionId === "ses5"),
+    collaboratorNotes: collaboratorNotes.filter(note => note.sessionId === "ses5"),
+    reportStatus: "completed"
   },
   {
     id: "ses6",
@@ -481,7 +652,8 @@ export const sessions: Session[] = [
     recommendations: "Continuar con sesiones preventivas mensuales.",
     type: "Seguimiento preventivo",
     time: "10:00",
-    duration: 30
+    duration: 30,
+    reportStatus: "completed"
   },
   {
     id: "ses7",
@@ -494,7 +666,9 @@ export const sessions: Session[] = [
     recommendations: "Realizar ejercicios de fortalecimiento en casa.",
     type: "Evaluación inicial",
     time: "14:00",
-    duration: 60
+    duration: 60,
+    collaboratorNotes: collaboratorNotes.filter(note => note.sessionId === "ses7"),
+    reportStatus: "completed"
   },
   {
     id: "ses8",
@@ -507,7 +681,8 @@ export const sessions: Session[] = [
     recommendations: "Practicar palabras nuevas diariamente.",
     type: "Terapia de lenguaje",
     time: "16:00",
-    duration: 45
+    duration: 45,
+    reportStatus: "pending"
   },
   {
     id: "ses9",
@@ -520,7 +695,8 @@ export const sessions: Session[] = [
     recommendations: "Implementar rutinas diarias estructuradas.",
     type: "Terapia ocupacional",
     time: "13:00",
-    duration: 50
+    duration: 50,
+    reportStatus: "pending"
   },
   {
     id: "ses10",
@@ -533,31 +709,50 @@ export const sessions: Session[] = [
     recommendations: "Reforzar vocabulario con actividades lúdicas.",
     type: "Terapia de habla",
     time: "11:00",
-    duration: 40
+    duration: 40,
+    reportStatus: "pending"
   }
 ];
 
-// Helper function to get patients by professional ID
+// Helper Functions
 export const getPatientsByProfessional = (professionalId: string): Patient[] => {
   return patients.filter(patient => patient.professionalId === professionalId);
 };
 
-// Helper function to get sessions by patient ID
 export const getSessionsByPatient = (patientId: string): Session[] => {
   return sessions.filter(session => session.patientId === patientId);
 };
 
-// Helper function to get a professional by ID
 export const getProfessionalById = (id: string): Professional | undefined => {
   return professionals.find(prof => prof.id === id);
 };
 
-// Helper function to get a patient by ID
 export const getPatientById = (id: string): Patient | undefined => {
   return patients.find(patient => patient.id === id);
 };
 
-// Helper function to get a session by ID
 export const getSessionById = (id: string): Session | undefined => {
   return sessions.find(session => session.id === id);
+};
+
+export const getPendingEvaluations = (professionalId: string): Session[] => {
+  return sessions.filter(session => {
+    const sessionDateTime = new Date(session.date);
+    sessionDateTime.setHours(parseInt(session.time.split(':')[0]), parseInt(session.time.split(':')[1]));
+    
+    return (
+      session.professionalId === professionalId &&
+      sessionDateTime < new Date() && // Session already happened
+      (!session.reportStatus || session.reportStatus === 'pending') // Report is pending
+    );
+  }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // Oldest first
+};
+
+export const getCompletedEvaluations = (professionalId: string): Session[] => {
+  return sessions.filter(session => {
+    return (
+      session.professionalId === professionalId &&
+      session.reportStatus === 'completed'
+    );
+  }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Newest first
 };
