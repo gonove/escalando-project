@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
@@ -47,6 +48,7 @@ import {
   Tabs,
   TabsList,
   TabsTrigger,
+  TabsContent
 } from "@/components/ui/tabs";
 import MonthlyView from "@/components/scheduler/MonthlyView";
 import RecurringSessionForm from "@/components/scheduler/RecurringSessionForm";
@@ -83,7 +85,7 @@ const initialScheduledSessions = [
     therapistId: "prof1",
     date: addDays(new Date(), 1),
     time: "09:00",
-    duration: 60,
+    duration: 45,
     type: "regular"
   },
   {
@@ -101,7 +103,7 @@ const initialScheduledSessions = [
     therapistId: "prof3",
     date: addDays(new Date(), 4),
     time: "16:00",
-    duration: 60,
+    duration: 45,
     type: "regular"
   },
   {
@@ -119,7 +121,7 @@ const initialScheduledSessions = [
     therapistId: "prof4",
     date: addDays(new Date(), 1),
     time: "15:30",
-    duration: 60,
+    duration: 45,
     type: "evaluation"
   },
   {
@@ -128,10 +130,22 @@ const initialScheduledSessions = [
     therapistId: "prof1",
     date: addDays(new Date(), -3),
     time: "14:00",
-    duration: 60,
+    duration: 45,
     type: "follow-up",
     progress: "Se observó una mejora significativa en la capacidad de atención. El paciente completó todos los ejercicios programados."
   }
 ];
 
-// ... rest of the file remains unchanged
+const SessionScheduler = () => {
+  // All the component implementation goes here
+  return (
+    <Layout>
+      <div className="container py-6">
+        <h1>Session Scheduler Component</h1>
+        {/* Component content */}
+      </div>
+    </Layout>
+  );
+};
+
+export default SessionScheduler;
