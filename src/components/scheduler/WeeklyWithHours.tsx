@@ -193,7 +193,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
             {centerHours.map((hour, hourIndex) => (
               <div
                 key={hourIndex}
-                className="h-16 flex items-center justify-center p-1"
+                className="h-24 flex items-center justify-center p-1"
               >
                 <span className="text-xs font-medium">{hour}</span>
               </div>
@@ -215,7 +215,7 @@ export const WeeklyWithHours: React.FC<WeeklyTimeWithHoursViewProps> = ({
                       <TooltipTrigger asChild>
                         <div
                           className={cn(
-                            "h-16 relative cursor-pointer",
+                            "h-24 relative cursor-pointer",
                             isSameDay(day, new Date()) && "bg-escalando-50 dark:bg-escalando-900/10",
                             !hasCapacity && "bg-gray-100 dark:bg-muted/20",
                             isPastSession && sessions.length > 0 && "bg-amber-50 dark:bg-amber-900/10" // Highlight past sessions that need evaluation

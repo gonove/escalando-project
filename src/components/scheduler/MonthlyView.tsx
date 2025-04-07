@@ -126,7 +126,7 @@ const MonthlyView: React.FC<MonthlyViewProps> = ({
                             </div>
                             <div className="flex items-center text-sm font-medium mt-1 sm:mt-0">
                               <Clock className="h-3.5 w-3.5 mr-1" />
-                              <span>{session.time} ({session.duration} min)</span>
+                              <span>{session.time} (45 min)</span>
                             </div>
                           </div>
                         </div>
