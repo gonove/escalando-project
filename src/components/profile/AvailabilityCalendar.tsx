@@ -327,7 +327,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
                     <h3 className="font-medium mb-3">Día seleccionado</h3>
                     <div className="space-y-3">
                       <ToggleGroup type="single" value={selectedDay} onValueChange={(value) => value && setSelectedDay(value as keyof WeeklyTemplate)}>
-                        {daysToShow.map((day) => (
+                        {daysToShow.map((day) => (in
                           <ToggleGroupItem key={day} value={day} aria-label={getDayName(day)}>
                             {getDayName(day).substring(0, 3)}
                           </ToggleGroupItem>
@@ -462,9 +462,9 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
                           dayWithException: "font-bold",
                         }}
                         styles={{
-                          day: (date) => ({
-                            backgroundColor: getDayClassName(date),
-                          }),
+                          day: (date) => {
+                            return { backgroundColor: getDayClassName(date) };
+                          }
                         }}
                       />
                       
