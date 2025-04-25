@@ -34,7 +34,7 @@ export const professionals: Professional[] = [
   },
   {
     id: "prof3",
-    name: "Lic. Laura Gómez",
+    name: "Lic. Carlos Gonzalez",
     specialty: "Terapia Ocupacional",
     email: "laura.gomez@terapiasoft.com",
     phone: "+595 986 209 981",

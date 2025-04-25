@@ -181,7 +181,7 @@ const Patients = () => {
                       )}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="text-left">
                     <div className="space-y-2">
                       <div>
                         <div className="text-sm font-medium text-muted-foreground mb-1">
