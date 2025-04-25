@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { format, addDays, startOfWeek, getDay } from "date-fns";
 import { es } from "date-fns/locale";
@@ -41,7 +40,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
   const [selectedDay, setSelectedDay] = useState<keyof WeeklyTemplate>("monday");
   const [showWeekends, setShowWeekends] = useState<boolean>(false);
   
-  // Load availability data
   useEffect(() => {
     const fetchAvailability = async () => {
       try {
@@ -59,7 +57,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
     fetchAvailability();
   }, [professionalId]);
   
-  // Save availability data
   const handleSave = async () => {
     if (!availabilityData) return;
     
@@ -75,7 +72,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
     }
   };
   
-  // Handle day toggle in weekly template
   const handleDayToggle = (day: keyof WeeklyTemplate) => {
     if (!availabilityData) return;
     
@@ -91,7 +87,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
     });
   };
   
-  // Handle time slot toggle
   const handleSlotToggle = (day: keyof WeeklyTemplate, slotIndex: number) => {
     if (!availabilityData) return;
     
@@ -113,7 +108,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
     });
   };
   
-  // Handle select all slots for a day
   const handleSelectAllDay = (day: keyof WeeklyTemplate) => {
     if (!availabilityData) return;
     
@@ -135,7 +129,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
     });
   };
   
-  // Handle deselect all slots for a day
   const handleDeselectAllDay = (day: keyof WeeklyTemplate) => {
     if (!availabilityData) return;
     
@@ -157,7 +150,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
     });
   };
   
-  // Handle copy settings from one day to another
   const handleCopyDay = (fromDay: keyof WeeklyTemplate, toDay: keyof WeeklyTemplate) => {
     if (!availabilityData) return;
     
@@ -176,7 +168,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
     toast.success(`Configuración copiada de ${getDayName(fromDay)} a ${getDayName(toDay)}`);
   };
   
-  // Helper to get day name in Spanish
   const getDayName = (day: keyof WeeklyTemplate): string => {
     const dayNames: Record<keyof WeeklyTemplate, string> = {
       monday: "Lunes",
@@ -191,7 +182,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
     return dayNames[day];
   };
   
-  // Helper to get time slot label (e.g., "9:00 - 9:45")
   const getTimeSlotLabel = (timeStart: string): string => {
     const [hours, minutes] = timeStart.split(":").map(Number);
     let endMinutes = minutes + 45;
@@ -205,7 +195,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
     return `${timeStart} - ${endHours.toString().padStart(2, "0")}:${endMinutes.toString().padStart(2, "0")}`;
   };
   
-  // Helper to check if a date has an exception
   const hasException = (date: Date): ExceptionData | undefined => {
     if (!availabilityData) return undefined;
     
@@ -213,7 +202,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
     return availabilityData.exceptions.find(ex => ex.date === dateString);
   };
   
-  // Helper to get calendar day class based on exceptions and availability
   const getDayClassName = (date: Date): string => {
     if (!availabilityData) return "";
     
@@ -223,7 +211,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
     }
     
     const dayOfWeek = getDay(date);
-    // Convert JS day (0 = Sunday) to our day keys (monday, tuesday, etc.)
     const dayKeys: Record<number, keyof WeeklyTemplate> = {
       1: "monday",
       2: "tuesday",
@@ -243,11 +230,9 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
     return hasAvailableSlots ? "bg-green-100" : "bg-gray-100";
   };
   
-  // Create an array of weekday names in the correct order
   const weekdayNames = ["monday", "tuesday", "wednesday", "thursday", "friday"] as const;
   const weekendNames = ["saturday", "sunday"] as const;
   
-  // Create a combined array based on showWeekends setting
   const daysToShow = [
     ...weekdayNames,
     ...(showWeekends ? weekendNames : []),
@@ -327,7 +312,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
                     <h3 className="font-medium mb-3">Día seleccionado</h3>
                     <div className="space-y-3">
                       <ToggleGroup type="single" value={selectedDay} onValueChange={(value) => value && setSelectedDay(value as keyof WeeklyTemplate)}>
-                        {daysToShow.map((day) => (in
+                        {daysToShow.map((day) => (
                           <ToggleGroupItem key={day} value={day} aria-label={getDayName(day)}>
                             {getDayName(day).substring(0, 3)}
                           </ToggleGroupItem>
@@ -514,7 +499,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ professiona
                         )}
                       </CardHeader>
                       <CardContent>
-                        {/* Aquí iría la vista detallada del día seleccionado */}
                         <div className="space-y-4">
                           <p className="text-muted-foreground">
                             Aquí puedes ver y editar la disponibilidad para este día específico.
