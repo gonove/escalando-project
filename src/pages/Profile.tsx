@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   User, 
@@ -21,11 +22,13 @@ import EditProfileDialog from "@/components/profile/EditProfileDialog";
 import { professionals, patients, sessions } from "@/data/mockData";
 import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import AvailabilityCalendar from "@/components/profile/AvailabilityCalendar";
 
 const Profile = () => {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const isMobileOrTablet = useIsMobileOrTablet();
+  const [showAvailability, setShowAvailability] = useState(false);
   
   // Get the first professional for demo purposes
   const professional = professionals[0];
@@ -55,8 +58,29 @@ const Profile = () => {
               Gestiona tu información profesional
             </p>
           </div>
-          <EditProfileDialog professionalId={professional.id} />
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button 
+              variant="outline" 
+              className={cn("flex items-center gap-2", isMobile && "w-full")}
+              onClick={() => setShowAvailability(!showAvailability)}
+            >
+              <Calendar className="h-4 w-4" />
+              {showAvailability ? "Ocultar Disponibilidad" : "Ver Disponibilidad"}
+            </Button>
+            <EditProfileDialog professionalId={professional.id} />
+          </div>
         </div>
+        
+        {showAvailability && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mb-6"
+          >
+            <AvailabilityCalendar professionalId={professional.id} />
+          </motion.div>
+        )}
         
         <div className={cn(
           "grid gap-6",
