@@ -19,7 +19,6 @@ import { professionals } from "@/data/mockData";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import AvailabilityCalendar from "./AvailabilityCalendar";
 
 interface EditProfileDialogProps {
   professionalId: string;
@@ -87,7 +86,7 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({ professionalId })
           Editar Perfil
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[800px] lg:max-w-[900px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Editar Perfil Profesional</DialogTitle>
           <DialogDescription>
@@ -98,7 +97,7 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({ professionalId })
         <Tabs defaultValue="info" className="w-full mt-4">
           <TabsList className="w-full">
             <TabsTrigger value="info" className="flex-1">Información</TabsTrigger>
-            <TabsTrigger value="availability" className="flex-1">Disponibilidad</TabsTrigger>
+            <TabsTrigger value="schedule" className="flex-1">Horarios</TabsTrigger>
           </TabsList>
           
           <TabsContent value="info" className="space-y-4 mt-4">
@@ -157,8 +156,55 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({ professionalId })
             </div>
           </TabsContent>
           
-          <TabsContent value="availability" className="mt-4">
-            <AvailabilityCalendar professionalId={professionalId} />
+          <TabsContent value="schedule" className="space-y-4 mt-4">
+            <div className="space-y-4">
+              {Object.entries(schedule).map(([day, value]) => {
+                const dayName = {
+                  monday: "Lunes",
+                  tuesday: "Martes",
+                  wednesday: "Miércoles",
+                  thursday: "Jueves",
+                  friday: "Viernes",
+                  saturday: "Sábado",
+                  sunday: "Domingo"
+                }[day as keyof typeof defaultSchedule];
+                
+                return (
+                  <div key={day} className="flex items-center space-x-4 p-3 border rounded-lg">
+                    <div className="flex items-center space-x-2 min-w-[120px]">
+                      <input
+                        type="checkbox"
+                        id={`${day}-enabled`}
+                        checked={value.enabled}
+                        onChange={(e) => handleScheduleChange(day, 'enabled', e.target.checked)}
+                        className="rounded"
+                      />
+                      <Label htmlFor={`${day}-enabled`} className="font-medium">
+                        {dayName}
+                      </Label>
+                    </div>
+                    
+                    {value.enabled && (
+                      <div className="flex flex-1 items-center space-x-2">
+                        <Input
+                          type="time"
+                          value={value.start}
+                          onChange={(e) => handleScheduleChange(day, 'start', e.target.value)}
+                          className="max-w-[120px]"
+                        />
+                        <span>-</span>
+                        <Input
+                          type="time"
+                          value={value.end}
+                          onChange={(e) => handleScheduleChange(day, 'end', e.target.value)}
+                          className="max-w-[120px]"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </TabsContent>
         </Tabs>
         
