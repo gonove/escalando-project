@@ -1,0 +1,223 @@
+erDiagram
+    USER {
+        uuid id PK
+        string email
+        string cognito_sub
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ROLE {
+        int id PK
+        string name
+        string description
+    }
+
+    USER_ROLE {
+        uuid user_id FK
+        int role_id FK
+    }
+
+    PROFESSIONAL {
+        int id PK
+        uuid user_id FK
+        string first_name
+        string last_name
+        string phone
+        string specialty
+        string bio
+        string status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    SPECIALTY {
+        int id PK
+        string name
+        string description
+    }
+
+    PROFESSIONAL_SPECIALTY {
+        int professional_id FK
+        int specialty_id FK
+    }
+
+    PROFESSIONAL_DOCUMENT {
+        int id PK
+        int professional_id FK
+        string title
+        string description
+        string file_path
+        string file_type
+        timestamp created_at
+    }
+
+    PATIENT {
+        int id PK
+        string first_name
+        string last_name
+        date birth_date
+        string diagnosis
+        string notes
+        string address
+        string city
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PATIENT_CONTACT {
+        int id PK
+        int patient_id FK
+        string first_name
+        string last_name
+        string relationship
+        string phone
+        string email
+        boolean is_primary
+    }
+
+    PROFESSIONAL_PATIENT {
+        int professional_id FK
+        int patient_id FK
+        boolean is_primary
+        timestamp created_at
+    }
+
+    INITIAL_EVALUATION {
+        int id PK
+        int patient_id FK
+        int professional_id FK
+        date evaluation_date
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    INITIAL_EVALUATION_SECTION {
+        int id PK
+        int evaluation_id FK
+        string section_type
+        string content
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    INITIAL_EVALUATION_DOCUMENT {
+        int id PK
+        int evaluation_id FK
+        string title
+        string description
+        string file_path
+        string file_type
+        timestamp created_at
+    }
+
+    PROFESSIONAL_SCHEDULE {
+        int id PK
+        int professional_id FK
+        int day_of_week
+        time start_time
+        time end_time
+        boolean is_active
+    }
+
+    SESSION {
+        int id PK
+        int professional_id FK
+        int patient_id FK
+        timestamp start_datetime
+        timestamp end_datetime
+        string status
+        string notes
+        string session_type
+        boolean is_recurring
+        int recurrence_pattern_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    RECURRENCE_PATTERN {
+        int id PK
+        string frequency
+        int day_of_week
+        int day_of_month
+        date end_date
+        timestamp created_at
+    }
+
+    SESSION_DOCUMENT {
+        int id PK
+        int session_id FK
+        string title
+        string description
+        string file_path
+        string file_type
+        timestamp created_at
+    }
+
+    REPORT {
+        int id PK
+        int patient_id FK
+        int professional_id FK
+        string title
+        string content
+        string report_type
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    REPORT_DOCUMENT {
+        int id PK
+        int report_id FK
+        string title
+        string description
+        string file_path
+        string file_type
+        timestamp created_at
+    }
+
+    NOTIFICATION {
+        int id PK
+        uuid user_id FK
+        string title
+        string content
+        boolean is_read
+        string notification_type
+        int reference_id
+        timestamp created_at
+    }
+
+    INVOICE {
+        int id PK
+        int session_id FK
+        decimal amount
+        string status
+        date payment_date
+        string payment_method
+        string notes
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    USER ||--o{ USER_ROLE : "has"
+    ROLE ||--o{ USER_ROLE : "assigned to"
+    USER ||--|| PROFESSIONAL : "is a"
+    PROFESSIONAL ||--o{ PROFESSIONAL_SPECIALTY : "has"
+    SPECIALTY ||--o{ PROFESSIONAL_SPECIALTY : "belongs to"
+    PROFESSIONAL ||--o{ PROFESSIONAL_DOCUMENT : "uploads"
+    PROFESSIONAL ||--o{ PROFESSIONAL_SCHEDULE : "defines"
+    PROFESSIONAL ||--o{ PROFESSIONAL_PATIENT : "attends"
+    PATIENT ||--o{ PROFESSIONAL_PATIENT : "assigned to"
+    PATIENT ||--o{ PATIENT_CONTACT : "has"
+    PATIENT ||--o{ INITIAL_EVALUATION : "receives"
+    PROFESSIONAL ||--o{ INITIAL_EVALUATION : "performs"
+    INITIAL_EVALUATION ||--o{ INITIAL_EVALUATION_SECTION : "contains"
+    INITIAL_EVALUATION ||--o{ INITIAL_EVALUATION_DOCUMENT : "has"
+    PROFESSIONAL ||--o{ SESSION : "conducts"
+    PATIENT ||--o{ SESSION : "attends"
+    SESSION ||--o{ SESSION_DOCUMENT : "has"
+    SESSION o|--o| RECURRENCE_PATTERN : "follows"
+    PATIENT ||--o{ REPORT : "receives"
+    PROFESSIONAL ||--o{ REPORT : "creates"
+    REPORT ||--o{ REPORT_DOCUMENT : "has"
+    USER ||--o{ NOTIFICATION : "receives"
+    SESSION ||--o| INVOICE : "generates"
