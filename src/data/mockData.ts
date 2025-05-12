@@ -175,177 +175,177 @@ export const developmentalMilestones: DevelopmentalMilestone[] = [
   }
 ];
 
-// Pacientes
-export const patients: Patient[] = [
-  {
-    id: "pat1",
-    name: "Martín Suárez",
-    dateOfBirth: "2019-05-12",
-    parentName: "Claudia Suárez",
-    contactNumber: "+595 986 209 981",
-    email: "claudia.suarez@gmail.com",
-    diagnosis: "Retraso en el desarrollo psicomotor",
-    notes: "Presenta dificultades en coordinación motora fina y equilibrio.",
-    professionalId: "prof1",
-    phone: "+595 986 209 981",
-    age: 4,
-    gender: "Masculino",
-    status: "active",
-    location: "Asuncion",
-    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat1")
-  },
-  {
-    id: "pat2",
-    name: "Lucía García",
-    dateOfBirth: "2020-02-24",
-    parentName: "Roberto García",
-    contactNumber: "+595 986 209 981",
-    email: "roberto.garcia@hotmail.com",
-    diagnosis: "Parálisis cerebral leve",
-    notes: "Necesita trabajo en fortalecimiento muscular y control de movimiento.",
-    professionalId: "prof1",
-    phone: "+595 986 209 981",
-    age: 3,
-    gender: "Femenino",
-    status: "active",
-    location: "Asuncion",
-    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat2")
-  },
-  {
-    id: "pat3",
-    name: "Tomás Fernández",
-    dateOfBirth: "2018-11-30",
-    parentName: "Mariana Fernández",
-    contactNumber: "+595 986 209 981",
-    email: "mariana.fernandez@gmail.com",
-    diagnosis: "Trastorno del espectro autista",
-    notes: "Requiere estimulación sensorial y desarrollo de habilidades sociales.",
-    professionalId: "prof2",
-    phone: "+595 986 209 981",
-    age: 5,
-    gender: "Masculino",
-    status: "active",
-    location: "Lambaré",
-    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat3")
-  },
-  {
-    id: "pat4",
-    name: "Valentina Lopez",
-    dateOfBirth: "2021-08-15",
-    parentName: "Diego Lopez",
-    contactNumber: "+595 986 209 981",
-    email: "diego.lopez@gmail.com",
-    diagnosis: "Desarrollo típico - seguimiento preventivo",
-    notes: "Asiste a sesiones de estimulación temprana como medida preventiva.",
-    professionalId: "prof2",
-    phone: "+595 986 209 981",
-    age: 2,
-    gender: "Femenino",
-    status: "active",
-    location: "Asuncion",
-    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat4")
-  },
-  {
-    id: "pat5",
-    name: "Santiago Medina",
-    dateOfBirth: "2019-03-07",
-    parentName: "Patricia Medina",
-    contactNumber: "+595 986 209 981",
-    email: "patricia.medina@yahoo.com",
-    diagnosis: "Hipotonía muscular",
-    notes: "Necesita fortalecimiento muscular general y mejora de postura.",
-    professionalId: "prof3",
-    phone: "+595 986 209 981",
-    age: 4,
-    gender: "Masculino",
-    status: "active",
-    location: "Rosario",
-    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat5")
-  },
-  {
-    id: "pat6",
-    name: "Camila Rojas",
-    dateOfBirth: "2020-10-10",
-    parentName: "Sofía Rojas",
-    contactNumber: "+595 986 209 982",
-    email: "sofia.rojas@gmail.com",
-    diagnosis: "Dificultades de lenguaje",
-    notes: "Requiere terapia de lenguaje para mejorar pronunciación y vocabulario.",
-    professionalId: "prof2",
-    phone: "+595 986 209 982",
-    age: 3,
-    gender: "Femenino",
-    status: "active",
-    location: "San Lorenzo",
-    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat6")
-  },
-  {
-    id: "pat7",
-    name: "Javier Torres",
-    dateOfBirth: "2017-07-22",
-    parentName: "Carlos Torres",
-    contactNumber: "+595 986 209 983",
-    email: "carlos.torres@gmail.com",
-    diagnosis: "Déficit de atención e hiperactividad",
-    notes: "Requiere actividades que fomenten la concentración y el autocontrol.",
-    professionalId: "prof3",
-    phone: "+595 986 209 983",
-    age: 6,
-    gender: "Masculino",
-    status: "active",
-    location: "Fernando de la Mora",
-    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat7")
-  },
-  {
-    id: "pat8",
-    name: "Sofía Benítez",
-    dateOfBirth: "2019-12-05",
-    parentName: "Ana Benítez",
-    contactNumber: "+595 986 209 984",
-    email: "ana.benitez@gmail.com",
-    diagnosis: "Retraso en el desarrollo del habla",
-    notes: "Necesita terapia para mejorar habilidades comunicativas.",
-    professionalId: "prof1",
-    phone: "+595 986 209 984",
-    age: 4,
-    gender: "Femenino",
-    status: "active",
-    location: "Luque",
-    developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat8")
-  },
-  {
-    id: "pat9",
-    name: "Emilio Vargas",
-    dateOfBirth: "2018-04-18",
-    parentName: "Laura Vargas",
-    contactNumber: "+595 986 209 985",
-    email: "laura.vargas@gmail.com",
-    diagnosis: "Dificultades motoras",
-    notes: "Requiere fortalecimiento muscular y mejora de coordinación.",
-    professionalId: "prof3",
-    phone: "+595 986 209 985",
-    age: 5,
-    gender: "Masculino",
-    status: "active",
-    location: "Capiatá",
-  },
-  {
-    id: "pat10",
-    name: "Isabella Romero",
-    dateOfBirth: "2021-01-25",
-    parentName: "Marcos Romero",
-    contactNumber: "+595 986 209 986",
-    email: "marcos.romero@gmail.com",
-    diagnosis: "Seguimiento preventivo",
-    notes: "Asiste a sesiones para monitorear desarrollo general.",
-    professionalId: "prof2",
-    phone: "+595 986 209 986",
-    age: 2,
-    gender: "Femenino",
-    status: "active",
-    location: "Asuncion",
-  }
-];
+// // Pacientes
+// export const patients: Patient[] = [
+//   {
+//     id: "pat1",
+//     fullName: "Martín Suárez",
+//     dateOfBirth: "2019-05-12",
+//     parentName: "Claudia Suárez",
+//     contactNumber: "+595 986 209 981",
+//     email: "claudia.suarez@gmail.com",
+//     diagnosis: "Retraso en el desarrollo psicomotor",
+//     notes: "Presenta dificultades en coordinación motora fina y equilibrio.",
+//     professionalId: "prof1",
+//     phone: "+595 986 209 981",
+//     age: 4,
+//     gender: "Masculino",
+//     status: "active",
+//     location: "Asuncion",
+//     developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat1")
+//   },
+//   {
+//     id: "pat2",
+//     name: "Lucía García",
+//     dateOfBirth: "2020-02-24",
+//     parentName: "Roberto García",
+//     contactNumber: "+595 986 209 981",
+//     email: "roberto.garcia@hotmail.com",
+//     diagnosis: "Parálisis cerebral leve",
+//     notes: "Necesita trabajo en fortalecimiento muscular y control de movimiento.",
+//     professionalId: "prof1",
+//     phone: "+595 986 209 981",
+//     age: 3,
+//     gender: "Femenino",
+//     status: "active",
+//     location: "Asuncion",
+//     developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat2")
+//   },
+//   {
+//     id: "pat3",
+//     name: "Tomás Fernández",
+//     dateOfBirth: "2018-11-30",
+//     parentName: "Mariana Fernández",
+//     contactNumber: "+595 986 209 981",
+//     email: "mariana.fernandez@gmail.com",
+//     diagnosis: "Trastorno del espectro autista",
+//     notes: "Requiere estimulación sensorial y desarrollo de habilidades sociales.",
+//     professionalId: "prof2",
+//     phone: "+595 986 209 981",
+//     age: 5,
+//     gender: "Masculino",
+//     status: "active",
+//     location: "Lambaré",
+//     developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat3")
+//   },
+//   {
+//     id: "pat4",
+//     name: "Valentina Lopez",
+//     dateOfBirth: "2021-08-15",
+//     parentName: "Diego Lopez",
+//     contactNumber: "+595 986 209 981",
+//     email: "diego.lopez@gmail.com",
+//     diagnosis: "Desarrollo típico - seguimiento preventivo",
+//     notes: "Asiste a sesiones de estimulación temprana como medida preventiva.",
+//     professionalId: "prof2",
+//     phone: "+595 986 209 981",
+//     age: 2,
+//     gender: "Femenino",
+//     status: "active",
+//     location: "Asuncion",
+//     developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat4")
+//   },
+//   {
+//     id: "pat5",
+//     name: "Santiago Medina",
+//     dateOfBirth: "2019-03-07",
+//     parentName: "Patricia Medina",
+//     contactNumber: "+595 986 209 981",
+//     email: "patricia.medina@yahoo.com",
+//     diagnosis: "Hipotonía muscular",
+//     notes: "Necesita fortalecimiento muscular general y mejora de postura.",
+//     professionalId: "prof3",
+//     phone: "+595 986 209 981",
+//     age: 4,
+//     gender: "Masculino",
+//     status: "active",
+//     location: "Rosario",
+//     developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat5")
+//   },
+//   {
+//     id: "pat6",
+//     name: "Camila Rojas",
+//     dateOfBirth: "2020-10-10",
+//     parentName: "Sofía Rojas",
+//     contactNumber: "+595 986 209 982",
+//     email: "sofia.rojas@gmail.com",
+//     diagnosis: "Dificultades de lenguaje",
+//     notes: "Requiere terapia de lenguaje para mejorar pronunciación y vocabulario.",
+//     professionalId: "prof2",
+//     phone: "+595 986 209 982",
+//     age: 3,
+//     gender: "Femenino",
+//     status: "active",
+//     location: "San Lorenzo",
+//     developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat6")
+//   },
+//   {
+//     id: "pat7",
+//     name: "Javier Torres",
+//     dateOfBirth: "2017-07-22",
+//     parentName: "Carlos Torres",
+//     contactNumber: "+595 986 209 983",
+//     email: "carlos.torres@gmail.com",
+//     diagnosis: "Déficit de atención e hiperactividad",
+//     notes: "Requiere actividades que fomenten la concentración y el autocontrol.",
+//     professionalId: "prof3",
+//     phone: "+595 986 209 983",
+//     age: 6,
+//     gender: "Masculino",
+//     status: "active",
+//     location: "Fernando de la Mora",
+//     developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat7")
+//   },
+//   {
+//     id: "pat8",
+//     name: "Sofía Benítez",
+//     dateOfBirth: "2019-12-05",
+//     parentName: "Ana Benítez",
+//     contactNumber: "+595 986 209 984",
+//     email: "ana.benitez@gmail.com",
+//     diagnosis: "Retraso en el desarrollo del habla",
+//     notes: "Necesita terapia para mejorar habilidades comunicativas.",
+//     professionalId: "prof1",
+//     phone: "+595 986 209 984",
+//     age: 4,
+//     gender: "Femenino",
+//     status: "active",
+//     location: "Luque",
+//     developmentalMilestones: developmentalMilestones.filter(m => m.patientId === "pat8")
+//   },
+//   {
+//     id: "pat9",
+//     name: "Emilio Vargas",
+//     dateOfBirth: "2018-04-18",
+//     parentName: "Laura Vargas",
+//     contactNumber: "+595 986 209 985",
+//     email: "laura.vargas@gmail.com",
+//     diagnosis: "Dificultades motoras",
+//     notes: "Requiere fortalecimiento muscular y mejora de coordinación.",
+//     professionalId: "prof3",
+//     phone: "+595 986 209 985",
+//     age: 5,
+//     gender: "Masculino",
+//     status: "active",
+//     location: "Capiatá",
+//   },
+//   {
+//     id: "pat10",
+//     name: "Isabella Romero",
+//     dateOfBirth: "2021-01-25",
+//     parentName: "Marcos Romero",
+//     contactNumber: "+595 986 209 986",
+//     email: "marcos.romero@gmail.com",
+//     diagnosis: "Seguimiento preventivo",
+//     notes: "Asiste a sesiones para monitorear desarrollo general.",
+//     professionalId: "prof2",
+//     phone: "+595 986 209 986",
+//     age: 2,
+//     gender: "Femenino",
+//     status: "active",
+//     location: "Asuncion",
+//   }
+// ];
 
 // Exercises data
 export const exercises: Exercise[] = [
@@ -715,9 +715,9 @@ export const sessions: Session[] = [
 ];
 
 // Helper Functions
-export const getPatientsByProfessional = (professionalId: string): Patient[] => {
-  return patients.filter(patient => patient.professionalId === professionalId);
-};
+// export const getPatientsByProfessional = (professionalId: string): Patient[] => {
+//   return patients.filter(patient => patient.professionalId === professionalId);
+// };
 
 export const getSessionsByPatient = (patientId: string): Session[] => {
   return sessions.filter(session => session.patientId === patientId);
@@ -727,9 +727,9 @@ export const getProfessionalById = (id: string): Professional | undefined => {
   return professionals.find(prof => prof.id === id);
 };
 
-export const getPatientById = (id: string): Patient | undefined => {
-  return patients.find(patient => patient.id === id);
-};
+// export const getPatientById = (id: string): Patient | undefined => {
+//   return patients.find(patient => patient.id === id);
+// };
 
 export const getSessionById = (id: string): Session | undefined => {
   return sessions.find(session => session.id === id);

@@ -11,21 +11,37 @@ export interface Professional {
 
 export interface Patient {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
   professionalId: string;
   email: string;
-  phone: string;
   age: number;
   gender: string;
   status: string;
   diagnosis: string;
+  contacts: PatientContact[];
   notes: string;
-  location: string;
+  address: string;
   dateOfBirth: string;
-  parentName?: string;
-  contactNumber?: string;
+  contactNumber: string;
+  parentName: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
   developmentalMilestones?: DevelopmentalMilestone[];
 }
+
+export interface PatientContact {
+  id: string;
+  patientId: string;
+  firstName: string;
+  lastName: string;
+  relationship: string;
+  phone: string;
+  email: string;
+}
+
 
 export interface DevelopmentalMilestone {
   id: string;
