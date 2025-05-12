@@ -1,0 +1,82 @@
+
+#root {
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  #root {
+    padding: 0;
+    width: 100%;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* Responsive utilities */
+.mobile-full-width {
+  width: 100%;
+}
+
+/* Yellow color theme for Escalando */
+.bg-escalando {
+  background-color: #eab308;
+}
+
+.text-escalando {
+  color: #eab308;
+}
+
+.border-escalando {
+  border-color: #eab308;
+}
+
+/* Ensure full width containers on mobile */
+@media (max-width: 768px) {
+  .container, .container-fluid {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .row {
+    margin-left: -6px;
+    margin-right: -6px;
+  }
+}
+
+/* Fix for overflow issues */
+body, html {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Prevent sidebar from causing overflow */
+.sidebar-content {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Shared report styles */
+.shared-report-header {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
