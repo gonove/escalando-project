@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { motion } from "framer-motion";
-import { patients } from "@/data/mockData";
 import { Patient } from "@/types/models";
 import { ChevronLeft, Save, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
