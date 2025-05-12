@@ -1,32 +1,39 @@
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import { patients, sessions } from "@/data/mockData";
+import { sessions } from "@/data/mockData";
 import { Patient, Session } from "@/types/models";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Clock, MapPin, Phone, Mail, File, Plus, ChevronLeft, Clipboard, ClipboardCheck, FilePlus } from "lucide-react";
+import { Calendar, Clock, MapPin, Phone, Mail, File, Plus, ChevronLeft, Clipboard, ClipboardCheck, FilePlus, Ambulance } from "lucide-react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
 import DevelopmentalMilestones from "@/components/patient/DevelopmentalMilestones";
+import { useQuery } from "@tanstack/react-query";
+import { getPatientById } from "@/api/patient";
 
 const PatientDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const patient = patients.find((p) => p.id === id) as Patient | undefined;
+
   const patientSessions = sessions
     .filter((s) => s.patientId === id)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  
+
   const [activeTab, setActiveTab] = useState("overview");
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const isMobileOrTablet = useIsMobileOrTablet();
-  
+
+  const { isLoading, data: patient, error } = useQuery({
+    queryKey: ['patient', id],
+    queryFn: () => getPatientById(id)
+  });
+
+  console.log(patient)
+
   if (!patient) {
     return (
       <Layout>
@@ -70,8 +77,8 @@ const PatientDetail = () => {
               <h1 className="text-2xl font-semibold">Paciente</h1>
             </div>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex items-center gap-2"
                 asChild
               >
@@ -80,8 +87,8 @@ const PatientDetail = () => {
                   Editar
                 </Link>
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex items-center gap-2"
                 asChild
               >
@@ -90,7 +97,7 @@ const PatientDetail = () => {
                   Evaluación Inicial
                 </Link>
               </Button>
-              <Button 
+              <Button
                 className="flex items-center gap-2"
                 asChild
               >
@@ -108,9 +115,9 @@ const PatientDetail = () => {
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-xl">{patient.name}</CardTitle>
+                  <CardTitle className="text-xl">{patient.fullName}</CardTitle>
                   <CardDescription>
-                    {patient.age} años | {patient.gender}
+                    {patient.dateOfBirth ? `${new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear()} años` : "Sin fecha de nacimiento"} | {patient.gender}
                   </CardDescription>
                 </div>
                 <Badge className="bg-escalando-500">
@@ -127,16 +134,20 @@ const PatientDetail = () => {
                 <div className="grid gap-3 pt-3">
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span>{patient.phone}</span>
+                    <a href={`https://wa.me/${patient.contacts[0].phone}?text=Hola, este es un mensaje relacionado con el paciente ${patient.fullName}`} target="_blank" rel="noopener noreferrer">{patient.contacts[0].phone}</a>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Ambulance className="h-4 w-4 text-muted-foreground" />
+                    <a href={`https://wa.me/${patient.contacts[1].phone}?text=Hola, este es un mensaje relacionado con el paciente ${patient.fullName}`} target="_blank" rel="noopener noreferrer">{patient.contacts[1].phone}</a>
                   </div>
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span>{patient.email}</span>
+                    <span>{patient.contacts[0].email}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                     <span>
-                      {patient.location || "Sin dirección registrada"}
+                      {patient.address || "Sin dirección registrada"}
                     </span>
                   </div>
                 </div>
@@ -177,7 +188,7 @@ const PatientDetail = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground">
                   Sesiones
@@ -198,11 +209,11 @@ const PatientDetail = () => {
                   </div>
                 </div>
               </div>
-              
+
               {isMobileOrTablet && (
                 <div className="flex flex-col gap-2 mt-4">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="flex items-center gap-2"
                     asChild
                   >
@@ -211,8 +222,8 @@ const PatientDetail = () => {
                       Editar
                     </Link>
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="flex items-center gap-2"
                     asChild
                   >
@@ -221,7 +232,7 @@ const PatientDetail = () => {
                       Evaluación Inicial
                     </Link>
                   </Button>
-                  <Button 
+                  <Button
                     className="flex items-center gap-2"
                     asChild
                   >
@@ -236,8 +247,8 @@ const PatientDetail = () => {
           </Card>
 
           <div className="flex-1">
-            <Tabs 
-              defaultValue="overview" 
+            <Tabs
+              defaultValue="overview"
               className="w-full"
               value={activeTab}
               onValueChange={setActiveTab}
@@ -247,7 +258,7 @@ const PatientDetail = () => {
                 <TabsTrigger value="sessions">Sesiones</TabsTrigger>
                 <TabsTrigger value="development">Neurodesarrollo</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="overview" className="space-y-4 mt-4">
                 {patientSessions.length > 0 && (
                   <Card>
@@ -312,14 +323,14 @@ const PatientDetail = () => {
                   </Card>
                 )}
               </TabsContent>
-              
+
               <TabsContent value="sessions" className="mt-4">
                 <Card>
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-lg">Historial de Sesiones</CardTitle>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         className="flex items-center gap-2"
                         asChild
                       >
@@ -402,7 +413,7 @@ const PatientDetail = () => {
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               <TabsContent value="development" className="mt-4">
                 <Card>
                   <CardHeader>
@@ -412,8 +423,8 @@ const PatientDetail = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <DevelopmentalMilestones 
-                      patientId={id || ""} 
+                    <DevelopmentalMilestones
+                      patientId={id || ""}
                       initialMilestones={patient?.developmentalMilestones || []}
                     />
                   </CardContent>
@@ -425,8 +436,8 @@ const PatientDetail = () => {
 
         {isMobile && (
           <div className="fixed bottom-4 right-4 z-10">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="rounded-full h-14 w-14 shadow-lg"
               asChild
             >

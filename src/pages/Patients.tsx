@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -29,37 +28,55 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { professionals, patients, getSessionsByPatient } from "@/data/mockData";
-import { useIsMobile, useIsTablet, useIsMobileOrTablet } from "@/hooks/use-mobile";
+import { getSessionsByPatient } from "@/data/mockData";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { getPatients } from "@/api/patient";
+import { useQuery } from "@tanstack/react-query";
+import { Patient } from "@/types/models";
 
-// For demonstration purposes
-const currentProfessional = professionals[1];
-const myPatients = patients.filter(
-  (patient) => patient.professionalId === currentProfessional.id
-);
-
-console.log(myPatients)
+// const currentProfessional = professionals[1];
 
 const Patients = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredPatients, setFilteredPatients] = useState(myPatients);
+  const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
+  const [limit] = useState(10);
+  const [offset, setOffset] = useState(0);
   const isMobile = useIsMobile();
-  const isTablet = useIsTablet();
-  const isMobileOrTablet = useIsMobileOrTablet();
+  const observer = useRef<IntersectionObserver>();
+  const [patientId, setPatientId] = useState<string | null>(null);
+
+  const { isLoading, data: myPatients, error } = useQuery<Patient[]>({
+    queryKey: ['patients', limit, offset],
+    queryFn: () => getPatients(limit, offset)
+  });
+
+  const hasMore = myPatients && myPatients.length === limit;
+
+  const lastPatientElementRef = useCallback((node: HTMLDivElement | null) => {
+    if (isLoading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        setOffset(prevOffset => prevOffset + limit);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [isLoading, limit, hasMore]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
+    setOffset(0); // Reset offset when searching
 
     if (query.trim() === "") {
-      setFilteredPatients(myPatients);
+      setFilteredPatients(myPatients || []);
       return;
     }
 
-    const filtered = myPatients.filter(
+    const filtered = (myPatients || []).filter(
       (patient) =>
-        patient.name.toLowerCase().includes(query) ||
+        patient.fullName.toLowerCase().includes(query) ||
         patient.diagnosis?.toLowerCase().includes(query) ||
         (patient.parentName && patient.parentName.toLowerCase().includes(query))
     );
@@ -89,6 +106,17 @@ const Patients = () => {
     return `${age} años`;
   };
 
+  // Update filteredPatients whenever myPatients changes
+  useEffect(() => {
+    if (myPatients) {
+      if (offset === 0) {
+        setFilteredPatients(myPatients);
+      } else {
+        setFilteredPatients(prev => [...prev, ...myPatients]);
+      }
+    }
+  }, [myPatients, offset]);
+
   return (
     <Layout>
       <motion.div
@@ -102,7 +130,7 @@ const Patients = () => {
           !isMobile && "md:flex-row md:items-center md:justify-between md:space-y-0"
         )}>
           <div>
-            <h1 className="text-xl sm:text-2xl font-semibold">Pacientes</h1>
+            <h1 className="text-xl sm:text-2xl font-semibold text-left">Pacientes</h1>
             <p className="text-muted-foreground text-sm">
               Gestiona la información de tus pacientes
             </p>
@@ -157,6 +185,7 @@ const Patients = () => {
             return (
               <motion.div
                 key={patient.id}
+                ref={index === filteredPatients.length - 1 ? lastPatientElementRef : null}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 * index }}
@@ -164,7 +193,7 @@ const Patients = () => {
                 <Card className="h-full transition-all duration-200 hover:shadow-md">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between">
-                      <CardTitle className="text-lg">{patient.name}</CardTitle>
+                      <CardTitle className="text-lg">{patient.fullName}</CardTitle>
                       <Link to={`/patients/${patient.id}/edit`}>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <Edit className="h-4 w-4" />
@@ -193,7 +222,14 @@ const Patients = () => {
                         <div className="text-sm font-medium text-muted-foreground mb-1">
                           Contacto:
                         </div>
-                        <div className="truncate">{patient.contactNumber || patient.phone}</div>
+                        <a
+                          href={`https://wa.me/${(patient.contactNumber).replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="truncate hover:text-escalando-600 transition-colors"
+                        >
+                          {patient.contactNumber}
+                        </a>
                       </div>
                       {lastSession && (
                         <div className="pt-2">
@@ -228,7 +264,23 @@ const Patients = () => {
           })}
         </div>
 
-        {filteredPatients.length === 0 && (
+        {isLoading && (
+          <div className="text-center py-8 sm:py-12">
+            <p className="text-lg text-muted-foreground">
+              Cargando pacientes...
+            </p>
+          </div>
+        )}
+
+        {error && (
+          <div className="text-center py-8 sm:py-12">
+            <p className="text-lg text-muted-foreground">
+              Error al cargar pacientes.
+            </p>
+          </div>
+        )}
+
+        {filteredPatients.length === 0 && !isLoading && (
           <div className="text-center py-8 sm:py-12">
             <p className="text-lg text-muted-foreground">
               No se encontraron pacientes con tu búsqueda.

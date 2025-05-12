@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -19,44 +18,56 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/context/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { getPatientById, updatePatientById } from "@/api/patient";
 
-const PatientEdit = () => {
+const PatientEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
-
   const [patient, setPatient] = useState<Patient | null>(null);
+
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Fetch patient data
-    const foundPatient = patients.find(p => p.id === id);
-    if (foundPatient) {
-      setPatient({ ...foundPatient });
-    }
-    setLoading(false);
-  }, [id]);
+  const { isLoading, data, error } = useQuery({
+    queryKey: ['patient', id],
+    queryFn: () => getPatientById(id)
+  });
 
-  const handleChange = (field: keyof Patient, value: any) => {
+  useEffect(() => {
+
+    if (isLoading) {
+      setLoading(true);
+    }
+
+    if (data) {
+      setPatient(data);
+      setLoading(false);
+    }
+  }, [data, isLoading,]);
+
+
+
+  const handleChange = (field: keyof Patient, value: string | number) => {
     if (patient) {
       setPatient({ ...patient, [field]: value });
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!patient) return;
 
-    // In a real app, this would save to a database
-    // For now, we'll just show a success message
+    const { id, fullName, createdAt, updatedAt, deletedAt, ...patientToUpdate } = patient;
+
+    await updatePatientById(id, patientToUpdate);
     toast({
       title: "Paciente actualizado",
       description: "Los datos del paciente han sido actualizados exitosamente",
     });
 
-    // Navigate back to patient details
     navigate(`/patients/${id}`);
   };
 
@@ -86,6 +97,19 @@ const PatientEdit = () => {
     );
   }
 
+  const calculateAge = (dateOfBirth: string) => {
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+
+  console.log(patient)
   return (
     <Layout>
       <motion.div
@@ -172,21 +196,31 @@ const PatientEdit = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nombre Completo</Label>
-                    <Input
-                      id="name"
-                      value={patient.name}
-                      onChange={(e) => handleChange("name", e.target.value)}
-                    />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">Nombre</Label>
+                      <Input
+                        id="firstName"
+                        value={patient.firstName}
+                        onChange={(e) => handleChange("firstName", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Apellido</Label>
+                      <Input
+                        id="lastName"
+                        value={patient.lastName}
+                        onChange={(e) => handleChange("lastName", e.target.value)}
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="age">Edad</Label>
                     <Input
                       id="age"
                       type="number"
-                      value={patient.age}
-                      onChange={(e) => handleChange("age", parseInt(e.target.value))}
+                      value={calculateAge(patient.dateOfBirth)}
+                      onChange={(e) => handleChange("dateOfBirth", e.target.value)}
                     />
                   </div>
                 </div>
@@ -285,26 +319,26 @@ const PatientEdit = () => {
                     <Input
                       id="email"
                       type="email"
-                      value={patient.email}
+                      value={patient.contacts[0].email}
                       onChange={(e) => handleChange("email", e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Teléfono</Label>
+                    <Label htmlFor="contactNumber">Teléfono</Label>
                     <Input
-                      id="phone"
-                      value={patient.phone}
-                      onChange={(e) => handleChange("phone", e.target.value)}
+                      id="contactNumber"
+                      value={patient.contacts[0].phone}
+                      onChange={(e) => handleChange("contactNumber", e.target.value)}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="location">Dirección</Label>
+                  <Label htmlFor="address">Dirección</Label>
                   <Textarea
-                    id="location"
-                    value={patient.location}
-                    onChange={(e) => handleChange("location", e.target.value)}
+                    id="address"
+                    value={patient.address}
+                    onChange={(e) => handleChange("address", e.target.value)}
                   />
                 </div>
 
@@ -313,7 +347,7 @@ const PatientEdit = () => {
                     <Label htmlFor="parentName">Nombre del Responsable</Label>
                     <Input
                       id="parentName"
-                      value={patient.parentName || ""}
+                      value={patient.contacts[0].firstName + " " + patient.contacts[0].lastName}
                       onChange={(e) => handleChange("parentName", e.target.value)}
                     />
                   </div>
@@ -321,7 +355,7 @@ const PatientEdit = () => {
                     <Label htmlFor="contactNumber">Número de Contacto Alternativo</Label>
                     <Input
                       id="contactNumber"
-                      value={patient.contactNumber || ""}
+                      value={patient.contacts[1].phone}
                       onChange={(e) => handleChange("contactNumber", e.target.value)}
                     />
                   </div>
